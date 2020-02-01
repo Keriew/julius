@@ -17,16 +17,7 @@ static void find_minimum_road_tile(int x, int y, int size, int *min_value, int *
         if (!map_terrain_is(grid_offset, TERRAIN_BUILDING) ||
             building_get(map_building_at(grid_offset))->type != BUILDING_GATEHOUSE) {
             if (map_terrain_is(grid_offset, TERRAIN_ROAD)) {
-                int road_index = city_map_road_network_index(map_road_network_get(grid_offset));
-                if (road_index < *min_value) {
-                    *min_value = road_index;
-                    *min_grid_offset = grid_offset;
-                }
-            }
-        }
-        if (!map_terrain_is(grid_offset, TERRAIN_BUILDING) ||
-            building_get(map_building_at(grid_offset))->type != BUILDING_ROADBLOCK) {
-            if (map_terrain_is(grid_offset, TERRAIN_ROAD)) {
+		if (building_get(map_building_at(grid_offset))->type == BUILDING_ROADBLOCK) continue;
                 int road_index = city_map_road_network_index(map_road_network_get(grid_offset));
                 if (road_index < *min_value) {
                     *min_value = road_index;
@@ -101,6 +92,8 @@ static int road_within_radius(int x, int y, int size, int radius, int *x_road, i
     for (int yy = y_min; yy <= y_max; yy++) {
         for (int xx = x_min; xx <= x_max; xx++) {
             if (map_terrain_is(map_grid_offset(xx, yy), TERRAIN_ROAD)) {
+                // Don't spawn walkers on roadblocks
+		if (building_get(map_building_at(map_grid_offset(xx, yy)))->type == BUILDING_ROADBLOCK) continue;
                 if (x_road && y_road) {
                     *x_road = xx;
                     *y_road = yy;
