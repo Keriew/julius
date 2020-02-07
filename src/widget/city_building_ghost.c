@@ -228,6 +228,9 @@ static int is_fully_blocked(int map_x, int map_y, building_type type, int buildi
     if (type == BUILDING_PLAZA && !map_terrain_is(grid_offset, TERRAIN_ROAD)) {
         return 1;
     }
+    if (type == BUILDING_ROADBLOCK && !map_terrain_is(grid_offset, TERRAIN_ROAD)) {
+        return 1;
+    }
     if (city_finance_out_of_money()) {
         return 1;
     }
@@ -253,7 +256,7 @@ static void draw_default(const map_tile *tile, int x_view, int y_view, building_
     for (int i = 0; i < num_tiles; i++) {
         int tile_offset = grid_offset + TILE_GRID_OFFSETS[orientation_index][i];
         int forbidden_terrain = map_terrain_get(tile_offset) & TERRAIN_NOT_CLEAR;
-        if (type == BUILDING_GATEHOUSE || type == BUILDING_TRIUMPHAL_ARCH || type == BUILDING_PLAZA) {
+        if (type == BUILDING_GATEHOUSE || type == BUILDING_TRIUMPHAL_ARCH || type == BUILDING_PLAZA || type == BUILDING_ROADBLOCK) {
             forbidden_terrain &= ~TERRAIN_ROAD;
         }
         if (type == BUILDING_TOWER) {

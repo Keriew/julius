@@ -1,5 +1,6 @@
 #include "main_menu.h"
 
+#include "core/string.h"
 #include "editor/editor.h"
 #include "game/game.h"
 #include "game/system.h"
@@ -9,17 +10,21 @@
 #include "graphics/image_button.h"
 #include "graphics/lang_text.h"
 #include "graphics/panel.h"
+#include "graphics/text.h"
+#include "graphics/screen.h"
 #include "graphics/window.h"
+#include "platform/version.h"
 #include "sound/music.h"
 #include "window/cck_selection.h"
+#include "window/config.h"
 #include "window/file_dialog.h"
-#include "window/intro_video.h"
 #include "window/new_career.h"
 #include "window/plain_message_dialog.h"
 #include "window/popup_dialog.h"
 
+#define MAX_BUTTONS 6
+
 static void button_click(int type, int param2);
-static void button_intro_movie(int param1, int param2);
 
 static int focus_button_id;
 
@@ -29,10 +34,33 @@ static generic_button buttons[] = {
     {192, 180, 256, 25, button_click, button_none, 3, 0},
     {192, 220, 256, 25, button_click, button_none, 4, 0},
     {192, 260, 256, 25, button_click, button_none, 5, 0},
+    {192, 300, 256, 25, button_click, button_none, 6, 0},
 };
 
-static image_button movie_button =
-    {591, 442, 33, 22, IB_NORMAL, 89, 0, button_intro_movie, button_none, 0, 0, 1};
+//static image_button movie_button =
+//    {591, 442, 33, 22, IB_NORMAL, 89, 0, button_intro_movie, button_none, 0, 0, 1};
+
+static void draw_version_string(void)
+{
+    uint8_t version_string[100] = "v";
+    const uint8_t *julius_version = string_from_ascii(JULIUS_VERSION);
+    const uint8_t *julius_version_suffix = string_from_ascii(JULIUS_VERSION_SUFFIX);
+    int version_length = string_length(julius_version);
+    int text_y = screen_height() - 30;
+
+    string_copy(julius_version, version_string + 1, 99);
+    string_copy(julius_version_suffix, version_string + 1 + version_length, 99 - version_length);
+
+    int text_width = text_get_width(version_string, FONT_SMALL_PLAIN);
+
+    if (text_y <= 500 && (screen_width() - 640) / 2 < text_width + 18) {
+        graphics_draw_rect(10, text_y, text_width + 14, 20, COLOR_BLACK);
+        graphics_fill_rect(11, text_y + 1, text_width + 12, 18, COLOR_WHITE);
+        text_draw(version_string, 18, text_y + 6, FONT_SMALL_PLAIN, COLOR_BLACK);
+    } else {
+        text_draw(version_string, 18, text_y + 6, FONT_SMALL_PLAIN, COLOR_WHITE);
+    }
+}
 
 static void draw_background(void)
 {
@@ -40,25 +68,23 @@ static void draw_background(void)
     graphics_in_dialog();
     image_draw(image_group(GROUP_MAIN_MENU_BACKGROUND), 0, 0);
     graphics_reset_dialog();
+    draw_version_string();
 }
 
 static void draw_foreground(void)
 {
     graphics_in_dialog();
 
-    large_label_draw(192, 100, 16, focus_button_id == 1 ? 1 : 0);
-    large_label_draw(192, 140, 16, focus_button_id == 2 ? 1 : 0);
-    large_label_draw(192, 180, 16, focus_button_id == 3 ? 1 : 0);
-    large_label_draw(192, 220, 16, focus_button_id == 4 ? 1 : 0);
-    large_label_draw(192, 260, 16, focus_button_id == 5 ? 1 : 0);
+    for (int i = 0; i < MAX_BUTTONS; i++) {
+        large_label_draw(buttons[i].x, buttons[i].y, buttons[i].width / 16, focus_button_id == i + 1 ? 1 : 0);
+    }
 
     lang_text_draw_centered(30, 1, 192, 106, 256, FONT_NORMAL_GREEN);
     lang_text_draw_centered(30, 2, 192, 146, 256, FONT_NORMAL_GREEN);
     lang_text_draw_centered(30, 3, 192, 186, 256, FONT_NORMAL_GREEN);
     lang_text_draw_centered(9, 8, 192, 226, 256, FONT_NORMAL_GREEN);
-    lang_text_draw_centered(30, 5, 192, 266, 256, FONT_NORMAL_GREEN);
-
-    image_buttons_draw(0, 0, &movie_button, 1);
+    lang_text_draw_centered(2, 0, 192, 266, 256, FONT_NORMAL_GREEN);
+    lang_text_draw_centered(30, 5, 192, 306, 256, FONT_NORMAL_GREEN);
 
     graphics_reset_dialog();
 }
@@ -66,10 +92,7 @@ static void draw_foreground(void)
 static void handle_mouse(const mouse *m)
 {
     const mouse *m_dialog = mouse_in_dialog(m);
-    int dummy;
-    if (!image_buttons_handle_mouse(m_dialog, 0, 0, &movie_button, 1, &dummy)) {
-        generic_buttons_handle_mouse(m_dialog, 0, 0, buttons, 5, &focus_button_id);
-    }
+    generic_buttons_handle_mouse(m_dialog, 0, 0, buttons, MAX_BUTTONS, &focus_button_id);
 }
 
 static void confirm_exit(int accepted)
@@ -99,13 +122,10 @@ static void button_click(int type, int param2)
             sound_music_play_editor();
         }
     } else if (type == 5) {
+        window_config_show();
+    } else if (type == 6) {
         window_popup_dialog_show(POPUP_DIALOG_QUIT, confirm_exit, 1);
     }
-}
-
-static void button_intro_movie(int param1, int param2)
-{
-    window_intro_video_show();
 }
 
 void window_main_menu_show(int restart_music)

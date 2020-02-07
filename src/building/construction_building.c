@@ -405,7 +405,7 @@ static void add_to_map(int type, building *b, int size,
             add_building(b, image_group(GROUP_BUILDING_ORACLE));
             break;
         case BUILDING_ROADBLOCK:
-            add_building(b, image_group(GROUP_TERRAIN_PLAZA));
+            add_building(b, image_group(GROUP_ROADBLOCK));
             map_terrain_add_roadblock_road(b->x, b->y, orientation);	    
             map_tiles_update_area_roads(b->x, b->y, 5);
             map_tiles_update_all_plazas();
@@ -534,6 +534,11 @@ int building_construction_place_building(building_type type, int x, int y)
             } else {
                 building_orientation = 2;
             }
+        }
+    }
+    if (type == BUILDING_ROADBLOCK) {
+        if (map_tiles_are_clear(x, y, size, TERRAIN_ROAD)) {
+            return 0;
         }
     }
     if (type == BUILDING_TRIUMPHAL_ARCH) {

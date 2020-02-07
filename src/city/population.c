@@ -4,6 +4,7 @@
 #include "building/house_population.h"
 #include "city/data_private.h"
 #include "core/calc.h"
+#include "core/config.h"
 #include "core/random.h"
 
 static const int BIRTHS_PER_AGE_DECENNIUM[10] = {
@@ -203,10 +204,18 @@ void city_population_remove_for_troop_request(int num_people)
 
 int city_population_people_of_working_age(void)
 {
-    return
-        get_people_in_age_decennium(2) +
-        get_people_in_age_decennium(3) +
-        get_people_in_age_decennium(4);
+    if (config_get(CONFIG_GP_CH_RETIRE_AT_60)) {
+	return
+            get_people_in_age_decennium(2) +
+            get_people_in_age_decennium(3) +
+            get_people_in_age_decennium(4) +
+            get_people_in_age_decennium(5);
+    } else {
+        return
+            get_people_in_age_decennium(2) +
+            get_people_in_age_decennium(3) +
+            get_people_in_age_decennium(4);
+    }
 }
 
 static int get_people_aged_between(int min, int max)
@@ -271,8 +280,14 @@ static void yearly_advance_ages_and_calculate_deaths(void)
         int death_percentage = DEATHS_PER_HEALTH_PER_AGE_DECENNIUM[city_data.health.value / 10][decennium];
         int deaths = calc_adjust_with_percentage(people, death_percentage);
         int removed = house_population_remove_from_city(deaths + aged100);
-        remove_from_census_in_age_decennium(decennium, removed);
-        // ^ BUGFIX should be deaths only, now aged100 are removed from census while they weren't *in* the census anymore
+        if (config_get(CONFIG_GP_FIX_100_YEAR_GHOSTS)) {
+            remove_from_census_in_age_decennium(decennium, deaths);
+        } else {
+            // Original C3 removes both deaths and aged100, which creates "ghosts".
+            // It should be deaths only; now aged100 are removed from census while
+            // they weren't *in* the census anymore
+            remove_from_census_in_age_decennium(decennium, removed);
+        }
         city_data.population.yearly_deaths += removed;
         aged100 = 0;
     }

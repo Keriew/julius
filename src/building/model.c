@@ -155,8 +155,13 @@ int model_load(void)
     return 1;
 }
 
+const model_building MODEL_ROADBLOCK = {40,0,0,0,0};
+
 const model_building *model_get_building(building_type type)
 {
+    if(type == BUILDING_ROADBLOCK) {
+        return &MODEL_ROADBLOCK;
+    }
     return &buildings[type];
 }
 
