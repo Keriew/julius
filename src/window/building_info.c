@@ -19,6 +19,7 @@
 #include "map/aqueduct.h"
 #include "map/building.h"
 #include "map/figure.h"
+#include "map/grid.h"
 #include "map/image.h"
 #include "map/property.h"
 #include "map/road_access.h"
