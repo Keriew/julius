@@ -38,11 +38,7 @@ void map_highlight_clear(int grid_offset)
 
 int map_is_highlighted(int grid_offset)
 {
-    if (highlight_grid.items[grid_offset] == 1) {
-        return true; 
-    } else { 
-        return false;
-    }
+    return highlight_grid.items[grid_offset];
 }
 
 int map_building_damage_increase(int grid_offset)
