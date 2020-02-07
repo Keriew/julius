@@ -210,6 +210,30 @@ static void init(int grid_offset)
         building *b = building_get(context.building_id);
         context.type = BUILDING_INFO_BUILDING;
         context.worker_percentage = calc_percentage(b->num_workers, model_get_building(b->type)->laborers);
+        
+        map_clear_highlights();
+        int hx, hy, roadx, roady; // highlight the 4 routing tiles for roams from this building
+        hx = b->x; hy = b->y-8;
+        map_grid_bound(&hx, &hy); 
+        if (map_closest_road_within_radius(hx, hy, 1, 6, &roadx, &roady)) {
+            map_highlight_set(map_grid_offset(roadx,roady));
+        }
+        hx = b->x+8; hy = b->y;
+        map_grid_bound(&hx, &hy); 
+        if (map_closest_road_within_radius(hx, hy, 1, 6, &roadx, &roady)) {
+            map_highlight_set(map_grid_offset(roadx,roady));
+        }
+        hx = b->x; hy = b->y+8;
+        map_grid_bound(&hx, &hy); 
+        if (map_closest_road_within_radius(hx, hy, 1, 6, &roadx, &roady)) {
+            map_highlight_set(map_grid_offset(roadx,roady));
+        }
+        hx = b->x-8; hy = b->y;
+        map_grid_bound(&hx, &hy); 
+        if (map_closest_road_within_radius(hx, hy, 1, 6, &roadx, &roady)) {
+            map_highlight_set(map_grid_offset(roadx,roady));
+        }
+        
         switch (b->type) {
             case BUILDING_FORT_GROUND:
                 context.building_id = b->prev_part_building_id;
