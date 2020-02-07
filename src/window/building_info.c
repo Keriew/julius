@@ -234,6 +234,7 @@ static void init(int grid_offset)
         if (map_closest_road_within_radius(hx, hy, 1, 6, &roadx, &roady)) {
             map_highlight_set(map_grid_offset(roadx,roady));
         }
+        window_invalidate();
         
         switch (b->type) {
             case BUILDING_FORT_GROUND:
