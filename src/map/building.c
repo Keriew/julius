@@ -36,6 +36,15 @@ void map_highlight_clear(int grid_offset)
     highlight_grid.items[grid_offset] = 0;
 }
 
+boolean map_is_highlighted(int grid_offset)
+{
+    if (highlight_grid.items[grid_offset] = 1) {
+        return true; 
+    } else { 
+        return false;
+    }
+}
+
 int map_building_damage_increase(int grid_offset)
 {
     return ++damage_grid.items[grid_offset];
