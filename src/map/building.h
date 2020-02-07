@@ -33,6 +33,7 @@ void map_building_clear(void);
 
 void map_highlight_set(int grid_offset);
 void map_highlight_clear(int grid_offset);
+boolean map_is_highlighted(int grid_offset);
 void map_clear_highlights(void);
 
 void map_building_save_state(buffer *buildings, buffer *damage);
