@@ -77,9 +77,6 @@ static void draw_footprint(int x, int y, int grid_offset)
             if (draw_building_as_deleted(b)) {
                 color_mask = COLOR_MASK_RED;
             }
-            if (map_is_highlighted(grid_offset)) {
-                color_mask = COLOR_MASK_GREEN;
-            }
             int view_x, view_y, view_width, view_height;
             city_view_get_viewport(&view_x, &view_y, &view_width, &view_height);
             if (x < view_x + 100) {
