@@ -155,7 +155,7 @@ static int center_in_city(int element_width_pixels)
     return x + margin;
 }
 
-void highlight_waypoints(building* b); // highlight the 4 routing tiles for roams from this building
+void highlight_waypoints(building* b) // highlight the 4 routing tiles for roams from this building
 {
     map_clear_highlights();
     if (b->type == BUILDING_FORT || b->house_size) { // building doesn't send roamers
