@@ -52,11 +52,11 @@ deploy:
   provider: bintray
   on:
     all_branches: true
-    repo: Keriew/julius
+    repo: Keriew/augustus
     condition: "$DEPLOY"
   file: bintray.json
   user: keriew
   skip_cleanup: true
-  key: 92abc2b88217abc81de1eeba37e5066a0baa6a25
+  key: 03aa55a4d750d9f9eeff2ab29c759bdd4673f2fc
 after_deploy:
 - "./.ci_scripts/bintray_link.sh"
