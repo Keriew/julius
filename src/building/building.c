@@ -17,6 +17,7 @@
 #include "map/routing_terrain.h"
 #include "map/terrain.h"
 #include "map/tiles.h"
+#include "menu.h"
 
 #include <string.h>
 
