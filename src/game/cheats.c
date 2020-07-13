@@ -103,9 +103,11 @@ void game_cheat_victory(void)
 }
 
 void game_cheat_breakpoint(){
+#if defined(__GNUC__) || defined(__MINGW32__)
     if (data.is_cheating) {
         asm("nop");
     }
+#endif
 }
 
 void game_cheat_console(){
