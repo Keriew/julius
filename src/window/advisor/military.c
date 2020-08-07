@@ -18,8 +18,9 @@
 #define ADVISOR_HEIGHT 26
 
 static void button_go_to_legion(int legion_id, int param2);
-static void button_return_to_fort(int legion_id, int param2);
+static void button_return_to_fort(int legion_id, int ignore_scrollbar);
 static void button_empire_service(int legion_id, int param2);
+static void button_return_all_to_fort(int param1, int param2);
 static void on_scroll(void);
 
 static scrollbar_type scrollbar = { 592, 70, 272, on_scroll };
@@ -45,7 +46,12 @@ static generic_button fort_buttons[] = {
     {544, 303, 30, 30, button_empire_service, button_none, 6, 0},
 };
 
+static generic_button additional_buttons[] = {
+    {469, 340, 20, 20, button_return_all_to_fort, button_none, 0, 0}
+};
+
 static int focus_button_id;
+static int focus_additional_button_id;
 static int num_legions;
 
 static void init()
@@ -165,6 +171,12 @@ static void draw_foreground(void)
         button_border_draw(464, 83 + 44 * i, 30, 30, focus_button_id == 3 * i + 2);
         button_border_draw(544, 83 + 44 * i, 30, 30, focus_button_id == 3 * i + 3);
     }
+
+    if (num_legions > 0) {
+        uint8_t return_button_text[] = { 'x', 0 };
+        button_border_draw(469, 340, 20, 20, focus_additional_button_id == 1);
+        text_draw_centered(return_button_text, 470, 344, 20, FONT_NORMAL_BLACK, 0);
+    }
 }
 
 static int handle_mouse(const mouse *m)
@@ -172,7 +184,11 @@ static int handle_mouse(const mouse *m)
     if (scrollbar_handle_mouse(&scrollbar, m)) {
         return 1;
     }
-    return generic_buttons_handle_mouse(m, 0, 0, fort_buttons, 3 * num_legions, &focus_button_id);
+    int result = generic_buttons_handle_mouse(m, 0, 0, fort_buttons, 3 * num_legions, &focus_button_id);
+    if (result == 0 && num_legions > 0) {
+        result = generic_buttons_handle_mouse(m, 0, 0, additional_buttons, 1, &focus_additional_button_id);
+    }
+    return result;
 }
 
 static void button_go_to_legion(int legion_id, int param2)
@@ -182,10 +198,14 @@ static void button_go_to_legion(int legion_id, int param2)
     window_city_show();
 }
 
-static void button_return_to_fort(int legion_id, int param2)
+static void button_return_to_fort(int legion_id, int ignore_scrollbar)
 {
-    formation *m = formation_get(formation_for_legion(legion_id+scrollbar.scroll_position));
-    if (!m->in_distant_battle) {
+    if (ignore_scrollbar != 1) {
+        legion_id += scrollbar.scroll_position;
+    }
+
+    formation *m = formation_get(formation_for_legion(legion_id));
+    if (!m->in_distant_battle && m->is_at_fort != 1) {
         formation_legion_return_home(m);
         window_invalidate();
     }
@@ -197,6 +217,13 @@ static void button_empire_service(int legion_id, int param2)
     formation_toggle_empire_service(formation_id);
     formation_calculate_figures();
     window_invalidate();
+}
+
+static void button_return_all_to_fort(int param1, int param2) 
+{
+    for (int i = 0; i < num_legions; i++) {
+        button_return_to_fort(i + 1, 1);
+    }
 }
 
 static void on_scroll(void)
