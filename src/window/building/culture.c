@@ -1,5 +1,7 @@
 #include "culture.h"
 
+#include "city/constants.h";
+#include "city/gods.h";
 #include "building/building.h"
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
@@ -74,7 +76,7 @@ void window_building_draw_library(building_info_context *c)
     draw_culture_info(c, 70, "wavs/library.wav", 87);
 }
 
-static void draw_temple(building_info_context *c, const char *sound_file, int group_id, int image_offset)
+static void draw_temple(building_info_context *c, god_type god, const char *sound_file, int group_id, int image_offset)
 {
     c->help_id = 67;
     window_building_play_sound(c, sound_file);
@@ -84,7 +86,13 @@ static void draw_temple(building_info_context *c, const char *sound_file, int gr
     window_building_draw_employment(c, 62);
     if (c->has_road_access) {
         image_draw(image_offset + image_group(GROUP_PANEL_WINDOWS),
-            c->x_offset + 190, c->y_offset + 16 * c->height_blocks - 118);
+            c->x_offset + 120, c->y_offset + 16 * c->height_blocks - 118);
+        int y_offset = c->y_offset + 30 + 16 * c->height_blocks - 118;
+        int width = lang_text_draw(59, 32 + city_god_happiness(god) / 10, c->x_offset + 220, y_offset, FONT_SMALL_BLACK);
+        int bolts = city_god_wrath_bolts(god);
+        for (int i = 0; i < bolts / 10; i++) {
+            image_draw(image_group(GROUP_GOD_BOLT), c->x_offset + 10 * i + width + 220, y_offset - 4);
+        }
     } else {
         window_building_draw_description_at(c, 16 * c->height_blocks - 128, 69, 25);
     }
@@ -92,27 +100,27 @@ static void draw_temple(building_info_context *c, const char *sound_file, int gr
 
 void window_building_draw_temple_ceres(building_info_context *c)
 {
-    draw_temple(c, "wavs/temple_farm.wav", 92, 21);
+    draw_temple(c, GOD_CERES, "wavs/temple_farm.wav", 92, 21);
 }
 
 void window_building_draw_temple_neptune(building_info_context *c)
 {
-    draw_temple(c, "wavs/temple_ship.wav", 93, 22);
+    draw_temple(c, GOD_NEPTUNE, "wavs/temple_ship.wav", 93, 22);
 }
 
 void window_building_draw_temple_mercury(building_info_context *c)
 {
-    draw_temple(c, "wavs/temple_comm.wav", 94, 23);
+    draw_temple(c, GOD_MERCURY, "wavs/temple_comm.wav", 94, 23);
 }
 
 void window_building_draw_temple_mars(building_info_context *c)
 {
-    draw_temple(c, "wavs/temple_war.wav", 95, 24);
+    draw_temple(c, GOD_MARS, "wavs/temple_war.wav", 95, 24);
 }
 
 void window_building_draw_temple_venus(building_info_context *c)
 {
-    draw_temple(c, "wavs/temple_love.wav", 96, 25);
+    draw_temple(c, GOD_VENUS, "wavs/temple_love.wav", 96, 25);
 }
 
 void window_building_draw_oracle(building_info_context *c)
