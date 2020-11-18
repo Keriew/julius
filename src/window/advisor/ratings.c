@@ -1,6 +1,9 @@
 #include "ratings.h"
 
 #include "city/ratings.h"
+#include "city/data_private.h"
+#include "city/culture.h"
+#include "city/entertainment.h"
 #include "core/config.h"
 #include "graphics/generic_button.h"
 #include "graphics/image.h"
@@ -10,8 +13,17 @@
 #include "graphics/window.h"
 #include "scenario/criteria.h"
 #include "scenario/property.h"
+#include "translation/translation.h"
 
 #define ADVISOR_HEIGHT 27
+
+translation_key culture_reasons[5] = {
+    TR_ADVISOR_CULTURE_REASON_1,
+    TR_ADVISOR_CULTURE_REASON_2,
+    TR_ADVISOR_CULTURE_REASON_3,
+    TR_ADVISOR_CULTURE_REASON_4,
+    TR_ADVISOR_CULTURE_REASON_5
+};
 
 static void button_rating(int rating, int param2);
 
@@ -112,9 +124,25 @@ static int draw_background(void)
         case SELECTED_RATING_CULTURE:
             lang_text_draw(53, 1, 72, 359, FONT_NORMAL_WHITE);
             if (culture <= 90) {
-                lang_text_draw_multiline(53, 9 + city_rating_selected_explanation(),
-                    72, 374, 496, FONT_NORMAL_WHITE);
-            } else {
+             int min_rating = 100;
+				int advice_text = 3;
+				if (city_data.ratings.culture_points.average_education < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_education;
+					advice_text = 2;
+				}
+				if (city_data.ratings.culture_points.average_religion < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_religion;
+					advice_text = 1;
+				}
+				if (city_data.ratings.culture_points.average_entertainment < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_entertainment;
+					advice_text = 0;
+				} 				
+				if (city_entertainment_venue_needing_shows() >= 3 ) {
+					advice_text = 4;
+				}				
+				text_draw(translation_for(culture_reasons[advice_text]), 72, 374, FONT_NORMAL_WHITE, 0);
+                } else {
                 lang_text_draw_multiline(53, 50, 72, 374, 496, FONT_NORMAL_WHITE);
             }
             break;
