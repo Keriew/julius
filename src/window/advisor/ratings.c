@@ -23,7 +23,7 @@ translation_key culture_reasons[5] = {
     TR_ADVISOR_CULTURE_REASON_3,
     TR_ADVISOR_CULTURE_REASON_4,
     TR_ADVISOR_CULTURE_REASON_5
-};
+}; 
 
 static void button_rating(int rating, int param2);
 
