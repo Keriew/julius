@@ -6,6 +6,7 @@
 #include "building/count.h"
 #include "city/culture.h"
 #include "city/data_private.h"
+#include "city/entertainment.h"
 #include "city/victory.h"
 #include "core/calc.h"
 #include "core/config.h"
@@ -320,85 +321,63 @@ static void update_culture_rating(void)
         return;
     }
 
-    int pct_theater = city_culture_coverage_theater();
-    if (pct_theater >= 100) {
-        city_data.ratings.culture_points.theater = 25;
-    } else if (pct_theater > 85) {
-        city_data.ratings.culture_points.theater = 18;
-    } else if (pct_theater > 70) {
-        city_data.ratings.culture_points.theater = 12;
-    } else if (pct_theater > 50) {
-        city_data.ratings.culture_points.theater = 8;
-    } else if (pct_theater > 30) {
-        city_data.ratings.culture_points.theater = 3;
+    int avg_entertainment = city_data.culture.average_entertainment;
+    if (avg_entertainment >= 85) {
+        city_data.ratings.culture_points.average_entertainment = 24;
+    } else if (avg_entertainment >= 70) {
+        city_data.ratings.culture_points.average_entertainment = 20;
+    } else if (avg_entertainment >= 55) {
+        city_data.ratings.culture_points.average_entertainment = 16;
+    } else if (avg_entertainment >= 40) {
+        city_data.ratings.culture_points.average_entertainment = 12;
+    } else if (avg_entertainment >= 25) {
+        city_data.ratings.culture_points.average_entertainment = 8;
+    } else if (avg_entertainment >= 10) {
+        city_data.ratings.culture_points.average_entertainment = 4;
     } else {
-        city_data.ratings.culture_points.theater = 0;
+        city_data.ratings.culture_points.average_entertainment = 0;
     }
-    city_data.ratings.culture += city_data.ratings.culture_points.theater;
+    city_data.ratings.culture += city_data.ratings.culture_points.average_entertainment;
 
-    int pct_religion = city_data.culture.religion_coverage;
-    if (pct_religion >= 100) {
-        city_data.ratings.culture_points.religion = 30;
-    } else if (pct_religion > 85) {
-        city_data.ratings.culture_points.religion = 22;
-    } else if (pct_religion > 70) {
-        city_data.ratings.culture_points.religion = 14;
-    } else if (pct_religion > 50) {
-        city_data.ratings.culture_points.religion = 9;
-    } else if (pct_religion > 30) {
-        city_data.ratings.culture_points.religion = 3;
-    } else {
-        city_data.ratings.culture_points.religion = 0;
-    }
-    city_data.ratings.culture += city_data.ratings.culture_points.religion;
+    int total_shows = 0;
+    city_data.ratings.culture += city_entertainment_theater_shows();
+    total_shows += city_entertainment_theater_shows();
+    city_data.ratings.culture += city_entertainment_amphitheater_shows();
+    total_shows += city_entertainment_amphitheater_shows();
+    city_data.ratings.culture += city_entertainment_colosseum_shows();
+    total_shows += city_entertainment_colosseum_shows();
+    city_data.ratings.culture += city_entertainment_hippodrome_shows();
+    total_shows += city_entertainment_hippodrome_shows();
+	
+	city_data.ratings.culture_points.total_shows = total_shows;
 
-    int pct_school = city_culture_coverage_school();
-    if (pct_school >= 100) {
-        city_data.ratings.culture_points.school = 15;
-    } else if (pct_school > 85) {
-        city_data.ratings.culture_points.school = 10;
-    } else if (pct_school > 70) {
-        city_data.ratings.culture_points.school = 6;
-    } else if (pct_school > 50) {
-        city_data.ratings.culture_points.school = 4;
-    } else if (pct_school > 30) {
-        city_data.ratings.culture_points.school = 1;
+    int avg_religion = city_data.culture.average_religion; 
+    if (avg_religion >= 5) {
+        city_data.ratings.culture_points.average_religion = 24;
+    } else if (avg_religion >= 4) {
+        city_data.ratings.culture_points.average_religion = 16;
+    } else if (avg_religion >= 3) {
+        city_data.ratings.culture_points.average_religion = 12;
+    } else if (avg_religion >= 2) {
+        city_data.ratings.culture_points.average_religion = 8;
+    } else if (avg_religion >= 1) {
+        city_data.ratings.culture_points.average_religion = 4;
     } else {
-        city_data.ratings.culture_points.school = 0;
+        city_data.ratings.culture_points.average_religion = 0;
     }
-    city_data.ratings.culture += city_data.ratings.culture_points.school;
-
-    int pct_academy = city_culture_coverage_academy();
-    if (pct_academy >= 100) {
-        city_data.ratings.culture_points.academy = 10;
-    } else if (pct_academy > 85) {
-        city_data.ratings.culture_points.academy = 7;
-    } else if (pct_academy > 70) {
-        city_data.ratings.culture_points.academy = 4;
-    } else if (pct_academy > 50) {
-        city_data.ratings.culture_points.academy = 2;
-    } else if (pct_academy > 30) {
-        city_data.ratings.culture_points.academy = 1;
+    city_data.ratings.culture += city_data.ratings.culture_points.average_religion;
+    
+    int avg_education = city_data.culture.average_education;
+    if (avg_education >= 3) {
+        city_data.ratings.culture_points.average_education = 24;
+    } else if (avg_education >= 2) {
+        city_data.ratings.culture_points.average_education = 16;
+    } else if (avg_education >= 1) {
+        city_data.ratings.culture_points.average_education = 8;
     } else {
-        city_data.ratings.culture_points.academy = 0;
+        city_data.ratings.culture_points.average_education = 0;
     }
-    city_data.ratings.culture += city_data.ratings.culture_points.academy;
-
-    int pct_library = city_culture_coverage_library();
-    if (pct_library >= 100) {
-        city_data.ratings.culture_points.library = 20;
-    } else if (pct_library > 85) {
-        city_data.ratings.culture_points.library = 14;
-    } else if (pct_library > 70) {
-        city_data.ratings.culture_points.library = 8;
-    } else if (pct_library > 50) {
-        city_data.ratings.culture_points.library = 4;
-    } else if (pct_library > 30) {
-        city_data.ratings.culture_points.library = 2;
-    } else {
-        city_data.ratings.culture_points.library = 0;
-    }
-    city_data.ratings.culture += city_data.ratings.culture_points.library;
+    city_data.ratings.culture += city_data.ratings.culture_points.average_education;
 
     if (config_get(CONFIG_GP_CH_MONUMENTS_BOOST_CULTURE_RATING)) {
         city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_CERES) * GT_CULTURE_BONUS;
