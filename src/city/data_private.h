@@ -240,6 +240,10 @@ extern struct city_data_t {
             int32_t school;
             int32_t library;
             int32_t academy;
+            int32_t average_entertainment;
+            int32_t total_shows;
+            int32_t average_religion;
+            int32_t average_education;
         } culture_points;
         int32_t prosperity_treasury_last_year;
         int32_t prosperity_max;
