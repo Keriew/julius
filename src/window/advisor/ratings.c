@@ -138,8 +138,10 @@ static int draw_background(void)
 					min_rating = city_data.ratings.culture_points.average_entertainment;
 					advice_text = 0;
 				} 				
-				if (city_entertainment_venue_needing_shows() >= 3 ) {
-					advice_text = 4;
+				if (city_entertainment_venue_needing_shows() > 0 ) {
+					if (city_data.ratings.culture / city_entertainment_venue_needing_shows() < 11 ) {
+						advice_text = 4;
+					}
 				}				
 				text_draw(translation_for(culture_reasons[advice_text]), 72, 374, FONT_NORMAL_WHITE, 0);
                 } else {
