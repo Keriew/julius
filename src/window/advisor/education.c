@@ -2,6 +2,7 @@
 
 #include "building/count.h"
 #include "city/culture.h"
+#include "city/data_private.h" 
 #include "city/houses.h"
 #include "city/population.h"
 #include "graphics/image.h"
@@ -22,9 +23,9 @@ static int get_education_advice(void)
         return 4;
     }
     int advice_id;
-    int coverage_school = city_culture_coverage_school();
-    int coverage_academy = city_culture_coverage_academy();
-    int coverage_library = city_culture_coverage_library();
+    int coverage_school = city_data.culture.average_school;
+    int coverage_academy = city_data.culture.average_academy;
+    int coverage_library = city_data.culture.average_library;
     if (!demands->requiring.school) {
         advice_id = 5; // no demands yet
     } else if (!demands->requiring.library) {
@@ -68,19 +69,16 @@ static int draw_background(void)
 
     // table headers
     lang_text_draw(57, 4, 180, 86, FONT_SMALL_PLAIN);
-    lang_text_draw(57, 5, 290, 86, FONT_SMALL_PLAIN);
-    lang_text_draw(57, 6, 478, 86, FONT_SMALL_PLAIN);
+    lang_text_draw(57, 6, 290, 86, FONT_SMALL_PLAIN);
 
     inner_panel_draw(32, 100, 36, 4);
 
     // schools
     lang_text_draw_amount(8, 18, building_count_total(BUILDING_SCHOOL), 40, 105, FONT_NORMAL_WHITE);
     text_draw_number_centered(building_count_active(BUILDING_SCHOOL), 150, 105, 100, FONT_NORMAL_WHITE);
+    text_draw_number(city_data.culture.average_school, '@', " ", 295, 105, FONT_NORMAL_WHITE);
 
-    width = text_draw_number(75 * building_count_active(BUILDING_SCHOOL), '@', " ", 280, 105, FONT_NORMAL_WHITE);
-    lang_text_draw(57, 7, 280 + width, 105, FONT_NORMAL_WHITE);
-
-    int pct_school = city_culture_coverage_school();
+    int pct_school = city_data.culture.average_school;
     if (pct_school == 0) {
         lang_text_draw_centered(57, 10, 420, 105, 200, FONT_NORMAL_WHITE);
     } else if (pct_school < 100) {
@@ -92,11 +90,9 @@ static int draw_background(void)
     // academies
     lang_text_draw_amount(8, 20, building_count_total(BUILDING_ACADEMY), 40, 125, FONT_NORMAL_WHITE);
     text_draw_number_centered(building_count_active(BUILDING_ACADEMY), 150, 125, 100, FONT_NORMAL_WHITE);
+    text_draw_number(city_data.culture.average_academy, '@', " ", 295, 125, FONT_NORMAL_WHITE); 
 
-    width = text_draw_number(100 * building_count_active(BUILDING_ACADEMY), '@', " ", 280, 125, FONT_NORMAL_WHITE);
-    lang_text_draw(57, 8, 280 + width, 125, FONT_NORMAL_WHITE);
-
-    int pct_academy = city_culture_coverage_academy();
+    int pct_academy = city_data.culture.average_academy;
     if (pct_academy == 0) {
         lang_text_draw_centered(57, 10, 420, 125, 200, FONT_NORMAL_WHITE);
     } else if (pct_academy < 100) {
@@ -108,11 +104,9 @@ static int draw_background(void)
     // libraries
     lang_text_draw_amount(8, 22, building_count_total(BUILDING_LIBRARY), 40, 145, FONT_NORMAL_WHITE);
     text_draw_number_centered(building_count_active(BUILDING_LIBRARY), 150, 145, 100, FONT_NORMAL_WHITE);
+    text_draw_number(city_data.culture.average_library, '@', " ", 295, 145, FONT_NORMAL_WHITE); 
 
-    width = text_draw_number(800 * building_count_active(BUILDING_LIBRARY), '@', " ", 280, 145, FONT_NORMAL_WHITE);
-    lang_text_draw(57, 9, 280 + width, 145, FONT_NORMAL_WHITE);
-
-    int pct_library = city_culture_coverage_library();
+    int pct_library = city_data.culture.average_library;
     if (pct_library == 0) {
         lang_text_draw_centered(57, 10, 420, 145, 200, FONT_NORMAL_WHITE);
     } else if (pct_library < 100) {
