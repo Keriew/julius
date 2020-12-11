@@ -3,11 +3,12 @@
 #include "building/building.h"
 #include "building/monument.h"
 #include "city/culture.h"
+#include "core/calc.h"
 
 static void decay(unsigned char *value)
 {
     if (*value > 0) {
-        *value = *value - 1;
+        *value = *value - 2;
     } else {
         *value = 0;
     }
@@ -118,6 +119,65 @@ void house_service_calculate_culture_aggregates(void)
                 }
             }
         }
+        
+        if (b->house_population > 0) {
+			if (b->data.house.theater) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.theater_accessibility = 100;
+				} else {
+					b->data.house.theater_accessibility = calc_bound( (b->data.house.theater / b->house_population) * 100, 0, 100);
+				}
+			}
+			if (b->data.house.amphitheater_actor) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.amphitheater_accessibility = 100;
+				} else {
+					b->data.house.amphitheater_accessibility = calc_bound( (b->data.house.amphitheater_actor / b->house_population) * 100, 0, 100);
+				}
+			}
+			if (b->data.house.colosseum_gladiator) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.colosseum_accessibility = 100;
+				} else {
+					b->data.house.colosseum_accessibility = calc_bound( (b->data.house.colosseum_gladiator / b->house_population) * 100, 0, 100);
+				}
+			}
+			if (b->data.house.hippodrome) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.hippodrome_accessibility = 100;
+				} else {
+					b->data.house.hippodrome_accessibility = calc_bound( (b->data.house.hippodrome / b->house_population) * 100, 0, 100);
+				}
+			}
+            if (b->data.house.school) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.school_accessibility = 100;
+				} else {
+					b->data.house.school_accessibility = calc_bound( (b->data.house.school / b->house_population) * 100, 0, 100);
+				}
+			}
+            if (b->data.house.library) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.library_accessibility = 100;
+				} else {
+					b->data.house.library_accessibility = calc_bound( (b->data.house.library / b->house_population) * 100, 0, 100);
+				}
+			}
+            if (b->data.house.academy) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.academy_accessibility = 100;
+				} else {
+					b->data.house.academy_accessibility = calc_bound( (b->data.house.academy / b->house_population) * 100, 0, 100);
+				}
+			}
+            if (b->data.house.hospital) {
+				if (b->subtype.house_level >= HOUSE_SMALL_PALACE) {
+					b->data.house.hospital_accessibility = 100;
+				} else {
+					b->data.house.hospital_accessibility = calc_bound( (b->data.house.hospital / b->house_population) * 100, 0, 100);
+				}
+			}
+		}
 
         // religion
         b->data.house.num_gods = 0;
