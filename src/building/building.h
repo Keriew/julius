@@ -105,6 +105,14 @@ typedef struct {
         } entertainment;
         struct {
             short inventory[8];
+            unsigned char theater_accessibility;
+            unsigned char amphitheater_accessibility;
+            unsigned char colosseum_accessibility;
+            unsigned char hippodrome_accessibility;
+            unsigned char school_accessibility;
+            unsigned char library_accessibility;
+            unsigned char academy_accessibility;
+            unsigned char hospital_accessibility;
             unsigned char theater;
             unsigned char amphitheater_actor;
             unsigned char amphitheater_gladiator;
