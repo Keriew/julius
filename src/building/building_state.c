@@ -15,6 +15,14 @@ static void write_type_data(buffer *buf, const building *b)
         for (int i = 0; i < INVENTORY_MAX; i++) {
             buffer_write_i16(buf, b->data.house.inventory[i]);
         }
+        buffer_write_u8(buf, b->data.house.theater_accessibility);
+        buffer_write_u8(buf, b->data.house.amphitheater_accessibility);
+        buffer_write_u8(buf, b->data.house.colosseum_accessibility);
+        buffer_write_u8(buf, b->data.house.hippodrome_accessibility);
+        buffer_write_u8(buf, b->data.house.school_accessibility);
+        buffer_write_u8(buf, b->data.house.library_accessibility);
+        buffer_write_u8(buf, b->data.house.academy_accessibility);
+        buffer_write_u8(buf, b->data.house.hospital_accessibility);
         buffer_write_u8(buf, b->data.house.theater);
         buffer_write_u8(buf, b->data.house.amphitheater_actor);
         buffer_write_u8(buf, b->data.house.amphitheater_gladiator);
@@ -191,6 +199,14 @@ static void read_type_data(buffer *buf, building *b)
         for (int i = 0; i < INVENTORY_MAX; i++) {
             b->data.house.inventory[i] = buffer_read_i16(buf);
         }
+        b->data.house.theater_accessibility = buffer_read_u8(buf);
+        b->data.house.amphitheater_accessibility = buffer_read_u8(buf);
+        b->data.house.colosseum_accessibility = buffer_read_u8(buf);
+        b->data.house.hippodrome_accessibility = buffer_read_u8(buf);
+        b->data.house.school_accessibility = buffer_read_u8(buf);
+        b->data.house.library_accessibility = buffer_read_u8(buf);
+        b->data.house.academy_accessibility = buffer_read_u8(buf);
+        b->data.house.hospital_accessibility = buffer_read_u8(buf);
         b->data.house.theater = buffer_read_u8(buf);
         b->data.house.amphitheater_actor = buffer_read_u8(buf);
         b->data.house.amphitheater_gladiator = buffer_read_u8(buf);
