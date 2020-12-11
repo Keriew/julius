@@ -240,10 +240,10 @@ extern struct city_data_t {
             int32_t school;
             int32_t library;
             int32_t academy;
-            int32_t average_entertainment;
-            int32_t total_shows;
-            int32_t average_religion;
-            int32_t average_education;
+            int32_t average_entertainment_cp;
+            int32_t total_shows_cp;
+            int32_t average_religion_cp;
+            int32_t average_education_cp;
         } culture_points;
         int32_t prosperity_treasury_last_year;
         int32_t prosperity_max;
@@ -265,6 +265,15 @@ extern struct city_data_t {
         int32_t favor_explanation;
     } ratings;
     struct {
+        int32_t average_theater;
+        int32_t average_amphitheater;
+        int32_t average_colosseum;
+        int32_t average_hippodrome;
+        int32_t average_school;
+        int32_t average_library;
+        int32_t average_academy;
+        int32_t average_hospital;
+        int32_t average_religion_x10;
         int32_t average_entertainment;
         int32_t average_religion;
         int32_t average_education;
