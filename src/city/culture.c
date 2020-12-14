@@ -170,6 +170,15 @@ void city_culture_update_coverage(void)
 
 void city_culture_calculate(void)
 {
+    city_data.culture.average_theater = 0;
+    city_data.culture.average_amphitheater = 0;
+    city_data.culture.average_colosseum = 0;
+    city_data.culture.average_hippodrome = 0;
+    city_data.culture.average_school = 0;
+    city_data.culture.average_library = 0;
+    city_data.culture.average_academy = 0;
+    city_data.culture.average_hospital = 0;
+    city_data.culture.average_religion_x10 = 0;
     city_data.culture.average_entertainment = 0;
     city_data.culture.average_religion = 0;
     city_data.culture.average_education = 0;
@@ -181,6 +190,16 @@ void city_culture_calculate(void)
         building *b = building_get(i);
         if (b->state == BUILDING_STATE_IN_USE && b->house_size) {
             num_houses++;
+            
+            city_data.culture.average_theater += b->data.house.theater_accessibility;
+            city_data.culture.average_amphitheater += b->data.house.amphitheater_accessibility;
+            city_data.culture.average_colosseum += b->data.house.colosseum_accessibility;
+            city_data.culture.average_hippodrome += b->data.house.hippodrome_accessibility;
+            city_data.culture.average_school += b->data.house.school_accessibility;
+            city_data.culture.average_library += b->data.house.library_accessibility;
+            city_data.culture.average_academy += b->data.house.academy_accessibility;
+            city_data.culture.average_hospital += b->data.house.hospital_accessibility;
+            
             city_data.culture.average_entertainment += b->data.house.entertainment;
             city_data.culture.average_religion += b->data.house.num_gods;
             city_data.culture.average_education += b->data.house.education;
@@ -191,6 +210,17 @@ void city_culture_calculate(void)
         }
     }
     if (num_houses) {
+        
+        city_data.culture.average_theater /= num_houses;
+        city_data.culture.average_amphitheater /= num_houses;
+        city_data.culture.average_colosseum /= num_houses;
+        city_data.culture.average_hippodrome /= num_houses;
+        city_data.culture.average_school /= num_houses;
+        city_data.culture.average_library /= num_houses;
+        city_data.culture.average_academy /= num_houses;
+        city_data.culture.average_hospital /= num_houses;
+        city_data.culture.average_religion_x10 = (city_data.culture.average_religion * 10)  / num_houses;
+        
         city_data.culture.average_entertainment /= num_houses;
         city_data.culture.average_religion /= num_houses;
         city_data.culture.average_education /= num_houses;
