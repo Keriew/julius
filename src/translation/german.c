@@ -135,7 +135,7 @@ static translation_string all_strings[] = {
     {TR_HOTKEY_SET_BOOKMARK_3, "Setze Lesezeichen 3"},
     {TR_HOTKEY_SET_BOOKMARK_4, "Setze Lesezeichen 4"},
     {TR_HOTKEY_EDITOR_TOGGLE_BATTLE_INFO, "Kampfinformationen ein-/ausblenden"},
-    {TR_HOTKEY_EDIT_TITLE, "Drücke neue Tastenkombination"}
+    {TR_HOTKEY_EDIT_TITLE, "Drücke neue Tastenkombination"},
     {TR_BUILDING_ROADBLOCK, "Straßensperre"},
     {TR_BUILDING_ROADBLOCK_DESC, "Straßensperren verhindern das unkontrollierte Umherwandern von Einwohnern." },
     {TR_BUILDING_ENGINEER_GUILD, "Baumeistergilde" },
