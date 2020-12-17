@@ -206,7 +206,7 @@ static translation_string all_strings[] = {
     {TR_ADVISOR_PERCENT_IN_WORKFORCE, "Die prozentuale Bevölkerungszahl in der Arbeiterschaft beträgt"},
     {TR_ADVISOR_BIRTHS_LAST_YEAR, "Geburten im vergangen Jahr:"},
     {TR_ADVISOR_DEATHS_LAST_YEAR, "Tode im vergangen Jahr:"},
-    {TR_ADVISOR_TOTAL_POPULATION, "Bewohner gesammt"}
+    {TR_ADVISOR_TOTAL_POPULATION, "Bewohner gesammt"},
     {TR_REQUIRED_RESOURCES, "Gelieferte Ressourcen für aktuelle Phase:"},
     {TR_BUILDING_GRAND_TEMPLE_CONSTRUCTION_DESC, "Der Bau eines Prachttempels benötigt in einem Lagerhaus gelagerte Waren, Arbeiter von einem Arbeiterlager und Baumeister von einer Baumeistergilde."},
     {TR_CONSTRUCTION_PHASE, "Konstruktionsphase:"},
