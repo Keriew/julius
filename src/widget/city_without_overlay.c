@@ -16,6 +16,7 @@
 #include "figure/formation_legion.h"
 #include "game/resource.h"
 #include "graphics/image.h"
+#include "graphics/window.h"
 #include "map/building.h"
 #include "map/figure.h"
 #include "map/grid.h"
@@ -32,16 +33,16 @@
 
 static const int ADJACENT_OFFSETS[2][4][7] = {
     {
-        { OFFSET(-1, 0), OFFSET(-1, -1),  OFFSET(-1, -2), OFFSET(0, -2), OFFSET(1, -2) },
-        { OFFSET(0, -1), OFFSET(1, -1),  OFFSET(2, -1), OFFSET(2, 0), OFFSET(2, 1) },
-        { OFFSET(1, 0), OFFSET(1, 1),  OFFSET(1, 2), OFFSET(0, 2), OFFSET(-1, 2)},
-        { OFFSET(0, 1), OFFSET(-1, 1),  OFFSET(-2, 1), OFFSET(-2, 0), OFFSET(-2, -1) }
+        {OFFSET(-1, 0), OFFSET(-1, -1),  OFFSET(-1, -2), OFFSET(0, -2), OFFSET(1, -2)},
+        {OFFSET(0, -1), OFFSET(1, -1),  OFFSET(2, -1), OFFSET(2, 0), OFFSET(2, 1)},
+        {OFFSET(1, 0), OFFSET(1, 1),  OFFSET(1, 2), OFFSET(0, 2), OFFSET(-1, 2)},
+        {OFFSET(0, 1), OFFSET(-1, 1),  OFFSET(-2, 1), OFFSET(-2, 0), OFFSET(-2, -1)}
     },
     {
-        { OFFSET(-1, 0), OFFSET(-1, -1),  OFFSET(-1, -2), OFFSET(-1, -3), OFFSET(0, -3),  OFFSET(1, -3), OFFSET(2, -3) },
-        { OFFSET(0, -1), OFFSET(1, -1),  OFFSET(2, -1), OFFSET(3, -1), OFFSET(3, 0),  OFFSET(3, 1), OFFSET(3, 2) },
-        { OFFSET(1, 0), OFFSET(1, 1),  OFFSET(1, 2), OFFSET(1, 3), OFFSET(0, 3),  OFFSET(-1, 3), OFFSET(-2, 3) },
-        { OFFSET(0, 1), OFFSET(-1, 1),  OFFSET(-2, 1), OFFSET(-3, 1), OFFSET(-3, 0),  OFFSET(-3, -1), OFFSET(-3, -2) }
+        {OFFSET(-1, 0), OFFSET(-1, -1),  OFFSET(-1, -2), OFFSET(-1, -3), OFFSET(0, -3),  OFFSET(1, -3), OFFSET(2, -3)},
+        {OFFSET(0, -1), OFFSET(1, -1),  OFFSET(2, -1), OFFSET(3, -1), OFFSET(3, 0),  OFFSET(3, 1), OFFSET(3, 2)},
+        {OFFSET(1, 0), OFFSET(1, 1),  OFFSET(1, 2), OFFSET(1, 3), OFFSET(0, 3),  OFFSET(-1, 3), OFFSET(-2, 3)},
+        {OFFSET(0, 1), OFFSET(-1, 1),  OFFSET(-2, 1), OFFSET(-3, 1), OFFSET(-3, 0),  OFFSET(-3, -1), OFFSET(-3, -2)}
     }
 };
 
@@ -110,9 +111,6 @@ static void draw_footprint(int x, int y, int grid_offset)
         color_t color_mask = 0;
         if (building_id) {
             building *b = building_get(building_id);
-            if (!config_get(CONFIG_UI_VISUAL_FEEDBACK_ON_DELETE) && draw_building_as_deleted(b)) {
-                color_mask = COLOR_MASK_RED;
-            }
             int view_x, view_y, view_width, view_height;
             city_view_get_scaled_viewport(&view_x, &view_y, &view_width, &view_height);
             if (x < view_x + 100) {
@@ -214,7 +212,8 @@ static void draw_entertainment_spectators(building *b, int x, int y, color_t col
     if (b->type == BUILDING_COLOSSEUM && b->num_workers > 0) {
         image_draw_masked(image_group(GROUP_BUILDING_COLOSSEUM_SHOW), x + 70, y - 90, color_mask);
     }
-    if (b->type == BUILDING_HIPPODROME && building_main(b)->num_workers > 0 && city_entertainment_hippodrome_has_race()) {
+    if (b->type == BUILDING_HIPPODROME && building_main(b)->num_workers > 0
+        && city_entertainment_hippodrome_has_race()) {
         draw_hippodrome_spectators(b, x, y, color_mask);
     }
 }
@@ -395,14 +394,7 @@ static void draw_animation(int x, int y, int grid_offset)
                 if (b->type == BUILDING_GRANARY) {
                     image_draw_masked(image_id + animation_offset + 5, x + 77, y - 49, color_mask);
                 } else {
-                    int ydiff = 0;
-                    switch (map_property_multi_tile_size(grid_offset)) {
-                        case 1: ydiff = 30; break;
-                        case 2: ydiff = 45; break;
-                        case 3: ydiff = 60; break;
-                        case 4: ydiff = 75; break;
-                        case 5: ydiff = 90; break;
-                    }
+                    int ydiff = 15 * map_property_multi_tile_size(grid_offset) + 15;
                     image_draw_masked(image_id + animation_offset,
                                       x + img->sprite_offset_x,
                                       y + ydiff + img->sprite_offset_y - img->height,
@@ -422,7 +414,8 @@ static void draw_animation(int x, int y, int grid_offset)
                 case FIGURE_FORT_JAVELIN: offset = 2; break;
             }
             if (offset) {
-                image_draw_masked(image_group(GROUP_BUILDING_FORT) + offset, x + 81, y + 5, draw_building_as_deleted(fort) ? COLOR_MASK_RED : 0);
+                image_draw_masked(image_group(GROUP_BUILDING_FORT) + offset, x + 81, y + 5,
+                    draw_building_as_deleted(fort) ? COLOR_MASK_RED : 0);
             }
         }
     } else if (building_get(map_building_at(grid_offset))->type == BUILDING_GATEHOUSE) {
@@ -457,7 +450,7 @@ static void draw_elevated_figures(int x, int y, int grid_offset)
     int figure_id = map_figure_at(grid_offset);
     while (figure_id > 0) {
         figure *f = figure_get(figure_id);
-        if ((f->use_cross_country && !f->is_ghost) || f->height_adjusted_ticks) {
+        if ((f->use_cross_country && !f->is_ghost && !f->dont_draw_elevated) || f->height_adjusted_ticks) {
             city_draw_figure(f, x, y, 0);
         }
         figure_id = f->next_figure_id_on_same_tile;
@@ -514,8 +507,14 @@ void city_without_overlay_draw(int selected_figure_id, pixel_coordinate *figure_
     int highlighted_formation = 0;
     if (config_get(CONFIG_UI_HIGHLIGHT_LEGIONS)) {
         highlighted_formation = formation_legion_at_grid_offset(tile->grid_offset);
-        if (highlighted_formation > 0 && formation_get(highlighted_formation)->in_distant_battle) {
-            highlighted_formation = 0;
+        if (highlighted_formation > 0) {
+            int selected_formation = formation_get_selected();
+            if (selected_formation && highlighted_formation != selected_formation) {
+                highlighted_formation = 0;
+            }
+            if (formation_get(highlighted_formation)->in_distant_battle) {
+                highlighted_formation = 0;
+            }
         }
     }
     init_draw_context(selected_figure_id, figure_coord, highlighted_formation);
@@ -540,4 +539,5 @@ void city_without_overlay_draw(int selected_figure_id, pixel_coordinate *figure_
         city_view_foreach_map_tile(deletion_draw_figures_animations);
         city_view_foreach_map_tile(deletion_draw_remaining);
     }
+
 }

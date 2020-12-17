@@ -1,6 +1,7 @@
 #include "water_supply.h"
 
 #include "building/building.h"
+#include "building/monument.h"
 #include "building/list.h"
 #include "core/image.h"
 #include "map/aqueduct.h"
@@ -12,6 +13,7 @@
 #include "map/image.h"
 #include "map/property.h"
 #include "map/terrain.h"
+#include "mods/mods.h"
 #include "scenario/property.h"
 
 #include <string.h>
@@ -19,6 +21,9 @@
 #define OFFSET(x,y) (x + GRID_SIZE * y)
 
 #define MAX_QUEUE 1000
+#define RESERVOIR_RADIUS 10
+#define WELL_RADIUS 2
+#define FOUNTAIN_RADIUS 4
 
 static const int ADJACENT_OFFSETS[] = {-GRID_SIZE, 1, GRID_SIZE, -1};
 
@@ -66,7 +71,7 @@ void map_water_supply_update_houses(void)
     int total_wells = building_list_small_size();
     const int *wells = building_list_small_items();
     for (int i = 0; i < total_wells; i++) {
-        mark_well_access(wells[i], 2);
+        mark_well_access(wells[i], map_water_supply_well_radius());
     }
 }
 
@@ -183,16 +188,23 @@ void map_water_supply_update_reservoir_fountain(void)
     for (int i = 0; i < total_reservoirs; i++) {
         building *b = building_get(reservoirs[i]);
         if (b->has_water_access) {
-            map_terrain_add_with_radius(b->x, b->y, 3, 10, TERRAIN_RESERVOIR_RANGE);
+            map_terrain_add_with_radius(b->x, b->y, 3, map_water_supply_reservoir_radius(), TERRAIN_RESERVOIR_RANGE);
         }
     }
+
+    // Neptune GT module 2 bonus
+    if (building_monument_gt_module_is_active(NEPTUNE_MODULE_2_CAPACITY_AND_WATER)) {
+        building* b = building_get(building_monument_get_neptune_gt());
+        map_terrain_add_with_radius(b->x, b->y, 7, map_water_supply_reservoir_radius(), TERRAIN_RESERVOIR_RANGE);        
+    }
+
     // fountains
     for (int i = 1; i < MAX_BUILDINGS; i++) {
         building *b = building_get(i);
         if (b->state != BUILDING_STATE_IN_USE || b->type != BUILDING_FOUNTAIN) {
             continue;
         }
-        int des = map_desirability_get(b->grid_offset);
+        int des = b->desirability;
         int image_id;
         if (des > 60) {
             image_id = image_group(GROUP_BUILDING_FOUNTAIN_4);
@@ -207,11 +219,42 @@ void map_water_supply_update_reservoir_fountain(void)
         if (map_terrain_is(b->grid_offset, TERRAIN_RESERVOIR_RANGE) && b->num_workers) {
             b->has_water_access = 1;
             map_terrain_add_with_radius(b->x, b->y, 1,
-                scenario_property_climate() == CLIMATE_DESERT ? 3 : 4,
-                TERRAIN_FOUNTAIN_RANGE);
+                map_water_supply_fountain_radius(), TERRAIN_FOUNTAIN_RANGE);
         } else {
             b->has_water_access = 0;
         }
+    }
+    //ponds
+    for (int i = 1; i < MAX_BUILDINGS; i++) {
+        building* b = building_get(i);
+
+        if (b->type != BUILDING_SMALL_POND && b->type != BUILDING_LARGE_POND) {
+            continue;
+        }
+        if (b->state != BUILDING_STATE_IN_USE) {
+            continue;
+        }
+
+        if (map_terrain_exists_tile_in_area_with_type(b->x, b->y, b->size, TERRAIN_RESERVOIR_RANGE)) {
+            b->has_water_access = 1;
+        }
+        else {
+            b->has_water_access = 0;
+        }
+
+        int offset = 0;
+        if (scenario_property_climate() == CLIMATE_DESERT) {
+            offset += POND_CLIMATE_IMAGE_OFFSET;
+        }
+        if (b->has_water_access) {
+            offset += POND_WATERED_IMAGE_OFFSET;
+        }
+        if (b->type == BUILDING_LARGE_POND) {
+            offset += POND_LARGE_IMAGE_OFFSET;
+        }
+
+        map_building_tiles_add(b->id, b->x, b->y, b->size, mods_get_image_id(mods_get_group_id("Areldir", "Aesthetics"), "s pond north off") + offset, TERRAIN_BUILDING);
+
     }
 }
 
@@ -235,4 +278,31 @@ int map_water_supply_is_well_unnecessary(int well_id, int radius)
         }
     }
     return num_houses ? WELL_UNNECESSARY_FOUNTAIN : WELL_UNNECESSARY_NO_HOUSES;
+}
+
+int map_water_supply_fountain_radius() {
+    int radius = scenario_property_climate() == CLIMATE_DESERT ? FOUNTAIN_RADIUS - 1 : FOUNTAIN_RADIUS;
+	if (building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
+        radius++;
+	}
+
+    return radius;
+}
+
+int map_water_supply_reservoir_radius() {
+    int radius = RESERVOIR_RADIUS;
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
+        radius += 2;
+    }
+
+    return radius;
+}
+
+int map_water_supply_well_radius() {
+    int radius = WELL_RADIUS;
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
+        radius++;
+    }
+
+    return radius;
 }

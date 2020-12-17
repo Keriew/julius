@@ -3,6 +3,7 @@
 #include "building/barracks.h"
 #include "building/count.h"
 #include "building/list.h"
+#include "building/monument.h"
 #include "building/storage.h"
 #include "city/culture.h"
 #include "city/data.h"
@@ -51,7 +52,10 @@
 #define COMPRESS_BUFFER_SIZE 3000000
 #define UNCOMPRESSED 0x80000000
 
-static const int SAVE_GAME_VERSION = 0x76;
+static const int SAVE_GAME_CURRENT_VERSION = 0x78;
+static const int SAVE_GAME_SMALLER_IMAGE_ID_VERSION = 0x76;
+static const int SAVE_GAME_WITHOUT_DELIVERIES_ADDED = 0x77;
+
 
 static char compress_buffer[COMPRESS_BUFFER_SIZE];
 
@@ -165,6 +169,7 @@ typedef struct {
     buffer *tutorial_part3;
     buffer *city_entry_exit_grid_offset;
     buffer *end_marker;
+    buffer *deliveries;
 } savegame_state;
 
 static struct {
@@ -327,7 +332,7 @@ static void init_savegame_data_expanded(void)
     savegame_state *state = &savegame_data.state;
     state->scenario_campaign_mission = create_savegame_piece(4, 0);
     state->file_version = create_savegame_piece(4, 0);
-    state->image_grid = create_savegame_piece(52488, 1);
+    state->image_grid = create_savegame_piece(104976, 1);
     state->edge_grid = create_savegame_piece(26244, 1);
     state->building_grid = create_savegame_piece(52488, 1);
     state->terrain_grid = create_savegame_piece(52488, 1);
@@ -408,11 +413,14 @@ static void init_savegame_data_expanded(void)
     state->tutorial_part3 = create_savegame_piece(4, 0);
     state->city_entry_exit_grid_offset = create_savegame_piece(8, 0);
     state->end_marker = create_savegame_piece(284, 0); // 71x 4-bytes emptiness
+    if (savegame_version > SAVE_GAME_WITHOUT_DELIVERIES_ADDED) {
+        state->deliveries = create_savegame_piece(3200, 0);
+    }
 }
 
 static void scenario_load_from_state(scenario_state *file)
 {
-    map_image_load_state(file->graphic_ids);
+    map_image_load_state_legacy(file->graphic_ids);
     map_terrain_load_state(file->terrain);
     map_property_load_state(file->bitfields, file->edge);
     map_random_load_state(file->random);
@@ -428,7 +436,7 @@ static void scenario_load_from_state(scenario_state *file)
 
 static void scenario_save_to_state(scenario_state *file)
 {
-    map_image_save_state(file->graphic_ids);
+    map_image_save_state_legacy(file->graphic_ids);
     map_terrain_save_state(file->terrain);
     map_property_save_state(file->bitfields, file->edge);
     map_random_save_state(file->random);
@@ -445,14 +453,20 @@ static void scenario_save_to_state(scenario_state *file)
 static void savegame_load_from_state(savegame_state *state)
 {
     savegame_version = buffer_read_i32(state->file_version);
+    if (savegame_version > SAVE_GAME_CURRENT_VERSION) {
+        log_info("Newer save game version than supported. The game may crash. Please update your Augustus. Version:",0,savegame_version);
+    }
 
     scenario_settings_load_state(state->scenario_campaign_mission,
                                  state->scenario_settings,
                                  state->scenario_is_custom,
                                  state->player_name,
                                  state->scenario_name);
-
-    map_image_load_state(state->image_grid);
+    if (savegame_version <= SAVE_GAME_SMALLER_IMAGE_ID_VERSION) {
+        map_image_load_state_legacy(state->image_grid);
+    } else {
+        map_image_load_state(state->image_grid);
+    }
     map_building_load_state(state->building_grid, state->building_damage_grid);
     map_terrain_load_state(state->terrain_grid);
     map_aqueduct_load_state(state->aqueduct_grid, state->aqueduct_backup_grid);
@@ -462,7 +476,6 @@ static void savegame_load_from_state(savegame_state *state)
     map_random_load_state(state->random_grid);
     map_desirability_load_state(state->desirability_grid);
     map_elevation_load_state(state->elevation_grid);
-
     figure_load_state(state->figures, state->figure_sequence);
     figure_route_load_state(state->route_figures, state->route_paths);
     formations_load_state(state->formations, state->formation_totals);
@@ -491,7 +504,6 @@ static void savegame_load_from_state(savegame_state *state)
                               state->building_count_support);
 
     scenario_emperor_change_load_state(state->emperor_change_time, state->emperor_change_state);
-
     empire_load_state(state->empire);
     empire_city_load_state(state->empire_cities);
     trade_prices_load_state(state->trade_prices);
@@ -521,6 +533,14 @@ static void savegame_load_from_state(savegame_state *state)
     map_bookmark_load_state(state->bookmarks);
 
     buffer_skip(state->end_marker, 284);
+    if (state) {
+        buffer_skip(state->end_marker, 8);
+    }
+    if (savegame_version <= SAVE_GAME_WITHOUT_DELIVERIES_ADDED) {
+        building_monument_initialize_deliveries();
+    } else {
+        building_monument_delivery_load_state(state->deliveries);
+    }
 }
 
 static void savegame_save_to_state(savegame_state *state)
@@ -602,6 +622,9 @@ static void savegame_save_to_state(savegame_state *state)
     map_bookmark_save_state(state->bookmarks);
 
     buffer_skip(state->end_marker, 284);
+
+    building_monument_delivery_save_state(state->deliveries);
+
 }
 
 int game_file_io_read_scenario(const char *filename)
@@ -613,7 +636,8 @@ int game_file_io_read_scenario(const char *filename)
         return 0;
     }
     for (int i = 0; i < scenario_data.num_pieces; i++) {
-        if (fread(scenario_data.pieces[i].buf.data, 1, scenario_data.pieces[i].buf.size, fp) != scenario_data.pieces[i].buf.size) {
+        size_t read_size = fread(scenario_data.pieces[i].buf.data, 1, scenario_data.pieces[i].buf.size, fp);
+        if (read_size != scenario_data.pieces[i].buf.size) {
             log_error("Unable to load scenario", filename, 0);
             file_close(fp);
             return 0;
@@ -674,7 +698,8 @@ static int read_compressed_chunk(FILE *fp, void *buffer, int bytes_to_read)
             return 0;
         }
     } else {
-        if (fread(compress_buffer, 1, input_size, fp) != input_size || !zip_decompress(compress_buffer, input_size, buffer, &bytes_to_read)) {
+        if (fread(compress_buffer, 1, input_size, fp) != input_size
+            || !zip_decompress(compress_buffer, input_size, buffer, &bytes_to_read)) {
             return 0;
         }
     }
@@ -729,8 +754,18 @@ static void savegame_write_to_file(FILE *fp)
         }
     }
 }
+
+static int game_file_get_version(const char* filename) {
+    FILE* fp = file_open(dir_get_file(filename, NOT_LOCALIZED), "rb");
+    fseek(fp, 4, 0);
+    savegame_version = read_int32(fp);
+    file_close(fp);
+    return savegame_version;
+}
+
 int game_file_io_read_saved_game(const char *filename, int offset)
 {
+    game_file_get_version(filename);
     if (file_has_extension(filename,"svx")) {
         init_savegame_data_expanded();
         log_info("Loading saved game new format.", filename, 0);
@@ -761,10 +796,10 @@ int game_file_io_read_saved_game(const char *filename, int offset)
 
 int game_file_io_write_saved_game(const char *filename)
 {
+    savegame_version = SAVE_GAME_CURRENT_VERSION;
     init_savegame_data_expanded();
 
     log_info("Saving game", filename, 0);
-    savegame_version = SAVE_GAME_VERSION;
     savegame_save_to_state(&savegame_data.state);
 
     FILE *fp = file_open(filename, "wb");

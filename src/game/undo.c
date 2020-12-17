@@ -1,6 +1,7 @@
 #include "undo.h"
 
 #include "building/industry.h"
+#include "building/monument.h"
 #include "building/properties.h"
 #include "building/storage.h"
 #include "building/warehouse.h"
@@ -253,7 +254,8 @@ void game_undo_perform(void)
         for (int i = 0; i < data.num_buildings; i++) {
             if (data.buildings[i].id) {
                 building *b = building_get(data.buildings[i].id);
-                if (b->type == BUILDING_ORACLE || (b->type >= BUILDING_LARGE_TEMPLE_CERES && b->type <= BUILDING_LARGE_TEMPLE_VENUS)) {
+                if (b->type == BUILDING_ORACLE
+                    || (b->type >= BUILDING_LARGE_TEMPLE_CERES && b->type <= BUILDING_LARGE_TEMPLE_VENUS)) {
                     building_warehouses_add_resource(RESOURCE_MARBLE, 2);
                 }
                 b->state = BUILDING_STATE_UNDO;
@@ -262,6 +264,7 @@ void game_undo_perform(void)
     }
     map_routing_update_land();
     map_routing_update_walls();
+    building_monument_recalculate_monuments();
     data.num_buildings = 0;
 }
 

@@ -4,6 +4,7 @@
 #include "building/granary.h"
 #include "building/maintenance.h"
 #include "building/menu.h"
+#include "building/monument.h"
 #include "building/storage.h"
 #include "city/data.h"
 #include "city/emperor.h"
@@ -107,6 +108,7 @@ static void clear_scenario_data(void)
     enemy_armies_clear();
     figure_name_init();
     formations_clear();
+    building_monument_initialize_deliveries();
     figure_route_clear_all();
 
     game_time_init(2098);
@@ -253,6 +255,7 @@ static void initialize_saved_game(void)
 
     sound_city_init();
 
+    building_construction_clear_type();
     game_undo_disable();
     game_state_reset_overlay();
 
@@ -265,6 +268,8 @@ static void initialize_saved_game(void)
     map_tiles_determine_gardens();
 
     city_message_clear_scroll();
+
+    building_monument_recalculate_monuments();
 
     game_state_unpause();
 }
@@ -358,7 +363,7 @@ int game_file_start_scenario(const char *scenario_file)
 {
     uint8_t scenario_name[FILE_NAME_MAX];
     encoding_from_utf8(scenario_file, scenario_name, FILE_NAME_MAX);
-    file_remove_extension(scenario_name);
+    file_remove_extension((char *)scenario_name);
     return start_scenario(scenario_name, scenario_file);
 }
 

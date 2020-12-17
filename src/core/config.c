@@ -12,44 +12,33 @@ static const char *INI_FILENAME = "augustus.ini";
 
 // Keep this in the same order as the config_keys in config.h
 static const char *ini_keys[] = {
-    "gameplay_fix_immigration",
-    "gameplay_fix_100y_ghosts",
-    "gameplay_fix_editor_events",
     "ui_sidebar_info",
     "ui_show_intro_video",
     "ui_smooth_scrolling",
     "ui_walker_waypoints",
-    "ui_visual_feedback_on_delete",
     "ui_show_water_structure_range",
     "ui_show_construction_size",
     "ui_zoom",
-    "ui_complete_ratings_columns",
     "ui_highlight_legions",
-    "ui_rotate_manually",
-    "gameplay_change_grandfestival",
+    "ui_show_military_sidebar",
+    "ui_disable_map_drag",
     "gameplay_change_jealous_gods",
     "gameplay_change_global_labour",
-    "gameplay_change_school_walkers",
     "gameplay_change_retire_at_60",
     "gameplay_change_fixed_workers",
-    "gameplay_enable_extra_forts",
     "gameplay_wolves_block",
-    "gameplay_dynamic_granaries",
-    "gameplay_houses_stockpile_more",
     "gameplay_buyers_dont_distribute",
-    "gameplay_change_immediate_delete",
     "gameplay_change_getting_granaries_go_offroad",
     "gameplay_change_granaries_get_double",
     "gameplay_change_tower_sentries_go_offroad",
     "gameplay_change_farms_deliver_close",
     "gameplay_change_only_deliver_to_accepting_granaries",
     "gameplay_change_all_houses_merge",
-    "gameplay_change_wine_open_trade_route_counts",
     "gameplay_change_random_mine_or_pit_collapses_take_money",
     "gameplay_change_multiple_barracks",
     "gameplay_change_warehouses_dont_accept",
     "gameplay_change_houses_dont_expand_into_gardens",
-
+    "gameplay_change_monuments_boost_culture_rating",
 };
 
 static const char *ini_string_keys[] = {
@@ -60,12 +49,9 @@ static int values[CONFIG_MAX_ENTRIES];
 static char string_values[CONFIG_STRING_MAX_ENTRIES][CONFIG_STRING_VALUE_MAX];
 
 static int default_values[CONFIG_MAX_ENTRIES] = {
-    [CONFIG_GP_FIX_IMMIGRATION_BUG] = 1,
-    [CONFIG_GP_FIX_100_YEAR_GHOSTS] = 1,
-    [CONFIG_GP_FIX_EDITOR_EVENTS] = 1,
     [CONFIG_UI_SIDEBAR_INFO] = 1,
     [CONFIG_UI_SMOOTH_SCROLLING] = 1,
-    [CONFIG_UI_VISUAL_FEEDBACK_ON_DELETE] = 1,
+    [CONFIG_UI_ZOOM] = 1,
     [CONFIG_UI_SHOW_WATER_STRUCTURE_RANGE] = 1,
     [CONFIG_UI_SHOW_CONSTRUCTION_SIZE] = 1,
     [CONFIG_UI_HIGHLIGHT_LEGIONS] = 1,
@@ -107,17 +93,18 @@ const char *config_get_default_string_value(config_string_key key)
     return default_string_values[key];
 }
 
-void config_set_defaults(void)
+static void set_defaults(void)
 {
     for (int i = 0; i < CONFIG_MAX_ENTRIES; ++i) {
         values[i] = default_values[i];
     }
-    strncpy(string_values[CONFIG_STRING_UI_LANGUAGE_DIR], default_string_values[CONFIG_STRING_UI_LANGUAGE_DIR], CONFIG_STRING_VALUE_MAX);
+    strncpy(string_values[CONFIG_STRING_UI_LANGUAGE_DIR],
+        default_string_values[CONFIG_STRING_UI_LANGUAGE_DIR], CONFIG_STRING_VALUE_MAX);
 }
 
 void config_load(void)
 {
-    config_set_defaults();
+    set_defaults();
     FILE *fp = file_open(INI_FILENAME, "rt");
     if (!fp) {
         return;
@@ -146,7 +133,7 @@ void config_load(void)
                     const char *value = &equals[1];
                     log_info("Config key", ini_string_keys[i], 0);
                     log_info("Config value", value, 0);
-                    strncpy(string_values[i], value, CONFIG_STRING_VALUE_MAX);
+                    strncpy(string_values[i], value, CONFIG_STRING_VALUE_MAX - 1);
                     break;
                 }
             }

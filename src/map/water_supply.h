@@ -1,6 +1,11 @@
 #ifndef MAP_WATER_SUPPLY_H
 #define MAP_WATER_SUPPLY_H
 
+#define POND_CLIMATE_IMAGE_OFFSET 10 
+#define POND_WATERED_IMAGE_OFFSET 1
+#define POND_LARGE_IMAGE_OFFSET 20
+
+
 void map_water_supply_update_houses(void);
 void map_water_supply_update_reservoir_fountain(void);
 
@@ -11,5 +16,8 @@ enum {
 };
 
 int map_water_supply_is_well_unnecessary(int well_id, int radius);
+int map_water_supply_fountain_radius();
+int map_water_supply_reservoir_radius();
+int map_water_supply_well_radius();
 
 #endif // MAP_WATER_SUPPLY_H

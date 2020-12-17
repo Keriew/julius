@@ -11,8 +11,8 @@
 typedef struct {
     int id;
 
-    short image_id;
-    short cart_image_id;
+    unsigned int image_id;
+    unsigned int cart_image_id;
     unsigned char image_offset;
     unsigned char is_enemy_image;
 
@@ -82,7 +82,7 @@ typedef struct {
     unsigned char migrant_num_people;
     unsigned char is_ghost;
     unsigned char min_max_seen;
-    unsigned char __unused_57;
+    unsigned char progress_to_next_tick;
     short leading_figure_id;
     unsigned char attack_image_offset;
     unsigned char wait_ticks_missile;
@@ -104,7 +104,7 @@ typedef struct {
     unsigned char phrase_sequence_city;
     unsigned char trader_id;
     unsigned char wait_ticks_next_target;
-    unsigned char __unused_6f;
+    unsigned char dont_draw_elevated;
     short target_figure_id;
     short targeted_by_figure_id;
     unsigned short created_sequence;
@@ -140,7 +140,7 @@ int figure_is_herd(const figure *f);
 
 void figure_init_scenario(void);
 
-void figure_kill_all();
+void figure_kill_all(void);
 
 void figure_save_state(buffer *list, buffer *seq);
 

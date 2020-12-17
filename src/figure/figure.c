@@ -48,6 +48,9 @@ figure *figure_create(figure_type type, int x, int y, direction_type dir)
     f->cross_country_x = 15 * x;
     f->cross_country_y = 15 * y;
     f->progress_on_tile = 15;
+    f->progress_to_next_tick = 0;
+    f->dont_draw_elevated = 0;
+    random_generate_next();
     f->phrase_sequence_city = f->phrase_sequence_exact = random_byte() & 3;
     f->name = figure_name_get(type, 0);
     map_figure_add(f);
@@ -63,8 +66,16 @@ void figure_delete(figure *f)
     switch (f->type) {
         case FIGURE_LABOR_SEEKER:
         case FIGURE_MARKET_BUYER:
-            if (f->building_id) {
+        case FIGURE_PRIEST_BUYER:
+        case FIGURE_MESS_HALL_BUYER:
+            if (f->building_id && f->id == b->figure_id2) {
                 b->figure_id2 = 0;
+            }
+            else if (f->building_id && f->id == b->figure_id) {
+                b->figure_id = 0;
+            }
+            else if (f->building_id && f->id == b->figure_id4) {
+                b->figure_id4 = 0;
             }
             break;
         case FIGURE_BALLISTA:
@@ -77,8 +88,23 @@ void figure_delete(figure *f)
                 }
             }
             break;
+        case FIGURE_PRIEST:
+            if (f->building_id && f->destination_building_id && f->id == b->figure_id2) {
+                b->figure_id2 = 0;
+            }
+            if (f->building_id && f->destination_building_id && f->id == b->figure_id4) {
+                b->figure_id4 = 0;
+            }
+            break;
         case FIGURE_ENEMY_CAESAR_LEGIONARY:
             city_emperor_mark_soldier_killed();
+            break;
+        case FIGURE_CHARIOTEER:
+            if (building_is_neptune_temple(b->type)) {
+                b->figure_id2 = 0;
+            } else {
+                b->figure_id = 0;
+            }
             break;
         case FIGURE_EXPLOSION:
         case FIGURE_FORT_STANDARD:
@@ -92,6 +118,7 @@ void figure_delete(figure *f)
         case FIGURE_ZEBRA:
         case FIGURE_DELIVERY_BOY:
         case FIGURE_PATRICIAN:
+        case FIGURE_MESS_HALL_COLLECTOR:
             // nothing to do here
             break;
         default:
@@ -143,7 +170,7 @@ void figure_init_scenario(void)
     data.created_sequence = 0;
 }
 
-void figure_kill_all()
+void figure_kill_all(void)
 {
     for (int i = 1; i < MAX_FIGURES; i++) {
         data.figures[i].state = FIGURE_STATE_DEAD;
@@ -216,7 +243,7 @@ static void figure_save(buffer *buf, const figure *f)
     buffer_write_u8(buf, f->migrant_num_people);
     buffer_write_u8(buf, f->is_ghost);
     buffer_write_u8(buf, f->min_max_seen);
-    buffer_write_u8(buf, f->__unused_57);
+    buffer_write_u8(buf, f->progress_to_next_tick);
     buffer_write_i16(buf, f->leading_figure_id);
     buffer_write_u8(buf, f->attack_image_offset);
     buffer_write_u8(buf, f->wait_ticks_missile);
@@ -238,7 +265,7 @@ static void figure_save(buffer *buf, const figure *f)
     buffer_write_u8(buf, f->phrase_sequence_city);
     buffer_write_u8(buf, f->trader_id);
     buffer_write_u8(buf, f->wait_ticks_next_target);
-    buffer_write_u8(buf, f->__unused_6f);
+    buffer_write_u8(buf, f->dont_draw_elevated);
     buffer_write_i16(buf, f->target_figure_id);
     buffer_write_i16(buf, f->targeted_by_figure_id);
     buffer_write_u16(buf, f->created_sequence);
@@ -316,7 +343,7 @@ static void figure_load(buffer *buf, figure *f)
     f->migrant_num_people = buffer_read_u8(buf);
     f->is_ghost = buffer_read_u8(buf);
     f->min_max_seen = buffer_read_u8(buf);
-    f->__unused_57 = buffer_read_u8(buf);
+    f->progress_to_next_tick = buffer_read_u8(buf);
     f->leading_figure_id = buffer_read_i16(buf);
     f->attack_image_offset = buffer_read_u8(buf);
     f->wait_ticks_missile = buffer_read_u8(buf);
@@ -338,7 +365,7 @@ static void figure_load(buffer *buf, figure *f)
     f->phrase_sequence_city = buffer_read_u8(buf);
     f->trader_id = buffer_read_u8(buf);
     f->wait_ticks_next_target = buffer_read_u8(buf);
-    f->__unused_6f = buffer_read_u8(buf);
+    f->dont_draw_elevated = buffer_read_u8(buf);
     f->target_figure_id = buffer_read_i16(buf);
     f->targeted_by_figure_id = buffer_read_i16(buf);
     f->created_sequence = buffer_read_u16(buf);

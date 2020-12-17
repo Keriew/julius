@@ -6,10 +6,16 @@
 #include "graphics/image.h"
 #include "graphics/image_button.h"
 #include "graphics/lang_text.h"
+#include "graphics/screen.h"
 #include "graphics/window.h"
+#include "mods/mods.h"
 #include "scenario/property.h"
 #include "sound/speech.h"
 #include "window/mission_briefing.h"
+
+#define BORDER_IMAGE_DEPTH 11
+#define BACKGROUND_WIDTH 1024
+#define BACKGROUND_HEIGHT 768
 
 static void button_start(int param1, int param2);
 
@@ -46,11 +52,32 @@ static struct {
     int focus_button;
 } data;
 
+static void draw_background_images(void)
+{
+    int s_width = screen_width();
+    int s_height = screen_height();
+    int image_offset_x = (s_width - BACKGROUND_WIDTH) / 2;
+    int image_offset_y = (s_height - BACKGROUND_HEIGHT) / 2;
+
+    if (s_width > BACKGROUND_WIDTH || s_height > BACKGROUND_HEIGHT) {
+        image_draw_fullscreen_background(image_group(GROUP_EMPIRE_MAP));
+        image_draw(image_group(GROUP_SELECT_MISSION_BACKGROUND), image_offset_x, image_offset_y);
+        int image_border = mods_get_image_id(mods_get_group_id("Areldir", "UI_Elements"), "Mission Selection Border");
+        image_draw(image_border, image_offset_x, image_offset_y);
+        image_draw(image_border + 1, image_offset_x + BORDER_IMAGE_DEPTH, image_offset_y);
+        image_draw(image_border + 2, image_offset_x + BACKGROUND_WIDTH - BORDER_IMAGE_DEPTH, image_offset_y);
+        image_draw(image_border + 3, image_offset_x + BORDER_IMAGE_DEPTH,
+            image_offset_y + BACKGROUND_HEIGHT - BORDER_IMAGE_DEPTH - 1);
+    } else {
+        image_draw(image_group(GROUP_SELECT_MISSION_BACKGROUND), image_offset_x, image_offset_y);
+    }
+}
+
 static void draw_background(void)
 {
     int rank = scenario_campaign_rank();
 
-    image_draw_fullscreen_background(image_group(GROUP_SELECT_MISSION_BACKGROUND));
+    draw_background_images();
     graphics_in_dialog();
     image_draw(image_group(GROUP_SELECT_MISSION) + BACKGROUND_IMAGE_OFFSET[rank], 0, 0);
     lang_text_draw(144, 1 + 3 * rank, 20, 410, FONT_LARGE_BLACK);

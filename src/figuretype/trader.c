@@ -2,6 +2,7 @@
 
 #include "building/building.h"
 #include "building/dock.h"
+#include "building/monument.h"
 #include "building/warehouse.h"
 #include "building/storage.h"
 #include "city/buildings.h"
@@ -24,6 +25,27 @@
 #include "map/figure.h"
 #include "map/road_access.h"
 #include "scenario/map.h"
+#include "scenario/property.h"
+
+// Mercury Grand Temple base bonus to trader speed
+int trader_bonus_speed(void) {
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_MERCURY)) {
+        return 25;
+    }
+    else {
+        return 0;
+    }
+}
+
+// Neptune Grand Temple base bonus to trader speed
+int sea_trader_bonus_speed(void) {
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
+        return 25;
+    }
+    else {
+        return 0;
+    }
+}
 
 int figure_create_trade_caravan(int x, int y, int city_id)
 {
@@ -57,7 +79,7 @@ int figure_trade_caravan_can_buy(figure *trader, int warehouse_id, int city_id)
     if (warehouse->type != BUILDING_WAREHOUSE) {
         return 0;
     }
-    if (trader->trader_amount_bought >= 8) {
+    if (trader->trader_amount_bought >= figure_trade_land_trade_units()) {
         return 0;
     }
     if (!building_storage_get_permission(BUILDING_STORAGE_PERMISSION_TRADERS, warehouse)) {
@@ -80,7 +102,7 @@ int figure_trade_caravan_can_sell(figure *trader, int warehouse_id, int city_id)
     if (warehouse->type != BUILDING_WAREHOUSE) {
         return 0;
     }
-    if (trader->loads_sold_or_carrying >= 8) {
+    if (trader->loads_sold_or_carrying >= figure_trade_land_trade_units()) {
         return 0;
     }
     if (!building_storage_get_permission(BUILDING_STORAGE_PERMISSION_TRADERS, warehouse)) {
@@ -210,7 +232,8 @@ static int trader_get_sell_resource(int warehouse_id, int city_id)
             space = warehouse;
             for (int i = 0; i < 8; i++) {
                 space = building_next(space);
-                if (space->id > 0 && space->loads_stored < 4 && space->subtype.warehouse_resource_id == resource_to_import) {
+                if (space->id > 0 && space->loads_stored < 4
+                    && space->subtype.warehouse_resource_id == resource_to_import) {
                     building_warehouse_space_add_import(space, resource_to_import);
                     return resource_to_import;
                 }
@@ -229,7 +252,7 @@ static int get_closest_warehouse(const figure *f, int x, int y, int city_id, int
     importable[RESOURCE_NONE] = 0;
     for (int r = RESOURCE_MIN; r < RESOURCE_MAX; r++) {
         exportable[r] = empire_can_export_resource_to_city(city_id, r);
-        if (f->trader_amount_bought >= 8) {
+        if (f->trader_amount_bought >= figure_trade_land_trade_units()) {
             exportable[r] = 0;
         }
         if (city_id) {
@@ -237,7 +260,7 @@ static int get_closest_warehouse(const figure *f, int x, int y, int city_id, int
         } else { // exclude own city (id=0), shouldn't happen, but still..
             importable[r] = 0;
         }
-        if (f->loads_sold_or_carrying >= 8) {
+        if (f->loads_sold_or_carrying >= figure_trade_land_trade_units()) {
             importable[r] = 0;
         }
     }
@@ -329,8 +352,19 @@ static void go_to_next_warehouse(figure *f, int x_src, int y_src, int distance_t
     }
 }
 
+static int trader_image_id() 
+{
+    if (scenario_property_climate() == CLIMATE_DESERT) {
+        return IMAGE_CAMEL;
+    } else {
+        return image_group(GROUP_FIGURE_TRADE_CARAVAN);
+    }
+}
+
 void figure_trade_caravan_action(figure *f)
 {
+    int move_speed = trader_bonus_speed();
+    
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_PREFER_ROADS;
     figure_image_increase_offset(f, 12);
@@ -362,7 +396,7 @@ void figure_trade_caravan_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_101_TRADE_CARAVAN_ARRIVING:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             switch (f->direction) {
                 case DIR_FIGURE_AT_DESTINATION:
                     f->action_state = FIGURE_ACTION_102_TRADE_CARAVAN_TRADING;
@@ -415,7 +449,7 @@ void figure_trade_caravan_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_103_TRADE_CARAVAN_LEAVING:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             switch (f->direction) {
                 case DIR_FIGURE_AT_DESTINATION:
                     f->action_state = FIGURE_ACTION_100_TRADE_CARAVAN_CREATED;
@@ -431,11 +465,15 @@ void figure_trade_caravan_action(figure *f)
             break;
     }
     int dir = figure_image_normalize_direction(f->direction < 8 ? f->direction : f->previous_tile_direction);
-    f->image_id = image_group(GROUP_FIGURE_TRADE_CARAVAN) + dir + 8 * f->image_offset;
+
+
+    f->image_id = trader_image_id() + dir + 8 * f->image_offset;
 }
 
 void figure_trade_caravan_donkey_action(figure *f)
 {
+    int move_speed = trader_bonus_speed();
+    
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_PREFER_ROADS;
     figure_image_increase_offset(f, 12);
@@ -452,19 +490,22 @@ void figure_trade_caravan_donkey_action(figure *f)
         } else if (leader->type != FIGURE_TRADE_CARAVAN && leader->type != FIGURE_TRADE_CARAVAN_DONKEY) {
             f->state = FIGURE_STATE_DEAD;
         } else {
-            figure_movement_follow_ticks(f, 1);
+            figure_movement_follow_ticks_with_percentage(f, 1, move_speed);
         }
     }
 
-    if (leader->is_ghost) {
+    if (leader->is_ghost && !leader->height_adjusted_ticks) {
         f->is_ghost = 1;
     }
     int dir = figure_image_normalize_direction(f->direction < 8 ? f->direction : f->previous_tile_direction);
-    f->image_id = image_group(GROUP_FIGURE_TRADE_CARAVAN) + dir + 8 * f->image_offset;
+    
+    f->image_id = trader_image_id() + dir + 8 * f->image_offset;
 }
 
 void figure_native_trader_action(figure *f)
 {
+    int move_speed = trader_bonus_speed();
+
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_ANY;
     figure_image_increase_offset(f, 12);
@@ -477,7 +518,7 @@ void figure_native_trader_action(figure *f)
             figure_combat_handle_corpse(f);
             break;
         case FIGURE_ACTION_160_NATIVE_TRADER_GOING_TO_WAREHOUSE:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_163_NATIVE_TRADER_AT_WAREHOUSE;
             } else if (f->direction == DIR_FIGURE_REROUTE) {
@@ -491,7 +532,7 @@ void figure_native_trader_action(figure *f)
             }
             break;
         case FIGURE_ACTION_161_NATIVE_TRADER_RETURNING:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             if (f->direction == DIR_FIGURE_AT_DESTINATION || f->direction == DIR_FIGURE_LOST) {
                 f->state = FIGURE_STATE_DEAD;
             } else if (f->direction == DIR_FIGURE_REROUTE) {
@@ -619,6 +660,7 @@ static int trade_ship_done_trading(figure *f)
 
 void figure_trade_ship_action(figure *f)
 {
+    int move_speed = sea_trader_bonus_speed();
     f->is_ghost = 0;
     f->is_boat = 1;
     figure_image_increase_offset(f, 12);
@@ -631,7 +673,7 @@ void figure_trade_ship_action(figure *f)
             figure_combat_handle_corpse(f);
             break;
         case FIGURE_ACTION_110_TRADE_SHIP_CREATED:
-            f->loads_sold_or_carrying = 12;
+            f->loads_sold_or_carrying = figure_trade_sea_trade_units();
             f->trader_amount_bought = 0;
             f->is_ghost = 1;
             f->wait_ticks++;
@@ -655,7 +697,7 @@ void figure_trade_ship_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_112_TRADE_SHIP_MOORED;
@@ -705,7 +747,7 @@ void figure_trade_ship_action(figure *f)
             city_message_reset_category_count(MESSAGE_CAT_BLOCKED_DOCK);
             break;
         case FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_114_TRADE_SHIP_ANCHORED;
@@ -736,7 +778,7 @@ void figure_trade_ship_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_115_TRADE_SHIP_LEAVING:
-            figure_movement_move_ticks(f, 1);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_110_TRADE_SHIP_CREATED;
@@ -750,4 +792,20 @@ void figure_trade_ship_action(figure *f)
     }
     int dir = figure_image_normalize_direction(f->direction < 8 ? f->direction : f->previous_tile_direction);
     f->image_id = image_group(GROUP_FIGURE_SHIP) + dir;
+}
+
+int figure_trade_land_trade_units()
+{
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_MERCURY)) {
+        return 12;
+    }
+    return 8;
+}
+
+int figure_trade_sea_trade_units()
+{
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_MERCURY)) {
+        return 16;
+    }
+    return 12;
 }

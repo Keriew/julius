@@ -39,21 +39,27 @@ void image_buttons_draw(int x, int y, image_button *buttons, int num_buttons)
     fade_pressed_effect(buttons, num_buttons);
     for (int i = 0; i < num_buttons; i++) {
         image_button *btn = &buttons[i];
-        int image_id = image_group(btn->image_collection) + btn->image_offset;
-        if (btn->enabled) {
-            if (btn->pressed) {
-                image_id += 2;
-            } else if (btn->focused) {
-                image_id += 1;
+        int image_id = 0;
+        if (btn->image_collection) {
+            image_id = image_group(btn->image_collection) + btn->image_offset;
+            if (btn->enabled) {
+                if (btn->pressed) {
+                    image_id += 2;
+                }
+                else if (btn->focused) {
+                    image_id += 1;
+                }
             }
-        } else {
-            image_id += 3;
+            else {
+                image_id += 3;
+            }
         }
         image_draw(image_id, x + btn->x_offset, y + btn->y_offset);
     }
 }
 
-int image_buttons_handle_mouse(const mouse *m, int x, int y, image_button *buttons, int num_buttons, int *focus_button_id)
+int image_buttons_handle_mouse(
+    const mouse *m, int x, int y, image_button *buttons, int num_buttons, int *focus_button_id)
 {
     fade_pressed_effect(buttons, num_buttons);
     remove_pressed_effect_build(buttons, num_buttons);

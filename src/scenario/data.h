@@ -77,7 +77,7 @@ enum {
     ALLOWED_BUILDING_BRIDGE = 45,
     ALLOWED_BUILDING_BARRACKS = 46,
     ALLOWED_BUILDING_MILITARY_ACADEMY = 47,
-    ALLOWED_BUILDING_DISTRIBUTION_CENTER = 48,
+    ALLOWED_BUILDING_MONUMENTS = 48,
 };
 
 struct win_criteria_t {
@@ -232,7 +232,8 @@ extern struct scenario_t {
         int starting_favor;
         int starting_personal_savings;
         uint8_t player_name[MAX_PLAYER_NAME];
-        uint8_t campaign_player_name[MAX_PLAYER_NAME]; /**< Temp storage for carrying over player name to next campaign mission */
+        /** Temp storage for carrying over player name to next campaign mission */
+        uint8_t campaign_player_name[MAX_PLAYER_NAME];
     } settings;
 
     int is_saved;

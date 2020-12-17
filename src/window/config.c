@@ -24,7 +24,7 @@
 #include "translation/translation.h"
 #include <string.h>
 
-#define NUM_CHECKBOXES 37
+#define NUM_CHECKBOXES 27
 #define CONFIG_PAGES 3
 #define MAX_LANGUAGE_DIRS 20
 
@@ -35,13 +35,17 @@
 #define CHECKBOX_CHECK_SIZE 20
 #define CHECKBOX_HEIGHT 20
 #define CHECKBOX_WIDTH 560
+#define CHECKBOX_TEXT_WIDTH CHECKBOX_WIDTH - CHECKBOX_CHECK_SIZE - 15
 
 #define NUM_VISIBLE_ITEMS 15
 
 #define ITEM_Y_OFFSET 60
 #define ITEM_HEIGHT 24
 
-static int options_per_page[CONFIG_PAGES] = { 11,14,12 };
+static int options_per_page[CONFIG_PAGES] = { 10,7,10 };
+#define NUM_BOTTOM_BUTTONS 4
+#define MAX_LANGUAGE_DIRS 20
+
 
 static void toggle_switch(int id, int param2);
 static void button_language_select(int param1, int param2);
@@ -51,7 +55,6 @@ static void button_close(int save, int param2);
 static void button_page(int param1, int param2);
 static int config_change_basic(config_key key);
 static int config_change_zoom(config_key key);
-static int config_change_string_basic(config_string_key key);
 static int config_change_string_language(config_string_key key);
 
 
@@ -60,39 +63,32 @@ static generic_button checkbox_buttons[] = {
     { 20,  96, 20, 20, toggle_switch, button_none, CONFIG_UI_SIDEBAR_INFO, TR_CONFIG_SIDEBAR_INFO },
     { 20, 120, 20, 20, toggle_switch, button_none, CONFIG_UI_SMOOTH_SCROLLING, TR_CONFIG_SMOOTH_SCROLLING },
     { 20, 144, 20, 20, toggle_switch, button_none, CONFIG_UI_WALKER_WAYPOINTS, TR_CONFIG_DRAW_WALKER_WAYPOINTS },
-    { 20, 168, 20, 20, toggle_switch, button_none, CONFIG_UI_VISUAL_FEEDBACK_ON_DELETE, TR_CONFIG_VISUAL_FEEDBACK_ON_DELETE },
-    { 20, 192, 20, 20, toggle_switch, button_none, CONFIG_UI_SHOW_WATER_STRUCTURE_RANGE, TR_CONFIG_SHOW_WATER_STRUCTURE_RANGE },
-    { 20, 216, 20, 20, toggle_switch, button_none, CONFIG_UI_SHOW_CONSTRUCTION_SIZE, TR_CONFIG_SHOW_CONSTRUCTION_SIZE },
-    { 20, 240, 20, 20, toggle_switch, button_none, CONFIG_UI_ZOOM, TR_CONFIG_ENABLE_ZOOM },
-    { 20, 264, 20, 20, toggle_switch, button_none, CONFIG_UI_COMPLETE_RATING_COLUMNS, TR_CONFIG_COMPLETE_RATING_COLUMNS },
-    { 20, 288, 20, 20, toggle_switch, button_none, CONFIG_UI_HIGHLIGHT_LEGIONS, TR_CONFIG_HIGHLIGHT_LEGIONS  },
-    { 20, 312, 20, 20, toggle_switch, button_none, CONFIG_UI_ROTATE_MANUALLY, TR_CONFIG_ROTATE_MANUALLY  },
-    { 20,  72, 20, 20, toggle_switch, button_none, CONFIG_GP_FIX_IMMIGRATION_BUG, TR_CONFIG_FIX_IMMIGRATION_BUG },
-    { 20,  96, 20, 20, toggle_switch, button_none, CONFIG_GP_FIX_100_YEAR_GHOSTS, TR_CONFIG_FIX_100_YEAR_GHOSTS },
-    { 20, 120, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GRANDFESTIVAL, TR_CONFIG_GRANDFESTIVAL },
-    { 20, 144, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_JEALOUS_GODS, TR_CONFIG_JEALOUS_GODS },
-    { 20, 168, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GLOBAL_LABOUR, TR_CONFIG_GLOBAL_LABOUR },
-    { 20, 192, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_SCHOOL_WALKERS, TR_CONFIG_SCHOOL_WALKERS },
-    { 20, 216, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_RETIRE_AT_60, TR_CONFIG_RETIRE_AT_60 },
-    { 20, 240, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_FIXED_WORKERS, TR_CONFIG_FIXED_WORKERS },
-    { 20, 264, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_EXTRA_FORTS, TR_CONFIG_EXTRA_FORTS },
-    { 20, 288, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_WOLVES_BLOCK, TR_CONFIG_WOLVES_BLOCK },
-    { 20, 312, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_DYNAMIC_GRANARIES, TR_CONFIG_DYNAMIC_GRANARIES },
-    { 20, 336, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_MORE_STOCKPILE, TR_CONFIG_MORE_STOCKPILE },
-    { 20, 360, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_NO_BUYER_DISTRIBUTION, TR_CONFIG_NO_BUYER_DISTRIBUTION },
-    { 20, 384, 20, 20, toggle_switch, button_none, CONFIG_GP_FIX_EDITOR_EVENTS, TR_CONFIG_FIX_EDITOR_EVENTS },
-    { 20,  72, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_IMMEDIATELY_DELETE_BUILDINGS, TR_CONFIG_IMMEDIATELY_DELETE_BUILDINGS },
-    { 20,  96, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GETTING_GRANARIES_GO_OFFROAD, TR_CONFIG_GETTING_GRANARIES_GO_OFFROAD },
+    { 20, 168, 20, 20, toggle_switch, button_none, CONFIG_UI_SHOW_WATER_STRUCTURE_RANGE, TR_CONFIG_SHOW_WATER_STRUCTURE_RANGE },
+    { 20, 192, 20, 20, toggle_switch, button_none, CONFIG_UI_SHOW_CONSTRUCTION_SIZE, TR_CONFIG_SHOW_CONSTRUCTION_SIZE },
+    { 20, 216, 20, 20, toggle_switch, button_none, CONFIG_UI_ZOOM, TR_CONFIG_ENABLE_ZOOM },
+    { 20, 240, 20, 20, toggle_switch, button_none, CONFIG_UI_HIGHLIGHT_LEGIONS, TR_CONFIG_HIGHLIGHT_LEGIONS  },
+    { 20, 266, 20, 20, toggle_switch, button_none, CONFIG_UI_SHOW_MILITARY_SIDEBAR, TR_CONFIG_SHOW_MILITARY_SIDEBAR  },
+    { 20, 288, 20, 20, toggle_switch, button_none, CONFIG_UI_DISABLE_RIGHT_CLICK_MAP_DRAG, TR_CONFIG_DISABLE_RIGHT_CLICK_MAP_DRAG  },
+
+
+    { 20, 72, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_JEALOUS_GODS, TR_CONFIG_JEALOUS_GODS },
+    { 20, 96, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GLOBAL_LABOUR, TR_CONFIG_GLOBAL_LABOUR },
+    { 20, 120, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_RETIRE_AT_60, TR_CONFIG_RETIRE_AT_60 },
+    { 20, 144, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_FIXED_WORKERS, TR_CONFIG_FIXED_WORKERS },
+    { 20, 168, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_WOLVES_BLOCK, TR_CONFIG_WOLVES_BLOCK },
+    { 20, 192, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_MULTIPLE_BARRACKS, TR_CONFIG_MULTIPLE_BARRACKS },
+    { 20, 216, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_MONUMENTS_BOOST_CULTURE_RATING, TR_CONFIG_GP_CH_MONUMENTS_BOOST_CULTURE_RATING },
+
+    { 20, 72, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_NO_BUYER_DISTRIBUTION, TR_CONFIG_NO_BUYER_DISTRIBUTION },
+    { 20, 96, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GETTING_GRANARIES_GO_OFFROAD, TR_CONFIG_GETTING_GRANARIES_GO_OFFROAD },
     { 20, 120, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_GRANARIES_GET_DOUBLE, TR_CONFIG_GRANARIES_GET_DOUBLE },
     { 20, 144, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_TOWER_SENTRIES_GO_OFFROAD, TR_CONFIG_TOWER_SENTRIES_GO_OFFROAD },
     { 20, 168, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_FARMS_DELIVER_CLOSE, TR_CONFIG_FARMS_DELIVER_CLOSE },
     { 20, 192, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_DELIVER_ONLY_TO_ACCEPTING_GRANARIES, TR_CONFIG_DELIVER_ONLY_TO_ACCEPTING_GRANARIES },
     { 20, 216, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_ALL_HOUSES_MERGE, TR_CONFIG_ALL_HOUSES_MERGE },
-    { 20, 240, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_WINE_COUNTS_IF_OPEN_TRADE_ROUTE, TR_CONFIG_WINE_COUNTS_IF_OPEN_TRADE_ROUTE },
-    { 20, 264, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_RANDOM_COLLAPSES_TAKE_MONEY, TR_CONFIG_RANDOM_COLLAPSES_TAKE_MONEY },
-    { 20, 288, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_MULTIPLE_BARRACKS, TR_CONFIG_MULTIPLE_BARRACKS },
-    { 20, 312, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_WAREHOUSES_DONT_ACCEPT, TR_CONFIG_NOT_ACCEPTING_WAREHOUSES },
-    { 20, 336, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_HOUSES_DONT_EXPAND_INTO_GARDENS, TR_CONFIG_HOUSES_DONT_EXPAND_INTO_GARDENS },
+    { 20, 240, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_RANDOM_COLLAPSES_TAKE_MONEY, TR_CONFIG_RANDOM_COLLAPSES_TAKE_MONEY },    
+    { 20, 264, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_WAREHOUSES_DONT_ACCEPT, TR_CONFIG_NOT_ACCEPTING_WAREHOUSES },
+    { 20, 288, 20, 20, toggle_switch, button_none, CONFIG_GP_CH_HOUSES_DONT_EXPAND_INTO_GARDENS, TR_CONFIG_HOUSES_DONT_EXPAND_INTO_GARDENS }
 };
 
 static generic_button language_button = {
@@ -114,7 +110,7 @@ static generic_button page_buttons[] = {
 static translation_key page_names[] = {
     TR_CONFIG_HEADER_UI_CHANGES,
     TR_CONFIG_HEADER_GAMEPLAY_CHANGES,
-    TR_CONFIG_HEADER_GAMEPLAY_CHANGES
+    TR_CONFIG_HEADER_CITY_MANAGEMENT_CHANGES
 };
 
 static struct {
@@ -147,7 +143,6 @@ static void init(void)
     data.page = 0;
     data.starting_option = 0;
     for (int i = 0; i < NUM_CHECKBOXES; i++) {
-        config_key key = checkbox_buttons[i].parameter1;
         data.config_values[i].original_value = config_get(i);
         data.config_values[i].new_value = config_get(i);
         data.config_values[i].change_action = config_change_basic;
@@ -164,13 +159,14 @@ static void init(void)
     data.language_options[0] = data.language_options_data[0];
     data.num_language_options = 1;
     const dir_listing* subdirs = dir_find_all_subdirectories();
+    const char *original_value = data.config_string_values[CONFIG_STRING_UI_LANGUAGE_DIR].original_value;
     for (int i = 0; i < subdirs->num_files; i++) {
         if (data.num_language_options < MAX_LANGUAGE_DIRS && lang_dir_is_valid(subdirs->files[i])) {
             int opt_id = data.num_language_options;
             strncpy(data.language_options_utf8[opt_id], subdirs->files[i], CONFIG_STRING_VALUE_MAX - 1);
             encoding_from_utf8(subdirs->files[i], data.language_options_data[opt_id], CONFIG_STRING_VALUE_MAX);
             data.language_options[opt_id] = data.language_options_data[opt_id];
-            if (strcmp(data.config_string_values[CONFIG_STRING_UI_LANGUAGE_DIR].original_value, subdirs->files[i]) == 0) {
+            if (strcmp(original_value, subdirs->files[i]) == 0) {
                 data.selected_language_option = opt_id;
             }
             data.num_language_options++;
@@ -181,9 +177,7 @@ static void init(void)
 
 static void draw_background(void)
 {
-    graphics_clear_screens();
-
-    image_draw_fullscreen_background(image_group(GROUP_CONFIG));
+    image_draw_fullscreen_background(image_group(GROUP_INTERMEZZO_BACKGROUND) + 5);
 
     graphics_in_dialog();
     outer_panel_draw(0, 0, 40, 30);
@@ -287,7 +281,8 @@ static void button_reset_defaults(int param1, int param2)
         data.config_values[i].new_value = config_get_default_value(i);
     }
     for (int i = 0; i < CONFIG_STRING_MAX_ENTRIES; ++i) {
-        strncpy(data.config_string_values[i].new_value, config_get_default_string_value(i), CONFIG_STRING_VALUE_MAX - 1);
+        strncpy(data.config_string_values[i].new_value,
+            config_get_default_string_value(i), CONFIG_STRING_VALUE_MAX - 1);
     }
     set_language(0);
     window_invalidate();
@@ -299,7 +294,9 @@ static void cancel_values(void)
         data.config_values[i].new_value = data.config_values[i].original_value;
     }
     for (int i = 0; i < CONFIG_STRING_MAX_ENTRIES; i++) {
-        memcpy(data.config_string_values[i].new_value, data.config_string_values[i].original_value, CONFIG_STRING_VALUE_MAX - 1); // memcpy required to fix warning on Switch build
+        // memcpy required to fix warning on Switch build
+        memcpy(data.config_string_values[i].new_value,
+            data.config_string_values[i].original_value, CONFIG_STRING_VALUE_MAX - 1);
     }
 }
 
@@ -384,13 +381,6 @@ static int config_change_basic(config_key key)
     return 1;
 }
 
-static int config_change_string_basic(config_string_key key)
-{
-    config_set_string(key, data.config_string_values[key].new_value);
-    strncpy(data.config_string_values[key].original_value, data.config_string_values[key].new_value, CONFIG_STRING_VALUE_MAX - 1);
-    return 1;
-}
-
 static int config_change_zoom(config_key key)
 {
     config_change_basic(key);
@@ -408,6 +398,7 @@ static int config_change_string_language(config_string_key key)
         game_reload_language();
         return 0;
     }
-    strncpy(data.config_string_values[key].original_value, data.config_string_values[key].new_value, CONFIG_STRING_VALUE_MAX - 1);
+    strncpy(data.config_string_values[key].original_value,
+        data.config_string_values[key].new_value, CONFIG_STRING_VALUE_MAX - 1);
     return 1;
 }

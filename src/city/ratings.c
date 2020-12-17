@@ -1,13 +1,19 @@
 #include "ratings.h"
 
 #include "building/building.h"
+#include "building/count.h"
 #include "building/model.h"
+#include "building/count.h"
 #include "city/culture.h"
 #include "city/data_private.h"
+#include "city/victory.h"
 #include "core/calc.h"
+#include "core/config.h"
 #include "game/time.h"
 #include "scenario/criteria.h"
 #include "scenario/property.h"
+
+#define GT_CULTURE_BONUS 8
 
 int city_rating_culture(void)
 {
@@ -124,6 +130,9 @@ static void update_culture_explanation(void)
 {
     int min_percentage = 100;
     int reason = 1;
+    if (city_data.ratings.culture >= 100) {
+        return;
+    }
     if (city_data.culture.religion_coverage < min_percentage) {
         min_percentage = city_data.culture.religion_coverage;
         reason = 4;
@@ -391,6 +400,15 @@ static void update_culture_rating(void)
     }
     city_data.ratings.culture += city_data.ratings.culture_points.library;
 
+    if (config_get(CONFIG_GP_CH_MONUMENTS_BOOST_CULTURE_RATING)) {
+        city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_CERES) * GT_CULTURE_BONUS;
+        city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_NEPTUNE) * GT_CULTURE_BONUS;
+        city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_MERCURY) * GT_CULTURE_BONUS;
+        city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_MARS) * GT_CULTURE_BONUS;
+        city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_VENUS) * GT_CULTURE_BONUS;
+        city_data.ratings.culture += building_count_active(BUILDING_PANTHEON) * GT_CULTURE_BONUS;
+    }
+
     city_data.ratings.culture = calc_bound(city_data.ratings.culture, 0, 100);
     update_culture_explanation();
 }
@@ -508,7 +526,7 @@ static void update_favor_rating(int is_yearly_update)
         city_data.ratings.favor_salary_penalty = 0;
         city_data.ratings.favor_milestone_penalty = 0;
         city_data.ratings.favor_ignored_request_penalty = 0;
-        if (!scenario_is_tutorial_1() && !scenario_is_tutorial_2()) {
+        if (!scenario_is_tutorial_1() && !scenario_is_tutorial_2() && !city_victory_has_won()) {
             city_data.ratings.favor -= 2;
         }
         // tribute penalty

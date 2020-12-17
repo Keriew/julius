@@ -8,6 +8,7 @@
 #include "figure/image.h"
 #include "figure/movement.h"
 #include "figure/route.h"
+#include "figuretype/market.h"
 #include "map/building.h"
 #include "map/road_access.h"
 
@@ -62,21 +63,127 @@ static void culture_action(figure *f, int group)
     figure_image_update(f, image_group(group));
 }
 
+void figure_destination_priest_action(figure* f)
+{
+    building* b = building_get(f->building_id);
+    building* destination = building_get(f->destination_building_id);
+    f->terrain_usage = TERRAIN_USAGE_ROADS;
+    if (b->state != BUILDING_STATE_IN_USE || (b->figure_id4 != f->id && b->figure_id2 != f->id) || destination->state != BUILDING_STATE_IN_USE) {
+        f->state = FIGURE_STATE_DEAD;
+    }
+
+    switch (f->action_state) {
+    case FIGURE_ACTION_150_ATTACK:
+        figure_combat_handle_attack(f);
+        break;
+    case FIGURE_ACTION_149_CORPSE:
+        figure_combat_handle_corpse(f);
+        break;
+    case FIGURE_ACTION_212_DESTINATION_PRIEST_CREATED:
+        f->destination_x = destination->road_access_x;
+        f->destination_y = destination->road_access_y;
+        f->action_state = FIGURE_ACTION_213_PRIEST_GOING_TO_PANTHEON;
+
+        break;
+    case FIGURE_ACTION_214_DESTINATION_MARS_PRIEST_CREATED:
+        f->destination_x = destination->road_access_x;
+        f->destination_y = destination->road_access_y;
+        int market_units = b->data.market.inventory[f->collecting_item_id];
+        int num_loads;
+        int max_units = MAX_FOOD_STOCKED_MESS_HALL - market_units;
+
+        if (market_units >= 800) {
+            num_loads = 8;
+        }
+        else if (market_units >= 700) {
+            num_loads = 7;
+        }
+        else if (market_units >= 600) {
+            num_loads = 6;
+        }
+        else if (market_units >= 500) {
+            num_loads = 5;
+        }
+        else if (market_units >= 400) {
+            num_loads = 4;
+        }
+        else if (market_units >= 300) {
+            num_loads = 3;
+        }
+        else if (market_units >= 200) {
+            num_loads = 2;
+        }
+        else if (market_units >= 100) {
+            num_loads = 1;
+        }
+        else {
+            num_loads = 0;
+        }
+        if (num_loads > max_units / 100) {
+            num_loads = max_units / 100;
+        }
+        if (num_loads <= 0) {
+            return;
+        }
+
+        b->data.market.inventory[f->collecting_item_id]-= (100 * num_loads);
+
+        // create delivery boys
+        int previous_boy = f->id;
+        for (int i = 0; i < num_loads; i++) {
+            previous_boy = figure_market_create_delivery_boy(previous_boy, f, FIGURE_DELIVERY_BOY);
+        }
+
+        f->action_state = FIGURE_ACTION_215_PRIEST_GOING_TO_MESS_HALL;
+        break;
+
+    case FIGURE_ACTION_213_PRIEST_GOING_TO_PANTHEON:
+        figure_movement_move_ticks(f, 1);
+        if (f->direction == DIR_FIGURE_AT_DESTINATION) {
+            f->state = FIGURE_STATE_DEAD;
+        }
+        else if (f->direction == DIR_FIGURE_REROUTE) {
+            figure_route_remove(f);
+        }
+        else if (f->direction == DIR_FIGURE_LOST) {
+            f->state = FIGURE_STATE_DEAD;
+        }
+        break;
+    case FIGURE_ACTION_215_PRIEST_GOING_TO_MESS_HALL:
+        f->terrain_usage = TERRAIN_USAGE_PREFER_ROADS;
+        figure_movement_move_ticks(f, 1);
+        if (f->direction == DIR_FIGURE_AT_DESTINATION) {
+            f->state = FIGURE_STATE_DEAD;
+        }
+        else if (f->direction == DIR_FIGURE_REROUTE) {
+            figure_route_remove(f);
+        }
+        else if (f->direction == DIR_FIGURE_LOST) {
+            f->state = FIGURE_STATE_DEAD;
+        }
+        break;
+    }
+
+    figure_image_increase_offset(f, 12);
+    figure_image_update(f, image_group(GROUP_FIGURE_PRIEST));
+}
+
+
 void figure_priest_action(figure *f)
 {
-    culture_action(f, GROUP_FIGURE_PRIEST);
+    if (f->destination_building_id) {
+        figure_destination_priest_action(f);
+    } else {
+        culture_action(f, GROUP_FIGURE_PRIEST);
+    }
 }
 
 void figure_school_child_action(figure *f)
 {
     f->terrain_usage = TERRAIN_USAGE_ROADS;
     f->use_cross_country = 0;
-    if (config_get(CONFIG_GP_CH_SCHOOL_WALKERS)) {
-        f->max_roam_length = 192;
-    }
-    else {
-        f->max_roam_length = 96;
-    }
+    f->max_roam_length = 192;
+
     building *b = building_get(f->building_id);
     if (b->state != BUILDING_STATE_IN_USE || b->type != BUILDING_SCHOOL) {
         f->state = FIGURE_STATE_DEAD;

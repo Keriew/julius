@@ -1,8 +1,10 @@
 #include "military.h"
 
+#include "city/data_private.h"
 #include "city/figures.h"
 #include "city/military.h"
 #include "city/view.h"
+#include "core/calc.h"
 #include "figure/formation_legion.h"
 #include "graphics/generic_button.h"
 #include "graphics/image.h"
@@ -13,9 +15,12 @@
 #include "graphics/window.h"
 #include "map/grid.h"
 #include "scenario/invasion.h"
+#include "translation/translation.h"
 #include "window/city.h"
 
-#define ADVISOR_HEIGHT 26
+#define ADVISOR_HEIGHT 27
+
+#define MAX_BUTTONS 18
 
 static void button_go_to_legion(int legion_id, int param2);
 static void button_return_to_fort(int legion_id, int param2);
@@ -90,6 +95,19 @@ static int draw_background(void)
     }
     int bullet_x = 60;
     int text_x = 80;
+    int food_text;
+    int food_stress = city_data.mess_hall.food_stress_cumulative;
+
+    if (food_stress > 50 && !city_mess_hall_months_food_stored()) {
+        food_text = TR_ADVISOR_LEGION_FOOD_CRITICAL;
+    }
+    else if (food_stress > 20 && !city_mess_hall_months_food_stored()) {
+        food_text = TR_ADVISOR_LEGION_FOOD_NEEDED;
+    }
+    else {
+        food_text = TR_ADVISOR_LEGION_MONTHS_FOOD_STORED;
+    }
+
     if (num_legions <= 0) {
         image_draw(image_group(GROUP_BULLET), bullet_x, 359);
         lang_text_draw(51, enemy_text_id, text_x, 358, FONT_NORMAL_BLACK);
@@ -99,7 +117,7 @@ static int draw_background(void)
     } else {
         // has forts
         image_draw(image_group(GROUP_BULLET), bullet_x, 349);
-        int width = lang_text_draw_amount(8, 46, city_military_total_soldiers(), text_x, 348, FONT_NORMAL_BLACK);
+        int width = lang_text_draw_amount(8, 46, city_military_total_soldiers(), text_x - 5, 348, FONT_NORMAL_BLACK);
         width += lang_text_draw(51, 7, text_x + width, 348, FONT_NORMAL_BLACK);
         lang_text_draw_amount(8, 48, city_military_total_legions(), text_x + width, 348, FONT_NORMAL_BLACK);
 
@@ -108,6 +126,12 @@ static int draw_background(void)
 
         image_draw(image_group(GROUP_BULLET), bullet_x, 389);
         lang_text_draw(51, distant_battle_text_id, text_x, 388, FONT_NORMAL_BLACK);
+
+        image_draw(image_group(GROUP_BULLET), bullet_x, 409);        
+        width = text_draw(translation_for(food_text), text_x, 409, FONT_NORMAL_BLACK, 0);
+        if (food_text == TR_ADVISOR_LEGION_MONTHS_FOOD_STORED) {
+            text_draw_number(city_mess_hall_months_food_stored(), '@', " ", text_x + width, 409, FONT_NORMAL_BLACK);
+        }
     }
 
     inner_panel_draw(16, 70, 36, 17);
@@ -132,7 +156,11 @@ static int draw_background(void)
                 lang_text_draw(138, 35, 84 + width, 100 + 44 * i, FONT_NORMAL_GREEN);
                 break;
         }
-        lang_text_draw_centered(138, 37 + m->morale / 5, 224, 91 + 44 * i, 150, FONT_NORMAL_GREEN);
+        int morale_offset = m->morale / 5;
+        if (morale_offset > 20) {
+            morale_offset = 20;
+        }
+        lang_text_draw_centered(138, 37 + morale_offset, 224, 91 + 44 * i, 150, FONT_NORMAL_GREEN);
 
         int image_id = image_group(GROUP_FORT_ICONS);
         button_border_draw(384, 83 + 44 * i, 30, 30, 0);
@@ -172,7 +200,11 @@ static int handle_mouse(const mouse *m)
     if (scrollbar_handle_mouse(&scrollbar, m)) {
         return 1;
     }
-    return generic_buttons_handle_mouse(m, 0, 0, fort_buttons, 3 * num_legions, &focus_button_id);
+    int buttons = 3 * num_legions;
+    if (buttons > MAX_BUTTONS) {
+        buttons = MAX_BUTTONS;
+    }
+    return generic_buttons_handle_mouse(m, 0, 0, fort_buttons, buttons, &focus_button_id);
 }
 
 static void button_go_to_legion(int legion_id, int param2)

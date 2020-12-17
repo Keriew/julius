@@ -1,6 +1,7 @@
 #include "building.h"
 
 #include "building/building_state.h"
+#include "building/monument.h"
 #include "building/properties.h"
 #include "building/rotation.h"
 #include "building/storage.h"
@@ -8,6 +9,7 @@
 #include "city/population.h"
 #include "city/warning.h"
 #include "figure/formation_legion.h"
+#include "game/difficulty.h"
 #include "game/resource.h"
 #include "game/undo.h"
 #include "map/building_tiles.h"
@@ -162,6 +164,9 @@ building *building_create(building_type type, int x, int y)
             b->output_resource_id = RESOURCE_POTTERY;
             b->subtype.workshop_type = WORKSHOP_CLAY_TO_POTTERY;
             break;
+        case BUILDING_GRAND_TEMPLE_VENUS:
+            b->output_resource_id = RESOURCE_WINE;
+            break;
         default:
             b->output_resource_id = RESOURCE_NONE;
             break;
@@ -247,6 +252,8 @@ void building_update_state(void)
                     aqueduct_recalc = 1;
                 } else if (b->type == BUILDING_GRANARY) {
                     road_recalc = 1;
+                } else if ((b->type >= BUILDING_GRAND_TEMPLE_CERES && b->type <= BUILDING_GRAND_TEMPLE_VENUS) || b->type == BUILDING_PANTHEON || b->type == BUILDING_LIGHTHOUSE) {
+                    road_recalc = 1;
                 }
                 map_building_tiles_remove(i, b->x, b->y);
 		if (b->type == BUILDING_ROADBLOCK) {
@@ -307,6 +314,42 @@ int building_is_house(building_type type)
     return type >= BUILDING_HOUSE_VACANT_LOT && type <= BUILDING_HOUSE_LUXURY_PALACE;
 }
 
+// For Venus GT base bonus
+int building_is_statue_garden_temple(building_type type)
+{
+    return ((type >= BUILDING_SMALL_TEMPLE_CERES && type <= BUILDING_LARGE_TEMPLE_VENUS) ||
+        (type >= BUILDING_GRAND_TEMPLE_CERES && type <= BUILDING_GRAND_TEMPLE_VENUS) ||
+        (type >= BUILDING_SMALL_STATUE && type <= BUILDING_LARGE_STATUE) ||
+        (type >= BUILDING_SMALL_POND && type <= BUILDING_PANTHEON) ||
+        (type == BUILDING_GARDENS)
+     );
+}
+
+int building_is_ceres_temple(building_type type)
+{
+    return (type == BUILDING_SMALL_TEMPLE_CERES || type == BUILDING_LARGE_TEMPLE_CERES);
+}
+
+int building_is_neptune_temple(building_type type)
+{
+    return (type == BUILDING_SMALL_TEMPLE_NEPTUNE || type == BUILDING_LARGE_TEMPLE_NEPTUNE);
+}
+
+int building_is_mercury_temple(building_type type)
+{
+    return (type == BUILDING_SMALL_TEMPLE_MERCURY || type == BUILDING_LARGE_TEMPLE_MERCURY);
+}
+
+int building_is_mars_temple(building_type type)
+{
+    return (type == BUILDING_SMALL_TEMPLE_MARS || type == BUILDING_LARGE_TEMPLE_MARS);
+}
+
+int building_is_venus_temple(building_type type)
+{
+    return (type == BUILDING_SMALL_TEMPLE_VENUS || type == BUILDING_LARGE_TEMPLE_VENUS);
+}
+
 int building_is_fort(building_type type)
 {
     return type == BUILDING_FORT_LEGIONARIES ||
@@ -356,6 +399,20 @@ int building_mothball_set(building* b, int mothball)
     }
     return b->state;
 
+}
+
+int building_get_levy(const building* b)
+{
+    int levy = b->monthly_levy;
+    //Pantheon base bonus
+    if (building_monument_working(BUILDING_PANTHEON) && 
+        ((b->type >= BUILDING_SMALL_TEMPLE_CERES && b->type <= BUILDING_LARGE_TEMPLE_VENUS) ||
+        (b->type >= BUILDING_GRAND_TEMPLE_CERES && b->type <= BUILDING_GRAND_TEMPLE_VENUS) || b->type == BUILDING_ORACLE)) {
+        levy = (levy / 4) * 3;
+    }
+        
+    return difficulty_adjust_levies(levy);
+    
 }
 
 

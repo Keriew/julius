@@ -16,6 +16,7 @@
 #include "graphics/graphics.h"
 #include "graphics/menu.h"
 #include "graphics/text.h"
+#include "graphics/video.h"
 #include "graphics/window.h"
 #include "input/scroll.h"
 #include "input/zoom.h"
@@ -28,6 +29,7 @@
 #include "sound/effect.h"
 #include "widget/city_with_overlay.h"
 #include "widget/city_without_overlay.h"
+#include "widget/city_pause_menu.h"
 #include "widget/minimap.h"
 #include "window/building_info.h"
 #include "window/city.h"
@@ -72,13 +74,11 @@ void widget_city_draw(void)
         graphics_set_active_canvas(CANVAS_CITY);
     }
     set_city_scaled_clip_rectangle();
-
     if (game_state_overlay()) {
         city_with_overlay_draw(&data.current_tile);
     } else {
         city_without_overlay_draw(0, 0, &data.current_tile);
     }
-
     graphics_set_active_canvas(CANVAS_UI);
 }
 
@@ -201,6 +201,7 @@ static void build_end(void)
             sound_effect_play(SOUND_EFFECT_BUILD);
         }
         building_construction_place();
+        widget_minimap_invalidate();
     }
 }
 
@@ -274,7 +275,7 @@ static void handle_touch_scroll(const touch *t)
     if (!data.capture_input) {
         return;
     }
-    int was_click = touch_was_click(get_latest_touch());
+    int was_click = touch_was_click(touch_get_latest());
     if (t->has_started || was_click) {
         scroll_drag_start(1);
         return;
@@ -299,16 +300,14 @@ static void handle_touch_zoom(const touch *first, const touch *last)
 
 static void handle_last_touch(void)
 {
-    const touch *last = get_latest_touch();
+    const touch *last = touch_get_latest();
     if (!last->in_use) {
         return;
     }
     if (touch_was_click(last)) {
         building_construction_cancel();
-        return;
-    }
-    if (touch_not_click(last)) {
-        handle_touch_zoom(get_earliest_touch(), last);
+    } else if (touch_not_click(last)) {
+        handle_touch_zoom(touch_get_earliest(), last);
     }
 }
 
@@ -332,7 +331,7 @@ static int handle_cancel_construction_button(const touch *t)
 
 static void handle_first_touch(map_tile *tile)
 {
-    const touch *first = get_earliest_touch();
+    const touch *first = touch_get_earliest();
     building_type type = building_construction_type();
 
     if (touch_was_click(first)) {
@@ -406,7 +405,7 @@ static void handle_first_touch(map_tile *tile)
 
 static void handle_touch(void)
 {
-    const touch *first = get_earliest_touch();
+    const touch *first = touch_get_earliest();
     if (!first->in_use) {
         scroll_restore_margins();
         return;
@@ -486,7 +485,8 @@ void widget_city_handle_input(const mouse *m, const hotkeys *h)
         if (building_construction_type()) {
             building_construction_cancel();
         } else {
-            hotkey_handle_escape();
+            video_stop();
+            window_city_pause_menu_show();
         }
     }
 }
@@ -494,7 +494,6 @@ void widget_city_handle_input(const mouse *m, const hotkeys *h)
 static void military_map_click(int legion_formation_id, const map_tile *tile)
 {
     if (!tile->grid_offset) {
-        window_city_show();
         return;
     }
     formation *m = formation_get(legion_formation_id);
@@ -519,7 +518,7 @@ void widget_city_handle_input_military(const mouse *m, const hotkeys *h, int leg
         return;
     }
     if (m->is_touch) {
-        const touch *t = get_earliest_touch();
+        const touch *t = touch_get_earliest();
         if (!t->in_use) {
             return;
         }
@@ -538,10 +537,16 @@ void widget_city_handle_input_military(const mouse *m, const hotkeys *h, int leg
         window_city_show();
     } else {
         update_city_view_coords(m->x, m->y, tile);
-        if ((!m->is_touch && m->left.went_down) || (m->is_touch && m->left.went_up && touch_was_click(get_earliest_touch()))) {
+        if ((!m->is_touch && m->left.went_down)
+            || (m->is_touch && m->left.went_up && touch_was_click(touch_get_earliest()))) {
             military_map_click(legion_formation_id, tile);
         }
     }
+}
+
+int widget_city_current_grid_offset(void)
+{
+    return data.current_tile.grid_offset;
 }
 
 void widget_city_get_tooltip(tooltip_context *c)
@@ -574,7 +579,7 @@ void widget_city_get_tooltip(tooltip_context *c)
     if (overlay != OVERLAY_NONE) {
         c->text_group = 66;
         c->text_id = city_with_overlay_get_tooltip_text(c, grid_offset);
-        if (c->text_id) {
+        if (c->text_id || c->translation_key) {
             c->type = TOOLTIP_OVERLAY;
             c->high_priority = 1;
         }

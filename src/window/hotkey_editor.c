@@ -47,10 +47,12 @@ static void init(hotkey_action action, int index,
 
 static void draw_background(void)
 {
-    graphics_in_dialog();
-    outer_panel_draw(168, 128, 19, 9);
+    window_draw_underlying_window();
 
-    text_draw_centered(translation_for(TR_HOTKEY_EDIT_TITLE), 176, 144, 296, FONT_LARGE_BLACK, 0);
+    graphics_in_dialog();
+    outer_panel_draw(128, 128, 24, 9);
+
+    text_draw_centered(translation_for(TR_HOTKEY_EDIT_TITLE), 136, 144, 376, FONT_LARGE_BLACK, 0);
 
     for (int i = 0; i < NUM_BOTTOM_BUTTONS; i++) {
         generic_button *btn = &bottom_buttons[i];

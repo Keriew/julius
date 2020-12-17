@@ -1,6 +1,22 @@
 #ifndef CITY_FINANCE_H
 #define CITY_FINANCE_H
 
+#include "building/type.h"
+
+#define TEMPLE_LEVY_MONTHLY 4
+#define FORT_LEVY_MONTHLY 10
+#define TOWER_LEVY_MONTHLY 2
+#define GRAND_TEMPLE_LEVY_MONTHLY 48
+#define PANTHEON_LEVY_MONTHLY 75
+#define LIGHTHOUSE_LEVY_MONTHLY 20
+
+#define BUILDINGS_WITH_LEVIES 20
+
+typedef struct {
+    int type;
+    int amount;
+} building_levy_for_type;
+
 int city_finance_treasury(void);
 
 int city_finance_out_of_money(void);
@@ -61,6 +77,7 @@ typedef struct {
         int sundries;
         int tribute;
         int total;
+        int levies;
     } expenses;
     int net_in_out;
     int balance;

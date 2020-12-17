@@ -17,7 +17,7 @@ typedef struct {
     int8_t blessing_done;
     int8_t small_curse_done;
     int32_t months_since_festival;
-    int8_t unused1;
+    int8_t happy_bolts;
     int8_t unused2;
     int8_t unused3;
 } god_status;
@@ -50,6 +50,7 @@ extern struct city_data_t {
         int32_t mission_post_operational;
         map_point main_native_meeting;
         int8_t unknown_value;
+        int32_t mess_hall_building_id;
     } building;
     struct {
         int16_t animals;
@@ -91,6 +92,7 @@ extern struct city_data_t {
         uint8_t empire_service_legions;
         int32_t legionary_legions;
         int32_t native_attack_duration;
+        int32_t soldiers_in_city; // soldiers not on campaign, needing food from mess hall
     } military;
     struct {
         uint8_t city;
@@ -115,6 +117,7 @@ extern struct city_data_t {
         int32_t interest_so_far;
         int32_t salary_so_far;
         int32_t wages_so_far;
+        int32_t levies_so_far;
         int16_t stolen_this_year;
         int16_t stolen_last_year;
         int32_t cheated_money;
@@ -263,12 +266,14 @@ extern struct city_data_t {
         int32_t average_education;
         int32_t average_health;
         int32_t religion_coverage;
+        int32_t population_with_venus_access;
     } culture;
     struct {
         god_status gods[5];
         int32_t least_happy_god;
         int32_t angry_message_delay;
         int32_t venus_curse_active;
+        int32_t venus_blessing_months_left;
         int32_t neptune_double_trade_active;
         int32_t neptune_sank_ships;
         int32_t mars_spirit_power;
@@ -379,6 +384,14 @@ extern struct city_data_t {
         int32_t tutorial_disease_message_shown;
         int32_t tutorial_senate_built;
     } mission;
+    struct {
+        int32_t food_types;
+        int32_t food_stress_cumulative;
+        int32_t mess_hall_warning_shown;
+        int32_t missing_mess_hall_warning_shown;
+        int32_t food_percentage_missing_this_month;
+        int32_t total_food;
+    } mess_hall;
     struct {
         int8_t other_player[18068];
         int8_t unknown_00a0;

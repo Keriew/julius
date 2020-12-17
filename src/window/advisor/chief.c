@@ -1,5 +1,6 @@
 #include "chief.h"
 
+#include "city/data_private.h"
 #include "city/figures.h"
 #include "city/finance.h"
 #include "city/health.h"
@@ -44,7 +45,8 @@ static int draw_background(void)
     if (city_labor_unemployment_percentage() > 0) {
         width = lang_text_draw(61, 12, X_OFFSET, 66, FONT_NORMAL_RED);
         width += text_draw_percentage(city_labor_unemployment_percentage(), X_OFFSET + width, 66, FONT_NORMAL_RED);
-        text_draw_number(city_labor_workers_unemployed() - city_labor_workers_needed(), '(', ")", X_OFFSET + width, 66, FONT_NORMAL_RED);
+        text_draw_number(city_labor_workers_unemployed() - city_labor_workers_needed(), '(', ")",
+            X_OFFSET + width, 66, FONT_NORMAL_RED);
     } else if (city_labor_workers_needed() > 0) {
         width = lang_text_draw(61, 13, X_OFFSET, 66, FONT_NORMAL_RED);
         lang_text_draw_amount(8, 12, city_labor_workers_needed(), X_OFFSET + width, 66, FONT_NORMAL_RED);
@@ -139,7 +141,19 @@ static int draw_background(void)
 
     // military
     draw_title(186, 5);
-    if (city_figures_imperial_soldiers()) {
+    
+    int food_text = 0;
+    int food_stress = city_data.mess_hall.food_stress_cumulative;
+
+    if (food_stress > 60) {
+        food_text = TR_ADVISOR_LEGION_FOOD_CRITICAL;
+    }
+    else if (food_stress > 40) {
+        food_text = TR_ADVISOR_LEGION_FOOD_NEEDED;
+    }
+    if (food_text && city_figures_soldiers() > 0) {
+        text_draw(translation_for(food_text), X_OFFSET, 186, FONT_NORMAL_RED, 0);
+    } else if (city_figures_imperial_soldiers()) {
         lang_text_draw(61, 76, X_OFFSET, 186, FONT_NORMAL_RED);
     } else if (city_figures_enemies()) {
         lang_text_draw(61, 75, X_OFFSET, 186, FONT_NORMAL_RED);

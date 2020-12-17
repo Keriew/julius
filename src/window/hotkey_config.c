@@ -33,7 +33,7 @@ static scrollbar_type scrollbar = {580, 72, 352, on_scroll};
 
 typedef struct {
     int action;
-    translation_key name_translation;
+    int name_translation;
     int name_text_group;
     int name_text_id;
 } hotkey_widget;
@@ -63,6 +63,7 @@ static hotkey_widget hotkey_widgets[] = {
     {HOTKEY_ROTATE_MAP_RIGHT, TR_HOTKEY_ROTATE_MAP_RIGHT},
     {HOTKEY_ROTATE_BUILDING, TR_HOTKEY_ROTATE_BUILDING},
     {HOTKEY_HEADER, TR_HOTKEY_HEADER_BUILD},
+    {HOTKEY_BUILD_CLONE, TR_HOTKEY_BUILD_CLONE},
     {HOTKEY_BUILD_CLEAR_LAND, TR_NONE, 68, 21},
     {HOTKEY_BUILD_VACANT_HOUSE, TR_NONE, 67, 7},
     {HOTKEY_BUILD_ROAD, TR_NONE, GROUP_BUILDINGS, BUILDING_ROAD},
@@ -187,15 +188,17 @@ static void draw_background(void)
 {
     graphics_clear_screen(CANVAS_UI);
 
-    image_draw_fullscreen_background(image_group(GROUP_CONFIG));
+    image_draw_fullscreen_background(image_group(GROUP_INTERMEZZO_BACKGROUND) + 5);
 
     graphics_in_dialog();
     outer_panel_draw(0, 0, 40, 30);
 
     text_draw_centered(translation_for(TR_HOTKEY_TITLE), 16, 16, 608, FONT_LARGE_BLACK, 0);
 
-    text_draw_centered(translation_for(TR_HOTKEY_LABEL), HOTKEY_X_OFFSET_1, 55, HOTKEY_BTN_WIDTH, FONT_NORMAL_BLACK, 0);
-    text_draw_centered(translation_for(TR_HOTKEY_ALTERNATIVE_LABEL), HOTKEY_X_OFFSET_2, 55, HOTKEY_BTN_WIDTH, FONT_NORMAL_BLACK, 0);
+    text_draw_centered(translation_for(TR_HOTKEY_LABEL), HOTKEY_X_OFFSET_1, 55,
+        HOTKEY_BTN_WIDTH, FONT_NORMAL_BLACK, 0);
+    text_draw_centered(translation_for(TR_HOTKEY_ALTERNATIVE_LABEL), HOTKEY_X_OFFSET_2, 55,
+        HOTKEY_BTN_WIDTH, FONT_NORMAL_BLACK, 0);
 
     inner_panel_draw(20, 72, 35, 22);
     int y_base = 80;
@@ -217,7 +220,8 @@ static void draw_background(void)
             if (mapping1->key) {
                 const uint8_t *keyname = key_combination_display_name(mapping1->key, mapping1->modifiers);
                 graphics_set_clip_rectangle(HOTKEY_X_OFFSET_1, text_offset, HOTKEY_BTN_WIDTH, HOTKEY_BTN_HEIGHT);
-                text_draw_centered(keyname, HOTKEY_X_OFFSET_1 + 3, text_offset, HOTKEY_BTN_WIDTH - 6, FONT_NORMAL_WHITE, 0);
+                text_draw_centered(keyname, HOTKEY_X_OFFSET_1 + 3, text_offset,
+                    HOTKEY_BTN_WIDTH - 6, FONT_NORMAL_WHITE, 0);
                 graphics_reset_clip_rectangle();
             }
 
@@ -225,7 +229,8 @@ static void draw_background(void)
             if (mapping2->key) {
                 graphics_set_clip_rectangle(HOTKEY_X_OFFSET_2, text_offset, HOTKEY_BTN_WIDTH, HOTKEY_BTN_HEIGHT);
                 const uint8_t *keyname = key_combination_display_name(mapping2->key, mapping2->modifiers);
-                text_draw_centered(keyname, HOTKEY_X_OFFSET_2 + 3, text_offset, HOTKEY_BTN_WIDTH - 6, FONT_NORMAL_WHITE, 0);
+                text_draw_centered(keyname, HOTKEY_X_OFFSET_2 + 3, text_offset,
+                    HOTKEY_BTN_WIDTH - 6, FONT_NORMAL_WHITE, 0);
                 graphics_reset_clip_rectangle();
             }
         }
@@ -272,8 +277,10 @@ static void handle_input(const mouse *m, const hotkeys *h)
     }
 
     int handled = 0;
-    handled |= generic_buttons_handle_mouse(m_dialog, 0, 0, hotkey_buttons, NUM_VISIBLE_OPTIONS * 2, &data.focus_button);
-    handled |= generic_buttons_handle_mouse(m_dialog, 0, 0, bottom_buttons, NUM_BOTTOM_BUTTONS, &data.bottom_focus_button);
+    handled |= generic_buttons_handle_mouse(m_dialog, 0, 0,
+        hotkey_buttons, NUM_VISIBLE_OPTIONS * 2, &data.focus_button);
+    handled |= generic_buttons_handle_mouse(m_dialog, 0, 0,
+        bottom_buttons, NUM_BOTTOM_BUTTONS, &data.bottom_focus_button);
     if (!handled && (m->right.went_up || h->escape_pressed)) {
         window_config_show();
     }

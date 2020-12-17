@@ -30,6 +30,16 @@ static struct {
     int y;
 } translation;
 
+static struct {
+    struct {
+        int x_start;
+        int x_end;
+        int y_start;
+        int y_end;
+    } clip_rectangle;
+    canvas_type type;
+} original_canvas;
+
 static clip_info clip;
 static canvas_type active_canvas;
 
@@ -85,7 +95,29 @@ void graphics_set_custom_canvas(color_t *pixels, int width, int height)
     canvas[CANVAS_CUSTOM].pixels = pixels;
     canvas[CANVAS_CUSTOM].width = width;
     canvas[CANVAS_CUSTOM].height = height;
+    if (active_canvas != CANVAS_CUSTOM) {
+        original_canvas.type = active_canvas;
+        original_canvas.clip_rectangle.x_start = clip_rectangle.x_start;
+        original_canvas.clip_rectangle.x_end = clip_rectangle.x_end;
+        original_canvas.clip_rectangle.y_start = clip_rectangle.y_start;
+        original_canvas.clip_rectangle.y_end = clip_rectangle.y_end;
+    }
     graphics_set_active_canvas(CANVAS_CUSTOM);
+}
+
+void graphics_restore_original_canvas(void)
+{
+    if (active_canvas != CANVAS_CUSTOM) {
+        return;
+    }
+    canvas[CANVAS_CUSTOM].pixels = 0;
+    canvas[CANVAS_CUSTOM].width = 0;
+    canvas[CANVAS_CUSTOM].height = 0;
+    active_canvas = original_canvas.type;
+    clip_rectangle.x_start = original_canvas.clip_rectangle.x_start;
+    clip_rectangle.x_end = original_canvas.clip_rectangle.x_end;
+    clip_rectangle.y_start = original_canvas.clip_rectangle.y_start;
+    clip_rectangle.y_end = original_canvas.clip_rectangle.y_end;
 }
 
 canvas_type graphics_get_canvas_type(void)
@@ -229,7 +261,8 @@ void graphics_save_to_buffer(int x, int y, int width, int height, color_t *buffe
     int min_dy = current_clip->clipped_pixels_top;
     int max_dy = height - current_clip->clipped_pixels_bottom;
     for (int dy = min_dy; dy < max_dy; dy++) {
-        memcpy(&buffer[dy * width], graphics_get_pixel(min_x, y + dy), sizeof(color_t) * current_clip->visible_pixels_x);
+        memcpy(&buffer[dy * width], graphics_get_pixel(min_x, y + dy),
+            sizeof(color_t) * current_clip->visible_pixels_x);
     }
 }
 
@@ -243,7 +276,8 @@ void graphics_draw_from_buffer(int x, int y, int width, int height, const color_
     int min_dy = current_clip->clipped_pixels_top;
     int max_dy = height - current_clip->clipped_pixels_bottom;
     for (int dy = min_dy; dy < max_dy; dy++) {
-        memcpy(graphics_get_pixel(min_x, y + dy), &buffer[dy * width], sizeof(color_t) * current_clip->visible_pixels_x);
+        memcpy(graphics_get_pixel(min_x, y + dy), &buffer[dy * width],
+            sizeof(color_t) * current_clip->visible_pixels_x);
     }
 }
 

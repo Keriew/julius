@@ -2,6 +2,7 @@
 
 #include "building/count.h"
 #include "building/model.h"
+#include "building/monument.h"
 #include "core/config.h"
 #include "city/buildings.h"
 #include "city/military.h"
@@ -29,9 +30,13 @@ int building_get_barracks_for_weapon(int x, int y, int resource, int road_networ
 	building* min_building = 0;
 	for (int i = 1; i < MAX_BUILDINGS; i++) {
 		building* b = building_get(i);
-		if (b->state != BUILDING_STATE_IN_USE || b->type != BUILDING_BARRACKS) {
+		if (b->state != BUILDING_STATE_IN_USE || (b->type != BUILDING_BARRACKS && b->type != BUILDING_GRAND_TEMPLE_MARS)) {
 			continue;
 		}
+        if (b->type == BUILDING_GRAND_TEMPLE_MARS && b->subtype.monument_phase != MONUMENT_FINISHED) {
+            continue;
+        }
+
 		if (!map_has_road_access(b->x, b->y, b->size, 0)) {
             continue;
 		}

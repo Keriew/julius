@@ -8,6 +8,7 @@
 #include "figure/formation.h"
 #include "figure/phrase.h"
 #include "figure/trader.h"
+#include "figuretype/trader.h"
 #include "graphics/generic_button.h"
 #include "graphics/graphics.h"
 #include "graphics/image.h"
@@ -15,20 +16,30 @@
 #include "graphics/panel.h"
 #include "graphics/text.h"
 #include "graphics/window.h"
+#include "mods/mods.h"
 #include "scenario/property.h"
+#include "translation/translation.h"
 #include "widget/city.h"
+
+#define CAMEL_PORTRAIT 59
+#define NEW_FIGURES_ID 73
+
 
 static void select_figure(int index, int param2);
 
 static const int FIGURE_TYPE_TO_BIG_FIGURE_IMAGE[] = {
-    8, 13, 13, 9, 4, 13, 8, 16, 7, 4,
-    18, 42, 26, 41, 8, 1, 33, 10, 11, 25,
-    8, 25, 15, 15, 15, 60, 12, 14, 5, 52,
-    52, 2, 3, 6, 6, 13, 8, 8, 17, 12,
-    58, 21, 50, 8, 8, 8, 28, 30, 23, 8,
-    8, 8, 34, 39, 33, 43, 27, 48, 63, 8,
-    8, 8, 8, 8, 53, 8, 38, 62, 54, 55,
-    56, 8, 8
+    8, 4, 4, 9, 51, 13, 8, 16, 7, 51, // 0-9
+    18, 42, 26, 41, 8, 1, 33, 10, 11, 25, //10-19
+    8, 25, 15, 15, 15, 60, 12, 14, 5, 52, //20-29
+    52, 2, 3, 6, 6, 13, 8, 8, 17, 12, //30-39
+    58, 21, 50, 8, 8, 8, 28, 30, 23, 8, //40-49
+    8, 8, 34, 39, 33, 43, 27, 48, 63, 8, //50-59
+    8, 8, 8, 8, 53, 8, 38, 62, 54, 55, //60-69
+    56, 8, 8, 58, 0, 7, 50, 0, 14, 0 //70-79
+};
+// Starting with FIGURE_WORK_CAMP_WORKER = 73,
+static const int NEW_FIGURE_TYPES[] = {
+    TR_FIGURE_TYPE_WORK_CAMP_WORKER,TR_FIGURE_TYPE_WORK_CAMP_SLAVE,TR_FIGURE_TYPE_WORK_CAMP_ENGINEER,TR_FIGURE_TYPE_MESS_HALL_BUYER,TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, TR_FIGURE_TYPE_PRIEST_BUYER
 };
 
 static generic_button figure_buttons[] = {
@@ -49,6 +60,22 @@ static struct {
 
 static int big_people_image(figure_type type)
 {
+    switch (type)
+    {
+    case FIGURE_WORK_CAMP_SLAVE:
+        return mods_get_image_id(mods_get_group_id("Areldir", "Slave_Walker"), "Slave Portrait");
+        break;
+    case FIGURE_MESS_HALL_COLLECTOR:
+        return mods_get_image_id(mods_get_group_id("Areldir", "Mess_Hall_Walker"), "M Hall Portrait");
+        break;
+    case FIGURE_TRADE_CARAVAN_DONKEY:
+    case FIGURE_TRADE_CARAVAN:
+        if (scenario_property_climate() == CLIMATE_DESERT) {
+            return image_group(GROUP_BIG_PEOPLE) + CAMEL_PORTRAIT - 1;
+        }
+    default:
+        break;
+    }
     return image_group(GROUP_BIG_PEOPLE) + FIGURE_TYPE_TO_BIG_FIGURE_IMAGE[type] - 1;
 }
 
@@ -83,7 +110,7 @@ static void draw_trader(building_info_context *c, figure *f)
     lang_text_draw(21, city->name_id, c->x_offset + 40 + width, c->y_offset + 110, FONT_SMALL_BLACK);
 
     width = lang_text_draw(129, 1, c->x_offset + 40, c->y_offset + 132, FONT_SMALL_BLACK);
-    lang_text_draw_amount(8, 10, f->type == FIGURE_TRADE_SHIP ? 12 : 8, c->x_offset + 40 + width, c->y_offset + 132, FONT_SMALL_BLACK);
+    lang_text_draw_amount(8, 10, f->type == FIGURE_TRADE_SHIP ? figure_trade_sea_trade_units() : figure_trade_land_trade_units(), c->x_offset + 40 + width, c->y_offset + 132, FONT_SMALL_BLACK);
 
     int trader_id = f->trader_id;
     if (f->type == FIGURE_TRADE_SHIP) {
@@ -283,7 +310,13 @@ static void draw_market_buyer(building_info_context *c, figure *f)
     image_draw(big_people_image(f->type), c->x_offset + 28, c->y_offset + 112);
 
     lang_text_draw(65, f->name, c->x_offset + 90, c->y_offset + 108, FONT_LARGE_BROWN);
-    int width = lang_text_draw(64, f->type, c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK);
+    int width = 0;
+    if (f->type == FIGURE_MESS_HALL_BUYER || f->type == FIGURE_PRIEST_BUYER) {
+        int relative_id = f->type - NEW_FIGURES_ID;
+        width = text_draw(translation_for(NEW_FIGURE_TYPES[relative_id]), c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK, 0);
+    } else {
+        width = lang_text_draw(64, f->type, c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK);
+    }
 
     if (f->action_state == FIGURE_ACTION_145_MARKET_BUYER_GOING_TO_STORAGE) {
         width += lang_text_draw(129, 17, c->x_offset + 90 + width, c->y_offset + 139, FONT_SMALL_BLACK);
@@ -312,7 +345,12 @@ static void draw_normal_figure(building_info_context *c, figure *f)
     image_draw(image_id, c->x_offset + 28, c->y_offset + 112);
 
     lang_text_draw(65, f->name, c->x_offset + 90, c->y_offset + 108, FONT_LARGE_BROWN);
-    lang_text_draw(64, f->type, c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK);
+    if (f->type >= NEW_FIGURES_ID) {
+        int relative_id = f->type - NEW_FIGURES_ID;
+        text_draw(translation_for(NEW_FIGURE_TYPES[relative_id]), c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK,0);
+    } else {
+        lang_text_draw(64, f->type, c->x_offset + 92, c->y_offset + 139, FONT_SMALL_BLACK);
+    }
 
     if (c->figure.phrase_id >= 0) {
         lang_text_draw_multiline(130, 21 * c->figure.sound_id + c->figure.phrase_id + 1,
@@ -334,7 +372,7 @@ static void draw_figure_info(building_info_context *c, int figure_id)
         draw_animal(c, f);
     } else if (type == FIGURE_CART_PUSHER || type == FIGURE_WAREHOUSEMAN || type == FIGURE_DOCKER) {
         draw_cartpusher(c, f);
-    } else if (type == FIGURE_MARKET_BUYER) {
+    } else if (type == FIGURE_MARKET_BUYER || type == FIGURE_MESS_HALL_BUYER || type == FIGURE_PRIEST_BUYER) {
         draw_market_buyer(c, f);
     } else {
         draw_normal_figure(c, f);
@@ -391,7 +429,8 @@ void window_building_prepare_figure_list(building_info_context *c)
 int window_building_handle_mouse_figure_list(const mouse *m, building_info_context *c)
 {
     data.context_for_callback = c;
-    int handled = generic_buttons_handle_mouse(m, c->x_offset, c->y_offset, figure_buttons, c->figure.count, &data.focus_button_id);
+    int handled = generic_buttons_handle_mouse(m, c->x_offset, c->y_offset,
+        figure_buttons, c->figure.count, &data.focus_button_id);
     data.context_for_callback = 0;
     return handled;
 }

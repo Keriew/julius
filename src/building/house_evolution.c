@@ -2,6 +2,7 @@
 
 #include "building/house.h"
 #include "building/model.h"
+#include "building/monument.h"
 #include "city/houses.h"
 #include "city/resource.h"
 #include "core/calc.h"
@@ -12,15 +13,21 @@
 #include "map/routing_terrain.h"
 #include "map/tiles.h"
 
+#define DEVOLVE_DELAY 2
+#define DEVOLVE_DELAY_WITH_VENUS 20
+
 typedef enum {
     EVOLVE = 1,
     NONE = 0,
     DEVOLVE = -1
 } evolve_status;
 
-static int check_evolve_desirability(building *house)
+static int active_devolve_delay;
+
+static int check_evolve_desirability(building *house, int bonus)
 {
     int level = house->subtype.house_level;
+    level -= bonus;
     const model_house *model = model_get_house(level);
     int evolve_des = model->evolve_desirability;
     if (level >= HOUSE_LUXURY_PALACE) {
@@ -39,11 +46,14 @@ static int check_evolve_desirability(building *house)
     return status;
 }
 
-static int has_required_goods_and_services(building *house, int for_upgrade, house_demands *demands)
+static int has_required_goods_and_services(building *house, int for_upgrade, int with_bonus, house_demands *demands)
 {
     int level = house->subtype.house_level;
     if (for_upgrade) {
         ++level;
+    }
+    if (with_bonus) {
+        --level;
     }
     const model_house *model = model_get_house(level);
     // water
@@ -164,20 +174,25 @@ static int has_required_goods_and_services(building *house, int for_upgrade, hou
     return 1;
 }
 
-static int check_requirements(building *house, house_demands *demands)
+static int check_requirements(building* house, house_demands* demands)
 {
-    int status = check_evolve_desirability(house);
-    if (!has_required_goods_and_services(house, 0, demands)) {
+    int bonus = 0;
+    if (building_monument_pantheon_module_is_active(PANTHEON_MODULE_2_HOUSING_EVOLUTION) && house->house_pantheon_access) {
+        bonus++;
+    }
+    int status = check_evolve_desirability(house, bonus);
+    if (!has_required_goods_and_services(house, 0, bonus, demands)) {
         status = DEVOLVE;
-    } else if (status == EVOLVE) {
-        status = has_required_goods_and_services(house, 1, demands);
+    }
+    else if (status == EVOLVE) {
+        status = has_required_goods_and_services(house, 1, bonus, demands);
     }
     return status;
 }
 
 static int has_devolve_delay(building *house, evolve_status status)
 {
-    if (status == DEVOLVE && house->data.house.devolve_delay < 2) {
+    if (status == DEVOLVE && house->data.house.devolve_delay < active_devolve_delay) {
         house->data.house.devolve_delay++;
         return 1;
     } else {
@@ -458,8 +473,9 @@ static int evolve_large_palace(building *house, house_demands *demands)
 
 static int evolve_luxury_palace(building *house, house_demands *demands)
 {
-    int status = check_evolve_desirability(house);
-    if (!has_required_goods_and_services(house, 0, demands)) {
+    int bonus = (int)(building_monument_pantheon_module_is_active(PANTHEON_MODULE_2_HOUSING_EVOLUTION) && house->house_pantheon_access);
+    int status = check_evolve_desirability(house, bonus);
+    if (!has_required_goods_and_services(house, 0, bonus, demands)) {
         status = DEVOLVE;
     }
     if (!has_devolve_delay(house, status) && status == DEVOLVE) {
@@ -482,10 +498,26 @@ static void consume_resource(building *b, int inventory, int amount)
 static void consume_resources(building *b)
 {
     const model_house *model = model_get_house(b->subtype.house_level);
-    consume_resource(b, INVENTORY_POTTERY, model->pottery);
-    consume_resource(b, INVENTORY_FURNITURE, model->furniture);
-    consume_resource(b, INVENTORY_OIL, model->oil);
-    consume_resource(b, INVENTORY_WINE, model->wine);
+    // mercury module 1 - pottery and furniture reduced by 20%
+    if (!(game_time_month() % 6) && b->data.house.temple_mercury && building_monument_gt_module_is_active(MERCURY_MODULE_1_POTTERY_FURN)) {
+        consume_resource(b, INVENTORY_OIL, model->oil);
+        consume_resource(b, INVENTORY_WINE, model->wine);
+    } 
+    // mercury module 2 - oil and wine reduced by 20%
+    else if (!(game_time_month() % 6) && b->data.house.temple_mercury && building_monument_gt_module_is_active(MERCURY_MODULE_2_OIL_WINE)) {
+        consume_resource(b, INVENTORY_POTTERY, model->pottery);
+        consume_resource(b, INVENTORY_FURNITURE, model->furniture);
+    }
+    // mars module 2 - all goods reduced by 10%
+    else if (!(game_time_total_months() % 10) && b->data.house.temple_mars && building_monument_gt_module_is_active(MARS_MODULE_2_ALL_GOODS)) {
+
+    }
+    else {
+        consume_resource(b, INVENTORY_POTTERY, model->pottery);
+        consume_resource(b, INVENTORY_FURNITURE, model->furniture);
+        consume_resource(b, INVENTORY_OIL, model->oil);
+        consume_resource(b, INVENTORY_WINE, model->wine);
+    }
 }
 
 static int (*evolve_callback[])(building *, house_demands *) = {
@@ -501,6 +533,13 @@ void building_house_process_evolve_and_consume_goods(void)
     city_houses_reset_demands();
     house_demands *demands = city_houses_demands();
     int has_expanded = 0;
+
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_VENUS)) {
+        active_devolve_delay = DEVOLVE_DELAY_WITH_VENUS;
+    } else {
+        active_devolve_delay = DEVOLVE_DELAY;
+    }
+
     for (int i = 1; i < MAX_BUILDINGS; i++) {
         building *b = building_get(i);
         if (b->state == BUILDING_STATE_IN_USE && building_is_house(b->type)) {
@@ -519,6 +558,9 @@ void building_house_process_evolve_and_consume_goods(void)
 void building_house_determine_evolve_text(building *house, int worst_desirability_building)
 {
     int level = house->subtype.house_level;
+    if (building_monument_pantheon_module_is_active(PANTHEON_MODULE_2_HOUSING_EVOLUTION) && house->house_pantheon_access) {
+        level--;
+    }
 
     // this house will devolve soon because...
 
@@ -656,7 +698,7 @@ void building_house_determine_evolve_text(building *house, int worst_desirabilit
         house->data.house.evolve_text_id = 65;
         return;
     }
-    if (level >= 19) { // max level!
+    if (house->subtype.house_level >= 19) { // max level! 
         house->data.house.evolve_text_id = 60;
         return;
     }

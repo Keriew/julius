@@ -233,7 +233,7 @@ static const char FIGURE_SOUNDS[32][20][SOUND_FILENAME_MAX] = {
     { // 30
         "missionary_starv1.wav", "missionary_nojob1.wav", "missionary_needjob1.wav", "missionary_nofun1.wav",
         "missionary_relig1.wav", "missionary_great1.wav", "missionary_great2.wav", "missionary_exact1.wav",
-        "missionary_exact2.wav", "missionary_exact3.wav", "missionary_exact4.wav", "missionary_exact5.wav",
+        "missionary_exact2.wav", "missionary_exact3.wav", "mission_exact4.wav", "missionary_exact5.wav",
         "missionary_exact6.wav", "missionary_exact7.wav", "missionary_exact8.wav", "missionary_exact9.wav",
         "missionary_exact0.wav", "missionary_free1.wav", "missionary_free2.wav", "missionary_free3.wav"
     },
@@ -254,7 +254,7 @@ static const int FIGURE_TYPE_TO_SOUND_TYPE[] = {
     18, -1, 1, 25, 25, 25, 25, 25, 25, 25, // 40-49
     25, 25, 25, 25, 25, 25, 25, 25, -1, -1, // 50-59
     -1, -1, -1, -1, 30, -1, 31, -1, -1, -1, // 60-69
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 // 70-79
+    -1, -1, -1, 18, 19, 2, 1, 19, 8, -1,  // 70-79
 };
 
 enum {
@@ -291,12 +291,12 @@ static int lion_tamer_phrase(figure *f)
         }
         return 7 + f->phrase_sequence_exact;
     }
-    return 0;
+    return -1;
 }
 
 static int gladiator_phrase(figure *f)
 {
-    return f->action_state == FIGURE_ACTION_150_ATTACK ? 7 : 0;
+    return f->action_state == FIGURE_ACTION_150_ATTACK ? 7 : -1;
 }
 
 static int tax_collector_phrase(figure *f)
@@ -308,7 +308,7 @@ static int tax_collector_phrase(figure *f)
     } else if (f->min_max_seen >= HOUSE_LARGE_TENT) {
         return 9;
     } else {
-        return 0;
+        return -1;
     }
 }
 
@@ -319,7 +319,7 @@ static int market_trader_phrase(figure *f)
             return 9; // run out of goods
         }
     }
-    return 0;
+    return -1;
 }
 
 static int market_buyer_phrase(figure *f)
@@ -329,7 +329,7 @@ static int market_buyer_phrase(figure *f)
     } else if (f->action_state == FIGURE_ACTION_146_MARKET_BUYER_RETURNING) {
         return 8;
     } else {
-        return 0;
+        return -1;
     }
 }
 
@@ -349,6 +349,10 @@ static int cart_pusher_phrase(figure *f)
             return 9; // too far
         }
     }
+    return -1;
+}
+
+static int mess_hall_buyer_phrase(figure* f) {
     return 0;
 }
 
@@ -360,7 +364,7 @@ static int warehouseman_phrase(figure *f)
             return 9; // too far
         }
     }
-    return 0;
+    return -1;
 }
 
 static int prefect_phrase(figure *f)
@@ -379,7 +383,7 @@ static int prefect_phrase(figure *f)
         if (f->phrase_sequence_exact % 2) {
             return 7;
         } else {
-            return 0;
+            return -1;
         }
     } else if (f->min_max_seen >= 10) {
         return 8;
@@ -395,7 +399,7 @@ static int engineer_phrase(figure *f)
     } else if (f->min_max_seen >= 10) {
         return 8;
     } else {
-        return 0;
+        return -1;
     }
 }
 
@@ -407,9 +411,25 @@ static int citizen_phrase(figure *f)
     return 7 + f->phrase_sequence_exact;
 }
 
-static int house_seeker_phrase(figure *f)
+static int missionary_phrase(figure* f)
+{
+    if (++f->phrase_sequence_exact >= 4) {
+        f->phrase_sequence_exact = 0;
+    }
+    return 7 + f->phrase_sequence_exact;
+}
+
+static int homeless_phrase(figure* f)
 {
     if (++f->phrase_sequence_exact >= 2) {
+        f->phrase_sequence_exact = 0;
+    }
+    return 7 + f->phrase_sequence_exact;
+}
+
+static int house_seeker_phrase(figure *f)
+{
+    if (++f->phrase_sequence_exact >= 3) {
         f->phrase_sequence_exact = 0;
     }
     return 7 + f->phrase_sequence_exact;
@@ -458,7 +478,7 @@ static int soldier_phrase(void)
     } else if (enemies) {
         return 9;
     }
-    return 0;
+    return -1;
 }
 
 static int docker_phrase(figure *f)
@@ -470,7 +490,7 @@ static int docker_phrase(figure *f)
             return 9; // too far
         }
     }
-    return 0;
+    return -1;
 }
 
 static int trade_caravan_phrase(figure *f)
@@ -534,20 +554,25 @@ static int phrase_based_on_figure_state(figure *f)
         case FIGURE_PREFECT:
             return prefect_phrase(f);
         case FIGURE_ENGINEER:
+        case FIGURE_WORK_CAMP_ENGINEER:
             return engineer_phrase(f);
         case FIGURE_PROTESTER:
         case FIGURE_CRIMINAL:
         case FIGURE_RIOTER:
         case FIGURE_DELIVERY_BOY:
-        case FIGURE_MISSIONARY:
             return citizen_phrase(f);
+        case FIGURE_MISSIONARY:
+            return missionary_phrase(f);
         case FIGURE_HOMELESS:
+            return homeless_phrase(f);
         case FIGURE_IMMIGRANT:
             return house_seeker_phrase(f);
         case FIGURE_EMIGRANT:
             return emigrant_phrase();
         case FIGURE_TOWER_SENTRY:
             return tower_sentry_phrase(f);
+        case FIGURE_MESS_HALL_BUYER:
+            return mess_hall_buyer_phrase(f);
         case FIGURE_FORT_JAVELIN:
         case FIGURE_FORT_MOUNTED:
         case FIGURE_FORT_LEGIONARY:
@@ -560,11 +585,11 @@ static int phrase_based_on_figure_state(figure *f)
             while (f->type == FIGURE_TRADE_CARAVAN_DONKEY && f->leading_figure_id) {
                 f = figure_get(f->leading_figure_id);
             }
-            return f->type == FIGURE_TRADE_CARAVAN ? trade_caravan_phrase(f) : 0;
+            return f->type == FIGURE_TRADE_CARAVAN ? trade_caravan_phrase(f) : -1;
         case FIGURE_TRADE_SHIP:
             return trade_ship_phrase(f);
     }
-    return 0;
+    return -1;
 }
 
 static int city_god_state(void)
@@ -636,7 +661,7 @@ void figure_phrase_determine(figure *f)
     }
 
     int phrase_id = phrase_based_on_figure_state(f);
-    if (phrase_id) {
+    if (phrase_id != -1) {
         f->phrase_id = phrase_id;
     } else {
         f->phrase_id = phrase_based_on_city_state(f);

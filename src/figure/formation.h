@@ -104,6 +104,7 @@ typedef struct {
     int has_military_training; /**< Flag to indicate this legion has had military training */
     int legion_recruit_type; /**< Recruit type: none if this legion is fully occupied */
     int is_at_fort; /**< Flag to indicate this legion is resting at the fort */
+    int mess_hall_max_morale_modifier; /**< Mess hall bonus */
 
     /* Enemy-related */
     int enemy_type;
@@ -135,6 +136,9 @@ int formation_create_enemy(int figure_type, int x, int y, int layout, int orient
 
 formation *formation_get(int formation_id);
 
+int formation_get_selected(void);
+void formation_set_selected(int formation_id);
+
 void formation_toggle_empire_service(int formation_id);
 
 void formation_record_missile_fired(formation *m);
@@ -159,6 +163,8 @@ void formation_change_morale(formation *m, int amount);
 int formation_has_low_morale(formation *m);
 void formation_update_morale_after_death(formation *m);
 
+void formation_change_all_legions_morale(int amount);
+
 void formation_update_monthly_morale_deployed(void);
 void formation_update_monthly_morale_at_rest(void);
 void formation_decrease_monthly_counters(formation *m);
@@ -167,9 +173,6 @@ void formation_clear_monthly_counters(formation *m);
 void formation_set_destination(formation *m, int x, int y);
 void formation_set_destination_building(formation *m, int x, int y, int building_id);
 void formation_set_home(formation *m, int x, int y);
-
-void formation_clear_figures(void);
-int formation_add_figure(int formation_id, int figure_id, int deployed, int damage, int max_damage);
 
 void formation_move_herds_away(int x, int y);
 

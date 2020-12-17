@@ -9,6 +9,9 @@ then
 elif [[ "$TRAVIS_BRANCH" == "master" ]]
 then
   REPO=Augustus-unstable
+elif [[ "$TRAVIS_BRANCH" == "release" ]]
+then
+  REPO=Augustus-rc
 elif [[ "$TRAVIS_BRANCH" =~ ^feature/ ]]
 then
   REPO=Augustus-branches
@@ -46,7 +49,6 @@ cat > "bintray.json" <<EOF
   "publish": true
 }
 EOF
-# Linux portable binary: https://appimage.org/
 elif [ "$DEPLOY" = "appimage" ]
 then
 cat > "bintray.json" <<EOF
@@ -58,20 +60,17 @@ cat > "bintray.json" <<EOF
     "licenses": ["AGPL-V3"],
     "vcs_url": "https://github.com/Keriew/augustus.git"
   },
-
   "version": {
     "name": "$VERSION",
     "released": "$(date +'%Y-%m-%d')",
     "desc": "Automated Linux AppImage build for Travis-CI job: $TRAVIS_JOB_WEB_URL"
   },
-
   "files": [
     {
       "includePattern": "${build_dir}/augustus.AppImage",
       "uploadPattern": "augustus-$VERSION-linux.AppImage"
     }
   ],
-
   "publish": true
 }
 EOF
@@ -95,8 +94,8 @@ cat > "bintray.json" <<EOF
 
   "files": [
     {
-      "includePattern": "${build_dir}/augustus.dmg",
-      "uploadPattern": "augustus-$VERSION-mac.dmg",
+      "includePattern": "${build_dir}/augustus.zip",
+      "uploadPattern": "augustus-$VERSION-mac.zip",
       "listInDownloads": true
     }
   ],
@@ -130,17 +129,12 @@ cat > "bintray.json" <<EOF
     }
   ],
 
-  "publish": true
-}
-EOF
-elif [ "$DEPLOY" = "switch" ]
-then
 cat > "bintray.json" <<EOF
 {
   "package": {
     "subject": "keriew",
     "repo": "$REPO",
-    "name": "switch",
+    "name": "$NAME",
     "licenses": ["AGPL-V3"],
     "vcs_url": "https://github.com/Keriew/augustus.git"
   },
@@ -148,7 +142,7 @@ cat > "bintray.json" <<EOF
   "version": {
     "name": "$VERSION",
     "released": "$(date +'%Y-%m-%d')",
-    "desc": "Automated Switch build for Travis-CI job: $TRAVIS_JOB_WEB_URL"
+    "desc": "Automated $DESC build for Travis-CI job: $TRAVIS_JOB_WEB_URL"
   },
 
   "files": [

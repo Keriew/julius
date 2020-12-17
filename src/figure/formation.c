@@ -1,5 +1,8 @@
 #include "formation.h"
 
+#include "building/count.h"
+#include "building/monument.h"
+#include "city/data_private.h"
 #include "city/military.h"
 #include "core/calc.h"
 #include "core/config.h"
@@ -20,6 +23,7 @@ static struct {
     int id_last_in_use;
     int id_last_legion;
     int num_legions;
+    int selected_formation;
 } data;
 
 void formations_clear(void)
@@ -31,6 +35,7 @@ void formations_clear(void)
     data.id_last_in_use = 0;
     data.id_last_legion = 0;
     data.num_legions = 0;
+    data.selected_formation = 0;
 }
 
 void formation_clear(int formation_id)
@@ -140,6 +145,16 @@ formation *formation_get(int formation_id)
     return &formations[formation_id];
 }
 
+int formation_get_selected(void)
+{
+    return data.selected_formation;
+}
+
+void formation_set_selected(int formation_id)
+{
+    data.selected_formation = formation_id;
+}
+
 void formation_toggle_empire_service(int formation_id)
 {
     formations[formation_id].empire_service = formations[formation_id].empire_service ? 0 : 1;
@@ -242,8 +257,9 @@ int formation_get_num_legions(void)
 
 int formation_get_max_legions(void)
 {
-   if (config_get(CONFIG_GP_CH_EXTRA_FORTS)) {
-	  return MAX_LEGIONS+4;
+    // Mars base bonus
+    if (building_monument_working(BUILDING_GRAND_TEMPLE_MARS)) {
+	  return MAX_LEGIONS + 4;
    } else {
 	  return MAX_LEGIONS; 
    }
@@ -266,11 +282,11 @@ void formation_change_morale(formation *m, int amount)
 {
     int max_morale;
     if (m->figure_type == FIGURE_FORT_LEGIONARY) {
-        max_morale = m->has_military_training ? 100 : 80;
+        max_morale = m->has_military_training ? 90 : 80;
     } else if (m->figure_type == FIGURE_ENEMY_CAESAR_LEGIONARY) {
         max_morale = 100;
     } else if (m->figure_type == FIGURE_FORT_JAVELIN || m->figure_type == FIGURE_FORT_MOUNTED) {
-        max_morale = m->has_military_training ? 80 : 60;
+        max_morale = m->has_military_training ? 70 : 60;
     } else {
         switch (m->enemy_type) {
             case ENEMY_0_BARBARIAN:
@@ -289,7 +305,8 @@ void formation_change_morale(formation *m, int amount)
                 break;
         }
     }
-    m->morale = calc_bound(m->morale + amount, 0, max_morale);
+
+    m->morale = calc_bound(m->morale + amount, 0, max_morale + m->mess_hall_max_morale_modifier);
 }
 
 void formation_update_morale_after_death(formation *m)
@@ -344,7 +361,7 @@ void formation_update_monthly_morale_deployed(void)
                 } else if (f->morale <= 20) {
                     f->months_low_morale++;
                 }
-            }
+            }            
         } else { // enemy
             if (f->morale <= 20 && !f->months_low_morale && !f->months_very_low_morale) {
                 change_all_morale(10, -10);
@@ -355,6 +372,32 @@ void formation_update_monthly_morale_deployed(void)
                 f->months_low_morale++;
             }
         }
+    }
+}
+
+void formation_legion_mess_hall_morale(void) {
+    for (int i = 1; i < MAX_FORMATIONS; i++) {
+        formation* f = &formations[i];
+        int max_morale = 0;
+        if (f->in_use != 1 || !f->is_legion) {
+            continue;
+        }
+
+        // food types bonus
+        max_morale += calc_bound(((city_data.mess_hall.food_types - 1) * 5), 0, 10);
+
+        // well-fed bonus
+        if (city_data.mess_hall.food_stress_cumulative < 3) {
+            max_morale += 5;
+        }   
+
+        // hungry soldiers morale penalty
+        if (city_data.mess_hall.food_stress_cumulative > 20) {
+            max_morale -= city_data.mess_hall.food_stress_cumulative / 3;
+        }
+
+        // apply
+        f->mess_hall_max_morale_modifier = calc_bound(max_morale, -30, 15);
     }
 }
 
@@ -381,9 +424,22 @@ void formation_update_monthly_morale_at_rest(void)
                     formation_change_morale(m, -5);
                 }
             }
+            formation_legion_mess_hall_morale();
         } else {
             formation_change_morale(m, 0);
         }
+    }
+}
+
+void formation_change_all_legions_morale(int amount)
+{
+    for (int i = 1; i < MAX_FORMATIONS; i++) {
+        formation* m = &formations[i];
+        if (!m->is_legion) {
+            continue;
+        }
+
+        formation_change_morale(m, amount);
     }
 }
 
@@ -431,7 +487,7 @@ void formation_set_home(formation *m, int x, int y)
     m->y_home = y;
 }
 
-void formation_clear_figures(void)
+static void clear_figures(void)
 {
     for (int i = 1; i < MAX_FORMATIONS; i++) {
         formation *f = &formations[i];
@@ -445,7 +501,7 @@ void formation_clear_figures(void)
     }
 }
 
-int formation_add_figure(int formation_id, int figure_id, int deployed, int damage, int max_damage)
+static int add_figure(int formation_id, int figure_id, int deployed, int damage, int max_damage)
 {
     formation *f = &formations[formation_id];
     f->num_figures++;
@@ -479,7 +535,7 @@ void formation_move_herds_away(int x, int y)
 
 void formation_calculate_figures(void)
 {
-    formation_clear_figures();
+    clear_figures();
     for (int i = 1; i < MAX_FIGURES; i++) {
         figure *f = figure_get(i);
         if (f->state != FIGURE_STATE_ALIVE) {
@@ -491,7 +547,7 @@ void formation_calculate_figures(void)
         if (f->type == FIGURE_ENEMY54_GLADIATOR) {
             continue;
         }
-        int index = formation_add_figure(f->formation_id, i,
+        int index = add_figure(f->formation_id, i,
             f->formation_at_rest != 1, f->damage,
             figure_properties_for_type(f->type)->max_damage
         );
@@ -639,7 +695,7 @@ void formations_save_state(buffer *buf, buffer *totals)
         buffer_write_i16(buf, f->destination_building_id);
         buffer_write_i16(buf, f->standard_figure_id);
         buffer_write_u8(buf, f->is_legion);
-        buffer_skip(buf, 1);
+        buffer_write_u8(buf, f->mess_hall_max_morale_modifier);
         buffer_write_i16(buf, f->attack_type);
         buffer_write_i16(buf, f->legion_recruit_type);
         buffer_write_i16(buf, f->has_military_training);
@@ -685,6 +741,7 @@ void formations_load_state(buffer *buf, buffer *totals)
     data.id_last_in_use = buffer_read_i32(totals);
     data.id_last_legion = buffer_read_i32(totals);
     data.num_legions = buffer_read_i32(totals);
+    data.selected_formation = 0;
     for (int i = 0; i < MAX_FORMATIONS; i++) {
         formation *f = &formations[i];
         f->id = i;
@@ -712,7 +769,7 @@ void formations_load_state(buffer *buf, buffer *totals)
         f->destination_building_id = buffer_read_i16(buf);
         f->standard_figure_id = buffer_read_i16(buf);
         f->is_legion = buffer_read_u8(buf);
-        buffer_skip(buf, 1);
+        f->mess_hall_max_morale_modifier = buffer_read_u8(buf);
         f->attack_type = buffer_read_i16(buf);
         f->legion_recruit_type = buffer_read_i16(buf);
         f->has_military_training = buffer_read_i16(buf);

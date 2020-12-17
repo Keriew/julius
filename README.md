@@ -5,7 +5,7 @@
 Chat: [Discord](http://www.discord.gg/GamerZakh) (kindly hosted by GamerZakh)
 
   
-| Platform | Latest release | Unstable build |
+| Platform | Latest release | Unstable build (needs mods files from the release version)|
 |----------|----------------|----------------|
 | Windows  | [![Download](https://api.bintray.com/packages/keriew/Augustus/windows_release/images/download.svg)](https://bintray.com/keriew/Augustus/windows_release/_latestVersion) | [![Download](https://api.bintray.com/packages/keriew/Augustus-unstable/windows-unstable/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/windows-unstable/_latestVersion) | 
 | Linux AppImage | [![Download](https://api.bintray.com/packages/keriew/Augustus/linux/images/download.svg)](https://bintray.com/keriew/Augustus/linux/_latestVersion#files) | [![Download](https://api.bintray.com/packages/keriew/Augustus-unstable/linux/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/linux/_latestVersion#files)
@@ -33,7 +33,7 @@ Because of gameplay changes and additions, save files from Augustus are NOT comp
 Augustus, like project Julius requires the original assets (graphics, sounds, etc) from Caesar 3 to run.
 It optionally [supports the high-quality MP3 files](https://github.com/bvschaik/julius/wiki/MP3-Support) once provided on the Sierra website.
 
-![](https://github.com/bvschaik/julius/blob/master/res/sce_sys/livearea/contents/bg.png?raw=true)
+![](res/vita/bg.png)
 
 ## Running the game
 

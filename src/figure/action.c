@@ -20,6 +20,8 @@
 #include "figuretype/trader.h"
 #include "figuretype/wall.h"
 #include "figuretype/water.h"
+#include "figuretype/workcamp.h"
+
 
 static void figure_nobody_action(figure *f)
 {
@@ -99,12 +101,12 @@ static void (*figure_action_callbacks[])(figure *f) = {
     figure_zebra_action, //70
     figure_spear_action,
     figure_hippodrome_horse_action,
-    figure_nobody_action,
-    figure_nobody_action,
-    figure_nobody_action,
-    figure_nobody_action,
-    figure_nobody_action,
-    figure_nobody_action,
+    figure_workcamp_worker_action,
+    figure_workcamp_slave_action,
+    figure_workcamp_engineer_action,
+    figure_market_buyer_action,
+    figure_delivery_boy_action,
+    figure_market_buyer_action,
     figure_nobody_action
 }; //80
 

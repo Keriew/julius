@@ -111,27 +111,37 @@ void city_culture_update_coverage(void)
     coverage.religion[GOD_CERES] = top(calc_percentage(
             500 * oracles +
             750 * building_count_active(BUILDING_SMALL_TEMPLE_CERES) +
-            1500 * building_count_active(BUILDING_LARGE_TEMPLE_CERES),
+            1500 * building_count_active(BUILDING_LARGE_TEMPLE_CERES) +
+            1500 * building_count_active(BUILDING_PANTHEON) +
+            5000 * building_count_active(BUILDING_GRAND_TEMPLE_CERES),
         population));
     coverage.religion[GOD_NEPTUNE] = top(calc_percentage(
             500 * oracles +
             750 * building_count_active(BUILDING_SMALL_TEMPLE_NEPTUNE) +
-            1500 * building_count_active(BUILDING_LARGE_TEMPLE_NEPTUNE),
+            1500 * building_count_active(BUILDING_LARGE_TEMPLE_NEPTUNE) +
+            1500 * building_count_active(BUILDING_PANTHEON) +
+            5000 * building_count_active(BUILDING_GRAND_TEMPLE_NEPTUNE),
         population));
     coverage.religion[GOD_MERCURY] = top(calc_percentage(
             500 * oracles +
             750 * building_count_active(BUILDING_SMALL_TEMPLE_MERCURY) +
-            1500 * building_count_active(BUILDING_LARGE_TEMPLE_MERCURY),
+            1500 * building_count_active(BUILDING_LARGE_TEMPLE_MERCURY) +
+            1500 * building_count_active(BUILDING_PANTHEON) +
+            5000 * building_count_active(BUILDING_GRAND_TEMPLE_MERCURY),
         population));
     coverage.religion[GOD_MARS] = top(calc_percentage(
             500 * oracles +
             750 * building_count_active(BUILDING_SMALL_TEMPLE_MARS) +
-            1500 * building_count_active(BUILDING_LARGE_TEMPLE_MARS),
+            1500 * building_count_active(BUILDING_LARGE_TEMPLE_MARS) +
+            1500 * building_count_active(BUILDING_PANTHEON) +
+            5000 * building_count_active(BUILDING_GRAND_TEMPLE_MARS),
         population));
     coverage.religion[GOD_VENUS] = top(calc_percentage(
             500 * oracles +
             750 * building_count_active(BUILDING_SMALL_TEMPLE_VENUS) +
-            1500 * building_count_active(BUILDING_LARGE_TEMPLE_VENUS),
+            1500 * building_count_active(BUILDING_LARGE_TEMPLE_VENUS) +
+            1500 * building_count_active(BUILDING_PANTHEON) +
+            5000 * building_count_active(BUILDING_GRAND_TEMPLE_VENUS),
         population));
     coverage.oracle = top(calc_percentage(500 * oracles, population));
 
@@ -164,6 +174,7 @@ void city_culture_calculate(void)
     city_data.culture.average_religion = 0;
     city_data.culture.average_education = 0;
     city_data.culture.average_health = 0;
+    city_data.culture.population_with_venus_access = 0; //venus
 
     int num_houses = 0;
     for (int i = 1; i < MAX_BUILDINGS; i++) {
@@ -174,6 +185,9 @@ void city_culture_calculate(void)
             city_data.culture.average_religion += b->data.house.num_gods;
             city_data.culture.average_education += b->data.house.education;
             city_data.culture.average_health += b->data.house.health;
+            if (b->data.house.temple_venus) {
+                city_data.culture.population_with_venus_access += b->house_population;
+            }
         }
     }
     if (num_houses) {

@@ -1,5 +1,6 @@
 #include "scroll.h"
 
+#include "city/view.h"
 #include "core/calc.h"
 #include "core/config.h"
 #include "core/direction.h"
@@ -105,7 +106,7 @@ static int get_arrow_key_value(key* arrow)
     return 0;
 }
 
-float get_normalized_arrow_key_value(key* arrow)
+static float get_normalized_arrow_key_value(key *arrow)
 {
     int value = get_arrow_key_value(arrow);
     if (value == SCROLL_KEY_PRESSED) {
@@ -247,7 +248,7 @@ void scroll_restore_margins(void)
 
 void scroll_drag_start(int is_touch)
 {
-    if (data.drag.active) {
+    if (data.drag.active || (!is_touch && config_get(CONFIG_UI_DISABLE_RIGHT_CLICK_MAP_DRAG))) {
         return;
     }
     data.drag.active = 1;
@@ -270,9 +271,8 @@ static int set_scroll_speed_from_drag(void)
     int delta_y = 0;
     if (!data.drag.is_touch) {
         system_mouse_get_relative_state(&delta_x, &delta_y);
-    }
-    else {
-        const touch* t = get_earliest_touch();
+    } else {
+        const touch *t = touch_get_earliest();
         delta_x = -t->frame_movement.x;
         delta_y = -t->frame_movement.y;
     }
@@ -285,7 +285,8 @@ static int set_scroll_speed_from_drag(void)
         }
         // Store tiny movements until we decide that it's enough to move into scroll mode
         if (!data.drag.has_started) {
-            data.drag.has_started = abs(data.drag.delta.x) > SCROLL_DRAG_MIN_DELTA || abs(data.drag.delta.y) > SCROLL_DRAG_MIN_DELTA;
+            data.drag.has_started = abs(data.drag.delta.x) > SCROLL_DRAG_MIN_DELTA
+                || abs(data.drag.delta.y) > SCROLL_DRAG_MIN_DELTA;
         }
     }
     if (data.drag.has_started) {
@@ -310,9 +311,8 @@ int scroll_drag_end(void)
 
     if (!data.drag.is_touch) {
         system_mouse_set_relative_mode(0);
-    }
-    else if (has_scrolled) {
-        const touch* t = get_earliest_touch();
+    } else if (has_scrolled) {
+        const touch *t = touch_get_earliest();
         speed_set_target(&data.speed.x, -t->frame_movement.x, SPEED_CHANGE_IMMEDIATE, 1);
         speed_set_target(&data.speed.y, -t->frame_movement.y, SPEED_CHANGE_IMMEDIATE, 1);
     }
@@ -425,7 +425,8 @@ static int get_alignment_delta(speed_direction direction, int camera_max_offset,
         calc_direction = (camera_offset >= camera_max_offset / 3) ? SPEED_DIRECTION_POSITIVE : SPEED_DIRECTION_NEGATIVE;
         break;
     }
-    return (calc_direction == SPEED_DIRECTION_POSITIVE) ? (camera_max_offset - camera_offset) : (camera_offset * -direction);
+    return (calc_direction == SPEED_DIRECTION_POSITIVE) ?
+        (camera_max_offset - camera_offset) : (camera_offset * -direction);
 }
 
 static int set_scroll_speed_from_input(const mouse* m, scroll_type type)
@@ -459,7 +460,8 @@ static int set_scroll_speed_from_input(const mouse* m, scroll_type type)
             align_y = get_alignment_delta(dir_y, TILE_Y_PIXELS, camera_offset.y);
         }
         speed_set_target(&data.speed.x, (step + align_x) * dir_x * do_scroll, SPEED_CHANGE_IMMEDIATE, 0);
-        speed_set_target(&data.speed.y, ((step / y_fraction) + align_y) * dir_y * do_scroll, SPEED_CHANGE_IMMEDIATE, 0);
+        speed_set_target(&data.speed.y, ((step / y_fraction) + align_y) * dir_y * do_scroll,
+            SPEED_CHANGE_IMMEDIATE, 0);
         return 1;
     }
 
@@ -497,6 +499,9 @@ int scroll_get_delta(const mouse* m, pixel_offset* delta, scroll_type type)
         data.speed.decaying = speed_is_changing(&data.speed.x) || speed_is_changing(&data.speed.y);
         data.is_scrolling = data.speed.decaying;
     }
+    int scale = city_view_get_scale();
+    delta->x = calc_adjust_with_percentage(delta->x, scale);
+    delta->y = calc_adjust_with_percentage(delta->y, scale);
     return delta->x != 0 || delta->y != 0;
 }
 

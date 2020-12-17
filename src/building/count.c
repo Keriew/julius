@@ -111,6 +111,7 @@ void building_count_update(void)
             case BUILDING_MARKET:
             // military
             case BUILDING_MILITARY_ACADEMY:
+            case BUILDING_MESS_HALL:
             // religion
             case BUILDING_SMALL_TEMPLE_CERES:
             case BUILDING_SMALL_TEMPLE_NEPTUNE:
@@ -122,6 +123,12 @@ void building_count_update(void)
             case BUILDING_LARGE_TEMPLE_MERCURY:
             case BUILDING_LARGE_TEMPLE_MARS:
             case BUILDING_LARGE_TEMPLE_VENUS:
+            case BUILDING_GRAND_TEMPLE_CERES:
+            case BUILDING_GRAND_TEMPLE_NEPTUNE:
+            case BUILDING_GRAND_TEMPLE_MERCURY:
+            case BUILDING_GRAND_TEMPLE_MARS:
+            case BUILDING_GRAND_TEMPLE_VENUS:
+            case BUILDING_PANTHEON:
             case BUILDING_ORACLE:
                 increase_count(type, b->num_workers > 0);
                 break;
@@ -208,6 +215,14 @@ void building_count_update(void)
         }
     }
     limit_hippodrome();
+}
+
+int building_count_grand_temples(void) {
+    return (data.buildings[BUILDING_GRAND_TEMPLE_CERES].total +
+            data.buildings[BUILDING_GRAND_TEMPLE_NEPTUNE].total + 
+            data.buildings[BUILDING_GRAND_TEMPLE_MERCURY].total + 
+            data.buildings[BUILDING_GRAND_TEMPLE_MARS].total + 
+            data.buildings[BUILDING_GRAND_TEMPLE_VENUS].total);
 }
 
 int building_count_active(building_type type)

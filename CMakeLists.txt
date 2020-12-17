@@ -5,10 +5,15 @@ if(VITA_BUILD AND SWITCH_BUILD)
     message(FATAL_ERROR "Cannot build with -DVITA_BUILD=ON and -DSWITCH_BUILD=ON at the same time")
 endif()
 
+if((VITA_BUILD OR SWITCH_BUILD) AND ANDROID_BUILD)
+    message(FATAL_ERROR "Cannot build with -DVITA_BUILD=ON or -DSWITCH_BUILD=ON and -DANDROID_BUILD=ON at the same time")
+endif()
+
 option(DRAW_FPS "Draw FPS on the top left corner of the window." OFF)
 option(SYSTEM_LIBS "Use system libraries when available." ON)
 cmake_dependent_option(VITA_BUILD "Build for the PlayStation Vita handheld game console." OFF "NOT MSVC" OFF)
 cmake_dependent_option(SWITCH_BUILD "Build for the Nintendo Switch handheld game console." OFF "NOT MSVC; NOT VITA_BUILD" OFF)
+cmake_dependent_option(ANDROID_BUILD "Build for the Android environment." OFF "NOT MSVC; NOT VITA_BUILD; NOT SWITCH_BUILD" OFF)
 
 if(VITA_BUILD AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     if(DEFINED ENV{VITASDK})
@@ -48,14 +53,11 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror=implicit-function-declaration")
 
-    if (CMAKE_C_COMPILER_VERSION VERSION_GREATER 5.0)
-        set(CMAKE_C_FLAGS "-Werror=incompatible-pointer-types -Werror=int-conversion -Wstrict-prototypes ${CMAKE_C_FLAGS}")
-    endif()
 endif()
 
-set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 4)
-set(PROJECT_VERSION_PATCH 1A)
+set(PROJECT_VERSION_MAJOR 2)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 1)
 set(IS_RELEASE_VERSION FALSE)
 
 if(IS_RELEASE_VERSION)
@@ -177,6 +179,10 @@ set(ZLIB_FILES
     ext/zlib/zutil.c
 )
 
+set(PMURHASH_FILES
+    ext/PMurHash/PMurHash.c
+)
+
 set(PLATFORM_FILES
     ${PROJECT_SOURCE_DIR}/src/platform/arguments.c
     ${PROJECT_SOURCE_DIR}/src/platform/file_manager.c
@@ -216,6 +222,13 @@ else()
     )
 endif()
 
+if (ANDROID_BUILD)
+    set(PLATFORM_FILES
+        ${PLATFORM_FILES}
+        ${PROJECT_SOURCE_DIR}/src/platform/android/android.c
+    )
+endif()
+
 set(CORE_FILES
     ${PROJECT_SOURCE_DIR}/src/core/backtrace.c
     ${PROJECT_SOURCE_DIR}/src/core/buffer.c
@@ -232,7 +245,6 @@ set(CORE_FILES
     ${PROJECT_SOURCE_DIR}/src/core/io.c
     ${PROJECT_SOURCE_DIR}/src/core/lang.c
     ${PROJECT_SOURCE_DIR}/src/core/locale.c
-    ${PROJECT_SOURCE_DIR}/src/core/mods.c
     ${PROJECT_SOURCE_DIR}/src/core/png_read.c
     ${PROJECT_SOURCE_DIR}/src/core/random.c
     ${PROJECT_SOURCE_DIR}/src/core/smacker.c
@@ -247,6 +259,7 @@ set(BUILDING_FILES
     ${PROJECT_SOURCE_DIR}/src/building/barracks.c
     ${PROJECT_SOURCE_DIR}/src/building/building.c
     ${PROJECT_SOURCE_DIR}/src/building/building_state.c
+    ${PROJECT_SOURCE_DIR}/src/building/clone.c
     ${PROJECT_SOURCE_DIR}/src/building/construction.c
     ${PROJECT_SOURCE_DIR}/src/building/construction_building.c
     ${PROJECT_SOURCE_DIR}/src/building/construction_clear.c
@@ -268,6 +281,7 @@ set(BUILDING_FILES
     ${PROJECT_SOURCE_DIR}/src/building/market.c
     ${PROJECT_SOURCE_DIR}/src/building/menu.c
     ${PROJECT_SOURCE_DIR}/src/building/model.c
+    ${PROJECT_SOURCE_DIR}/src/building/monument.c
     ${PROJECT_SOURCE_DIR}/src/building/properties.c
     ${PROJECT_SOURCE_DIR}/src/building/roadblock.c
     ${PROJECT_SOURCE_DIR}/src/building/rotation.c
@@ -348,6 +362,7 @@ set(FIGURETYPE_FILES
     ${PROJECT_SOURCE_DIR}/src/figuretype/trader.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/wall.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/water.c
+    ${PROJECT_SOURCE_DIR}/src/figuretype/workcamp.c
 )
 set(GAME_FILES
     ${PROJECT_SOURCE_DIR}/src/game/animation.c
@@ -361,6 +376,7 @@ set(GAME_FILES
     ${PROJECT_SOURCE_DIR}/src/game/orientation.c
     ${PROJECT_SOURCE_DIR}/src/game/resource.c
     ${PROJECT_SOURCE_DIR}/src/game/settings.c
+    ${PROJECT_SOURCE_DIR}/src/game/speed.c
     ${PROJECT_SOURCE_DIR}/src/game/state.c
     ${PROJECT_SOURCE_DIR}/src/game/tick.c
     ${PROJECT_SOURCE_DIR}/src/game/time.c
@@ -409,6 +425,13 @@ set(MAP_FILES
     ${PROJECT_SOURCE_DIR}/src/map/tiles.c
     ${PROJECT_SOURCE_DIR}/src/map/water.c
     ${PROJECT_SOURCE_DIR}/src/map/water_supply.c
+)
+set(MODS_FILES
+    ${PROJECT_SOURCE_DIR}/src/mods/group.c
+    ${PROJECT_SOURCE_DIR}/src/mods/image.c
+    ${PROJECT_SOURCE_DIR}/src/mods/layer.c
+    ${PROJECT_SOURCE_DIR}/src/mods/mods.c
+    ${PROJECT_SOURCE_DIR}/src/mods/xml.c
 )
 set(SCENARIO_FILES
     ${PROJECT_SOURCE_DIR}/src/scenario/building.c
@@ -468,11 +491,13 @@ set(WIDGET_FILES
     ${PROJECT_SOURCE_DIR}/src/widget/city_overlay_health.c
     ${PROJECT_SOURCE_DIR}/src/widget/city_overlay_other.c
     ${PROJECT_SOURCE_DIR}/src/widget/city_overlay_risks.c
+    ${PROJECT_SOURCE_DIR}/src/widget/city_pause_menu.c
     ${PROJECT_SOURCE_DIR}/src/widget/city_with_overlay.c
     ${PROJECT_SOURCE_DIR}/src/widget/city_without_overlay.c
     ${PROJECT_SOURCE_DIR}/src/widget/input_box.c
     ${PROJECT_SOURCE_DIR}/src/widget/map_editor.c
     ${PROJECT_SOURCE_DIR}/src/widget/map_editor_tool.c
+    ${PROJECT_SOURCE_DIR}/src/widget/map_editor_pause_menu.c
     ${PROJECT_SOURCE_DIR}/src/widget/minimap.c
     ${PROJECT_SOURCE_DIR}/src/widget/top_menu.c
     ${PROJECT_SOURCE_DIR}/src/widget/top_menu_editor.c
@@ -480,6 +505,7 @@ set(WIDGET_FILES
     ${PROJECT_SOURCE_DIR}/src/widget/sidebar/common.c
     ${PROJECT_SOURCE_DIR}/src/widget/sidebar/editor.c
     ${PROJECT_SOURCE_DIR}/src/widget/sidebar/extra.c
+    ${PROJECT_SOURCE_DIR}/src/widget/sidebar/military.c
     ${PROJECT_SOURCE_DIR}/src/widget/sidebar/slide.c
 )
 set(WINDOW_FILES
@@ -546,11 +572,13 @@ set(WINDOW_FILES
     ${PROJECT_SOURCE_DIR}/src/window/main_menu.c
     ${PROJECT_SOURCE_DIR}/src/window/message_dialog.c
     ${PROJECT_SOURCE_DIR}/src/window/message_list.c
+    ${PROJECT_SOURCE_DIR}/src/window/military_menu.c
     ${PROJECT_SOURCE_DIR}/src/window/mission_briefing.c
     ${PROJECT_SOURCE_DIR}/src/window/mission_end.c
     ${PROJECT_SOURCE_DIR}/src/window/mission_selection.c
     ${PROJECT_SOURCE_DIR}/src/window/new_career.c
     ${PROJECT_SOURCE_DIR}/src/window/numeric_input.c
+    ${PROJECT_SOURCE_DIR}/src/window/option_popup.c
     ${PROJECT_SOURCE_DIR}/src/window/overlay_menu.c
     ${PROJECT_SOURCE_DIR}/src/window/plain_message_dialog.c
     ${PROJECT_SOURCE_DIR}/src/window/popup_dialog.c
@@ -580,6 +608,7 @@ set(TRANSLATION_FILES
     ${PROJECT_SOURCE_DIR}/src/translation/russian.c
     ${PROJECT_SOURCE_DIR}/src/translation/simplified_chinese.c
     ${PROJECT_SOURCE_DIR}/src/translation/spanish.c
+    ${PROJECT_SOURCE_DIR}/src/translation/swedish.c
     ${PROJECT_SOURCE_DIR}/src/translation/traditional_chinese.c
     ${PROJECT_SOURCE_DIR}/src/translation/translation.c
 )
@@ -600,6 +629,7 @@ set(SOURCE_FILES
     ${GAME_FILES}
     ${INPUT_FILES}
     ${MAP_FILES}
+    ${MODS_FILES}
     ${SCENARIO_FILES}
     ${GRAPHICS_FILES}
     ${SOUND_FILES}
@@ -608,6 +638,7 @@ set(SOURCE_FILES
     ${EDITOR_FILES}
     ${TRANSLATION_FILES}
     ${TINYFD_FILES}
+    ${PMURHASH_FILES}
     ${PROJECT_SOURCE_DIR}/res/augustus.rc
     ${MACOSX_FILES}
 )
@@ -636,7 +667,11 @@ endfunction()
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
-add_executable(${SHORT_NAME} WIN32 ${SOURCE_FILES})
+if(ANDROID_BUILD)
+    add_library(${SHORT_NAME} SHARED ${SDL2_ANDROID_HOOK} ${SOURCE_FILES})
+else()
+    add_executable(${SHORT_NAME} WIN32 ${SOURCE_FILES})
+endif()
 
 if(MSVC)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -789,10 +824,10 @@ if (VITA_BUILD)
     vita_create_vpk(${SHORT_NAME}.vpk ${VITA_TITLEID} ${SHORT_NAME}.self
         VERSION ${VITA_VERSION}
         NAME ${SHORT_NAME}
-        FILE res/sce_sys/icon0.png sce_sys/icon0.png
-        FILE res/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-        FILE res/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-        FILE res/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+        FILE res/vita/icon0.png sce_sys/icon0.png
+        FILE res/vita/bg.png sce_sys/livearea/contents/bg.png
+        FILE res/vita/startup.png sce_sys/livearea/contents/startup.png
+        FILE res/vita/template.xml sce_sys/livearea/contents/template.xml
     )
 elseif(SWITCH_BUILD)
     target_link_libraries (${SHORT_NAME}
@@ -841,14 +876,18 @@ elseif(SWITCH_BUILD)
     add_custom_command(TARGET ${SHORT_NAME}
         POST_BUILD
         COMMAND ${DEVKITPRO}/tools/bin/nacptool --create "${SHORT_NAME}" "rsn8887" ${SWITCH_VERSION} ${SHORT_NAME}.nacp
-        COMMAND ${DEVKITPRO}/tools/bin/elf2nro ${SHORT_NAME} ${SHORT_NAME}.nro --icon=${CMAKE_SOURCE_DIR}/res/switchdata/icon0.jpg --nacp=${SHORT_NAME}.nacp
+        COMMAND ${DEVKITPRO}/tools/bin/elf2nro ${SHORT_NAME} ${SHORT_NAME}.nro --icon=${CMAKE_SOURCE_DIR}/res/switch/icon0.jpg --nacp=${SHORT_NAME}.nacp
     )
 else()
     if (UNIX AND NOT APPLE AND (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang"))
         target_link_libraries(${SHORT_NAME} m)
     endif()
+    if(ANDROID_BUILD)
+        find_library(log-lib log)
+        target_link_libraries(${SHORT_NAME} ${log-lib})
+    endif()
     target_link_libraries (${SHORT_NAME} ${SDL2_LIBRARY} ${SDL2_MIXER_LIBRARY})
-    if(NOT APPLE)
+    if(NOT APPLE AND NOT ANDROID_BUILD)
         install(TARGETS ${SHORT_NAME} RUNTIME DESTINATION bin)
     endif()
 

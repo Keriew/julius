@@ -80,6 +80,7 @@ static const char *ini_keys[] = {
     "resize_to_1024",
     "save_screenshot",
     "save_city_screenshot",
+    "clone_building"
 };
 
 static struct {
@@ -102,7 +103,8 @@ static void set_mapping(key_type key, key_modifier_type modifiers, hotkey_action
     mapping->action = action;
 }
 
-static void set_layout_mapping(const char *name, key_type default_key, key_modifier_type modifiers, hotkey_action action)
+static void set_layout_mapping(
+    const char *name, key_type default_key, key_modifier_type modifiers, hotkey_action action)
 {
     key_type key = system_keyboard_key_for_symbol(name);
     if (key == KEY_NONE) {
@@ -112,7 +114,7 @@ static void set_layout_mapping(const char *name, key_type default_key, key_modif
     set_mapping(key, modifiers, action);
 }
 
-void init_defaults(void)
+static void init_defaults(void)
 {
     memset(data.default_mappings, 0, sizeof(data.default_mappings));
     set_mapping(KEY_UP, KEY_MOD_NONE, HOTKEY_ARROW_UP);

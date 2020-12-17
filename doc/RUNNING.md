@@ -4,7 +4,7 @@ Julius requires the original Caesar 3 files to run. This can be an old CD-ROM ve
 from either [GOG](https://www.gog.com/game/caesar_3) or
 [Steam](https://store.steampowered.com/app/517790/Caesar_3/).
 
-Note that there are [command line options](#command-line-options) which are available to all platforms.
+There are [command line options](https://github.com/bvschaik/julius/wiki/Command-line-options) which are available to all platforms.
 
 If you have the high-quality MP3 music files that were once available for download from the Sierra Website,
 the game supports playing them.
@@ -13,11 +13,11 @@ Please check [MP3 support](https://github.com/bvschaik/julius/wiki/MP3-Support) 
 
 ## Windows
 
-Julius supports Windows XP and higher.
+Julius supports Windows Vista and higher. Windows XP has limited support.
 
 1. Install Caesar 3 using the provided installer (GOG/Steam/CD-ROM).
-2. Download the [latest release](https://github.com/bvschaik/julius/releases) of Julius or compile from source.
-3. Copy julius.exe, SDL2.dll and SDL2_mixer.dll to the folder where you installed Caesar 3
+2. Download the [latest release](https://github.com/bvschaik/julius/releases/latest) of Julius or compile from source.
+3. Copy julius.exe, SDL2.dll, SDL2_mixer.dll and libmpg123.dll to the folder where you installed Caesar 3
 4. Run julius.exe
 
 **Note:** If you install Caesar 3 using Steam and plan to use Steam to launch the game,
@@ -26,14 +26,14 @@ Doing so will make the mouse cursor disappear when using right-click to scroll.
    
 Instead, open `SierraLauncher.ini` and replace `Game1Exe=c3.exe` with the `Game1Exe=julius.exe`.
 
-## Linux/BSD
+## Linux/BSD/Mac
 
 OpenBSD and FreeBSD provide Julius as [package](http://ports.su/games/julius).
 
 On Linux you can use the provided [AppImage](https://appimage.org/):
 
 1. Obtain the game data files of Caesar 3 by checking one of the two next sections.
-2. Download the [latest AppImage release](https://github.com/bvschaik/julius/releases) of Julius.
+2. Download the [latest AppImage release](https://github.com/bvschaik/julius/releases/latest) of Julius.
 3. Make the downloaded AppImage executable by going into the file properties or running
    `chmod +x julius-*.AppImage` in the same folder as the AppImage.
 4. You can then run it just like any Linux executable.
@@ -46,13 +46,13 @@ If you bought the GOG edition, you can download the offline installer exe, and u
 [InnoExtract](http://constexpr.org/innoextract/) to extract the game files:
 
 1. Build Julius or install using your package manager
-2. [Install](http://constexpr.org/innoextract/install) `innoextract` for your distribution
+2. [Install](http://constexpr.org/innoextract/install) `innoextract` for your distribution (`brew install innoextract` for mac)
 3. Download the Caesar 3 offline installer exe from GOG
 4. Run the following command to extract the game files to a new `app` directory:
 
         $ innoextract -m setup_caesar3_2.0.0.9.exe
 
-5. Move the `julius` executable to the extracted `app` directory and run from there, OR run Julius
+5. Move the `augustus` executable, `mods` and `maps` directories to the extracted `app` directory and run from there, OR run Julius
    with the path to the game files as parameter:
 
         $ julius path-to-app-directory
@@ -161,32 +161,3 @@ Switch will not erroneously recognize them as a single finger. Otherwise the poi
 Physical USB mice and keyboards are supported. All keyboards seem to work. Not all mice work.
 A mouse compatibility list is available
 [here](https://docs.google.com/spreadsheets/d/1Drbo5-QuSX901MwtOytSMuqRGxeIkq2HELM806I9dj0/edit#gid=0)
-
-## Command line options
-
-Julius supports some command-line options. Its usage is:
-
-    $ julius [ARGUMENTS] [DATA_DIR]
-
-`[ARGUMENTS]` can be the following:
-
-* `--display-scale NUMBER`
-
-    Optional. Scales the entire Julius application by a factor of `NUMBER`. Useful for high-dpi systems.
-
-    `NUMBER`can be any number between `0.5` and `5`. The default is `1`.
-
-* `--cursor-scale NUMBER`
-
-    Optional. Scales the mouse cursor by a factor of `NUMBER`. Cursor scaling is independent of display scaling.
-
-    `NUMBER` can only be set to `1`, `1.5` or `2`. The default is `1`.
-
-`[DATA_DIR]` Is the location of the Caesar 3 asset files.
-
-If `[DATA_DIR]` is not provided, Julius will try to load the asset files from the directory where it is installed.
-
-If the files are not found, it will check if a previous valid directory was stored in the internal preferences
-and load the asset files from that directory.
-
-If Julius still fails to load the assets, it will ask you to point to a valid directory.

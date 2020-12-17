@@ -1,5 +1,6 @@
 #include "combat.h"
 
+#include "building/monument.h"
 #include "core/calc.h"
 #include "figure/formation.h"
 #include "figure/movement.h"

@@ -198,7 +198,7 @@ static void add_terrain(const void *tile_data, int dx, int dy)
             }
             break;
         case TOOL_WATER:
-            if (!map_elevation_at(grid_offset) && !(terrain & TERRAIN_WATER)) {
+            if (!(terrain & TERRAIN_WATER) && !(terrain & TERRAIN_ELEVATION_ROCK)) {
                 terrain &= TERRAIN_PAINT_MASK;
                 terrain |= TERRAIN_WATER;
             }
@@ -369,13 +369,14 @@ static void place_building(const map_tile *tile)
 static void update_terrain_after_elevation_changes(void)
 {
     map_elevation_remove_cliffs();
-
     map_image_context_reset_water();
     map_image_context_reset_elevation();
     map_tiles_update_all_elevation();
     map_tiles_update_all_rocks();
     map_tiles_update_all_empty_land();
     map_tiles_update_all_meadow();
+    map_tiles_update_all_water();
+
 
     scenario_editor_updated_terrain();
 }
@@ -391,7 +392,8 @@ static void place_access_ramp(const map_tile *tile)
                 map_terrain_set(grid_offset, map_terrain_get(grid_offset) & terrain_mask);
             }
         }
-        map_building_tiles_add(0, tile->x, tile->y, 2, image_group(GROUP_TERRAIN_ACCESS_RAMP) + orientation, TERRAIN_ACCESS_RAMP);
+        map_building_tiles_add(0, tile->x, tile->y, 2,
+            image_group(GROUP_TERRAIN_ACCESS_RAMP) + orientation, TERRAIN_ACCESS_RAMP);
 
         update_terrain_after_elevation_changes();
         scenario_editor_updated_terrain();
@@ -413,6 +415,9 @@ void editor_tool_end_use(const map_tile *tile)
         return;
     }
     data.build_in_progress = 0;
+    if (!tile->grid_offset) {
+        return;
+    }
     switch (data.type) {
         case TOOL_EARTHQUAKE_POINT:
             place_earthquake_flag(tile);

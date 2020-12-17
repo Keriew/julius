@@ -88,7 +88,7 @@ static void init(file_type type, file_dialog_type dialog_type)
     if (strlen(data.file_data->last_loaded_file) == 0) {
         string_copy(lang_get_string(9, type == FILE_TYPE_SCENARIO ? 7 : 6), data.typed_name, FILE_NAME_MAX);
         if (type == FILE_TYPE_SAVED_GAME) {
-            file_append_extension(data.typed_name, saved_game_data_expanded.extension);
+            file_append_extension((char *)data.typed_name, saved_game_data_expanded.extension);
         }
         encoding_to_utf8(data.typed_name, data.file_data->last_loaded_file, FILE_NAME_MAX, 0);
     } else {
@@ -127,7 +127,8 @@ static void draw_foreground(void)
     inner_panel_draw(144, 120, 20, 13);
 
     // title
-    if (data.message_not_exist_start_time && time_get_millis() - data.message_not_exist_start_time < NOT_EXIST_MESSAGE_TIMEOUT) {
+    if (data.message_not_exist_start_time
+        && time_get_millis() - data.message_not_exist_start_time < NOT_EXIST_MESSAGE_TIMEOUT) {
         lang_text_draw_centered(43, 2, 160, 50, 304, FONT_LARGE_BLACK);
     } else if (data.dialog_type == FILE_DIALOG_DELETE) {
         lang_text_draw_centered(43, 6, 160, 50, 304, FONT_LARGE_BLACK);
@@ -176,7 +177,7 @@ static void handle_input(const mouse *m, const hotkeys *h)
     }
 }
 
-static const char *get_chosen_filename(void)
+static char *get_chosen_filename(void)
 {
     // Check if we should work with the selected file
     uint8_t selected_name[FILE_NAME_MAX];
@@ -201,7 +202,7 @@ static void button_ok_cancel(int is_ok, int param2)
         return;
     }
 
-    const char *filename = get_chosen_filename();
+    char *filename = get_chosen_filename();
 
     if (data.dialog_type != FILE_DIALOG_SAVE && !file_exists(filename, NOT_LOCALIZED)) {
         data.message_not_exist_start_time = time_get_millis();

@@ -65,7 +65,7 @@ speed_direction speed_get_current_direction(const speed_type *speed)
     return (speed->current_speed > 0) ? SPEED_DIRECTION_POSITIVE : SPEED_DIRECTION_NEGATIVE;
 }
 
-int handle_fine_position(speed_type *speed, double delta)
+static int handle_fine_position(speed_type *speed, double delta)
 {
     int delta_rounded = (int) delta;
     speed->fine_position += delta - delta_rounded;
@@ -91,7 +91,8 @@ int speed_get_delta(speed_type *speed)
         speed->adjusted_current_speed = speed->desired_speed;
     } else {
         if (elapsed == 0) {
-            delta = adjust_speed_for_elapsed_time(speed->current_speed, speed->adjust_for_time, speed->last_speed_check);
+            delta = adjust_speed_for_elapsed_time(
+                speed->current_speed, speed->adjust_for_time, speed->last_speed_check);
         } else {
             double full_delta = speed->speed_difference * (speed->total_time / FRAME_TIME);
             double exponent = exp(-((int) elapsed) / (double) speed->total_time);

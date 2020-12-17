@@ -9,6 +9,7 @@ enum {
     BIT_SIZE3 = 0x02,
     BIT_SIZE4 = 0x04,
     BIT_SIZE5 = 0x08,
+    BIT_SIZE7 = 0x0f,
     BIT_SIZES = 0x0f,
     BIT_NO_SIZES = 0xf0,
     BIT_CONSTRUCTION = 0x10,
@@ -111,6 +112,7 @@ int map_property_multi_tile_size(int grid_offset)
         case BIT_SIZE3: return 3;
         case BIT_SIZE4: return 4;
         case BIT_SIZE5: return 5;
+        case BIT_SIZE7: return 7;
         default: return 1;
     }
 }
@@ -123,6 +125,8 @@ void map_property_set_multi_tile_size(int grid_offset, int size)
         case 3: bitfields_grid.items[grid_offset] |= BIT_SIZE3; break;
         case 4: bitfields_grid.items[grid_offset] |= BIT_SIZE4; break;
         case 5: bitfields_grid.items[grid_offset] |= BIT_SIZE5; break;
+        case 7: bitfields_grid.items[grid_offset] |= BIT_SIZE7; break;
+
     }
 }
 
@@ -134,7 +138,7 @@ void map_property_init_alternate_terrain(void)
         for (int x = 0; x < map_width; x++) {
             int grid_offset = map_grid_offset(x, y);
             if (map_random_get(grid_offset) & 1) {
-                map_property_set_alternate_terrain(grid_offset);
+                bitfields_grid.items[grid_offset] |= BIT_ALTERNATE_TERRAIN;
             }
         }
     }
@@ -143,11 +147,6 @@ void map_property_init_alternate_terrain(void)
 int map_property_is_alternate_terrain(int grid_offset)
 {
     return bitfields_grid.items[grid_offset] & BIT_ALTERNATE_TERRAIN;
-}
-
-void map_property_set_alternate_terrain(int grid_offset)
-{
-    bitfields_grid.items[grid_offset] |= BIT_ALTERNATE_TERRAIN;
 }
 
 int map_property_is_plaza_or_earthquake(int grid_offset)

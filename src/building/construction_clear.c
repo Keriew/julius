@@ -1,6 +1,7 @@
 #include "construction_clear.h"
 
 #include "building/building.h"
+#include "building/monument.h"
 #include "city/warning.h"
 #include "core/config.h"
 #include "figuretype/migrant.h"
@@ -15,6 +16,7 @@
 #include "map/routing_terrain.h"
 #include "map/terrain.h"
 #include "map/tiles.h"
+#include "translation/translation.h"
 #include "window/popup_dialog.h"
 
 static struct {
@@ -24,6 +26,7 @@ static struct {
     int y_end;
     int bridge_confirmed;
     int fort_confirmed;
+    int monument_confirmed;
 } confirm;
 
 static building *get_deletable_building(int grid_offset)
@@ -52,7 +55,7 @@ static int clear_land_confirmed(int measure_only, int x_start, int y_start, int 
     int x_min, x_max, y_min, y_max;
     map_grid_start_end_to_area(x_start, y_start, x_end, y_end, &x_min, &y_min, &x_max, &y_max);
 
-    int visual_feedback_on_delete = config_get(CONFIG_UI_VISUAL_FEEDBACK_ON_DELETE);
+    int visual_feedback_on_delete = 1;
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
@@ -72,7 +75,8 @@ static int clear_land_confirmed(int measure_only, int x_start, int y_start, int 
                     }
                 } else if (map_terrain_is(grid_offset, TERRAIN_WATER)) { // keep the "bridge is free" bug from C3
                     continue;
-                } else if (map_terrain_is(grid_offset, TERRAIN_AQUEDUCT) || map_terrain_is(grid_offset, TERRAIN_NOT_CLEAR)) {
+                } else if (map_terrain_is(grid_offset, TERRAIN_AQUEDUCT)
+                    || map_terrain_is(grid_offset, TERRAIN_NOT_CLEAR)) {
                     items_placed++;
                 }
                 continue;
@@ -87,6 +91,14 @@ static int clear_land_confirmed(int measure_only, int x_start, int y_start, int 
                         continue;
                     }
                     if (!measure_only && confirm.fort_confirmed == 1) {
+                        game_undo_disable();
+                    }
+                }
+                if (building_monument_is_monument(b)) {
+                    if (!measure_only && confirm.monument_confirmed != 1) {
+                        continue;
+                    }
+                    if (!measure_only && confirm.monument_confirmed == 1) {
                         game_undo_disable();
                     }
                 }
@@ -158,9 +170,8 @@ static int clear_land_confirmed(int measure_only, int x_start, int y_start, int 
         map_routing_update_land();
         map_routing_update_walls();
         map_routing_update_water();
-        if (config_get(CONFIG_GP_CH_IMMEDIATELY_DELETE_BUILDINGS)) {
-            building_update_state();
-        }
+        building_monument_recalculate_monuments();
+        building_update_state();        
         window_invalidate();
     }
     return items_placed;
@@ -186,6 +197,17 @@ static void confirm_delete_bridge(int accepted)
     clear_land_confirmed(0, confirm.x_start, confirm.y_start, confirm.x_end, confirm.y_end);
 }
 
+static void confirm_delete_monument(int accepted)
+{
+    if (accepted == 1) {
+        confirm.monument_confirmed = 1;
+    }
+    else {
+        confirm.monument_confirmed = -1;
+    }
+    clear_land_confirmed(0, confirm.x_start, confirm.y_start, confirm.x_end, confirm.y_end);
+}
+
 int building_construction_clear_land(int measure_only, int x_start, int y_start, int x_end, int y_end)
 {
     confirm.fort_confirmed = 0;
@@ -199,6 +221,7 @@ int building_construction_clear_land(int measure_only, int x_start, int y_start,
 
     int ask_confirm_bridge = 0;
     int ask_confirm_fort = 0;
+    int ask_confirm_monument = 0;
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
             int grid_offset = map_grid_offset(x,y);
@@ -208,10 +231,14 @@ int building_construction_clear_land(int measure_only, int x_start, int y_start,
                 if (b->type == BUILDING_FORT || b->type == BUILDING_FORT_GROUND) {
                     ask_confirm_fort = 1;
                 }
+                if (building_monument_is_monument(b)) {
+                    ask_confirm_monument = 1;
+                }
             }
             if (map_is_bridge(grid_offset)) {
                 ask_confirm_bridge = 1;
             }
+
         }
     }
     confirm.x_start = x_start;
@@ -220,6 +247,9 @@ int building_construction_clear_land(int measure_only, int x_start, int y_start,
     confirm.y_end = y_end;
     if (ask_confirm_fort) {
         window_popup_dialog_show(POPUP_DIALOG_DELETE_FORT, confirm_delete_fort, 2);
+        return -1;
+    } else if (ask_confirm_monument) {
+        window_popup_dialog_show_confirmation_from_tr(TR_CONFIRM_DELETE_MONUMENT, confirm_delete_monument);
         return -1;
     } else if (ask_confirm_bridge) {
         window_popup_dialog_show(POPUP_DIALOG_DELETE_BRIDGE, confirm_delete_bridge, 2);

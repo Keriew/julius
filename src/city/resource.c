@@ -1,15 +1,23 @@
 #include "resource.h"
 
 #include "building/building.h"
+#include "building/count.h"
 #include "building/industry.h"
 #include "building/model.h"
+#include "building/monument.h"
 #include "city/data_private.h"
+#include "city/message.h"
+#include "city/military.h"
 #include "core/calc.h"
 #include "empire/city.h"
+#include "figure/formation.h"
+#include "game/difficulty.h"
 #include "game/tutorial.h"
 #include "map/road_access.h"
 #include "scenario/building.h"
 #include "scenario/property.h"
+
+#include <math.h>
 
 static struct {
     resource_list resource_list;
@@ -188,6 +196,9 @@ void city_resource_calculate_warehouse_stocks(void)
             continue;
         }
         building *warehouse = building_main(b);
+        if (warehouse->state != BUILDING_STATE_IN_USE || warehouse->type != BUILDING_WAREHOUSE) {
+            continue;
+        }
         if (warehouse->has_road_access) {
             b->has_road_access = warehouse->has_road_access;
             if (b->subtype.warehouse_resource_id) {
@@ -226,6 +237,31 @@ void city_resource_determine_available(void)
             available.food_list.items[available.food_list.size++] = i;
         }
     }
+}
+
+int city_resource_ceres_temple_food(void)
+{
+    // locally produced
+    for (int i = RESOURCE_MIN; i < RESOURCE_MAX; i++) {
+        if (i == RESOURCE_OLIVES || i == RESOURCE_VINES) {
+            continue;
+        }
+        if (can_produce_resource(i)) {
+            return i;
+        }
+    }
+
+    // imported, if no food is locally produced
+    for (int i = RESOURCE_MIN; i < RESOURCE_MAX; i++) {
+        if (i == RESOURCE_OLIVES || i == RESOURCE_VINES) {
+            continue;
+        }
+        if (empire_can_import_resource_potentially(i)) {
+            return i;
+        }
+    }
+
+    return 0;
 }
 
 static void calculate_available_food(void)
@@ -300,7 +336,7 @@ void city_resource_calculate_food_stocks_and_supply_wheat(void)
     if (scenario_property_rome_supplies_wheat()) {
         for (int i = 1; i < MAX_BUILDINGS; i++) {
             building *b = building_get(i);
-            if (b->state == BUILDING_STATE_IN_USE && b->type == BUILDING_MARKET) {
+            if (b->state == BUILDING_STATE_IN_USE && (b->type == BUILDING_MARKET || b->type == BUILDING_MESS_HALL)) {
                 b->data.market.inventory[INVENTORY_WHEAT] = 200;
             }
         }
@@ -336,13 +372,22 @@ void city_resource_consume_food(void)
 {
     calculate_available_food();
     city_data.resource.food_types_eaten = 0;
-    city_data.unused.unknown_00c0 = 0;
+    city_data.building.mess_hall_building_id = 0;
+
+    int ceres_module = (building_monument_gt_module_is_active(CERES_MODULE_1_REDUCE_FOOD));
     int total_consumed = 0;
+
     for (int i = 1; i < MAX_BUILDINGS; i++) {
-        building *b = building_get(i);
+        building* b = building_get(i);
         if (b->state == BUILDING_STATE_IN_USE && b->house_size) {
             int num_types = model_get_house(b->subtype.house_level)->food_types;
-            int amount_per_type = calc_adjust_with_percentage(b->house_population, 50);
+            int amount_per_type;
+            if (ceres_module && b->data.house.temple_ceres) {
+                amount_per_type = calc_adjust_with_percentage(b->house_population, 40);
+            }
+            else {
+                amount_per_type = calc_adjust_with_percentage(b->house_population, 50);
+            }
             if (num_types > 1) {
                 amount_per_type /= num_types;
             }
@@ -352,13 +397,15 @@ void city_resource_consume_food(void)
                 city_data.resource.food_types_available = 1;
                 b->data.house.inventory[INVENTORY_WHEAT] = amount_per_type;
                 b->data.house.num_foods = 1;
-            } else if (num_types > 0) {
+            }
+            else if (num_types > 0) {
                 for (int t = INVENTORY_MIN_FOOD; t < INVENTORY_MAX_FOOD && b->data.house.num_foods < num_types; t++) {
                     if (b->data.house.inventory[t] >= amount_per_type) {
                         b->data.house.inventory[t] -= amount_per_type;
                         b->data.house.num_foods++;
                         total_consumed += amount_per_type;
-                    } else if (b->data.house.inventory[t]) {
+                    }
+                    else if (b->data.house.inventory[t]) {
                         // has food but not enough
                         b->data.house.inventory[t] = 0;
                         b->data.house.num_foods++;
@@ -370,7 +417,67 @@ void city_resource_consume_food(void)
                 }
             }
         }
+        if (b->state == BUILDING_STATE_IN_USE && b->type == BUILDING_MESS_HALL) {
+            int food_required = city_military_total_soldiers_in_city() * difficulty_adjust_soldier_food_consumption(FOOD_PER_SOLDIER_MONTHLY);
+            int num_foods = 0;
+            int total_food_in_mess_hall = 0;
+            double proportionate_amount = 0;
+            int amount_for_type = 0;
+
+            city_data.building.mess_hall_building_id = b->id;
+
+            for (int i = INVENTORY_MIN_FOOD; i < INVENTORY_MAX_FOOD; ++i) {
+                total_food_in_mess_hall += b->data.market.inventory[i];
+            }
+
+            city_data.mess_hall.total_food = total_food_in_mess_hall;
+
+            if (food_required) {
+                for (int i = INVENTORY_MIN_FOOD; i < INVENTORY_MAX_FOOD; ++i) {
+                    proportionate_amount = ((double)food_required * (double)b->data.market.inventory[i]) / (double)total_food_in_mess_hall;
+                    if (proportionate_amount > 0) {
+                        amount_for_type = calc_bound((int) ceil(proportionate_amount), 0, b->data.market.inventory[i]);
+                        b->data.market.inventory[i] -= amount_for_type;
+                        ++num_foods;
+                    }
+                }
+
+                if (food_required > total_food_in_mess_hall) {
+                    city_data.mess_hall.food_percentage_missing_this_month = 100 - calc_percentage(total_food_in_mess_hall, food_required);
+                    total_consumed += total_food_in_mess_hall;
+                    city_data.mess_hall.total_food = 0;
+                }
+                else {
+                    city_data.mess_hall.food_percentage_missing_this_month = 0;
+                    total_consumed += food_required;
+                    city_data.mess_hall.total_food -= food_required;
+                }
+                                
+                city_data.mess_hall.food_types = num_foods;
+            }
+        }
+        
+    }    
+
+    if (city_military_total_soldiers_in_city() > 0 && !city_data.building.mess_hall_building_id && !city_data.mess_hall.missing_mess_hall_warning_shown) {
+        city_data.mess_hall.food_percentage_missing_this_month = 100;
+        city_message_post(1, MESSAGE_SOLDIERS_STARVING_NO_MESS_HALL, 0, 0);     
+        city_data.mess_hall.missing_mess_hall_warning_shown = 1;
     }
+    else if (city_military_total_soldiers_in_city() > 0 && city_data.mess_hall.food_stress_cumulative > 50 && !city_data.mess_hall.mess_hall_warning_shown) {
+        city_message_post(1, MESSAGE_SOLDIERS_STARVING, 0, 0);
+        city_data.mess_hall.mess_hall_warning_shown = 1;
+    }
+
+    city_data.mess_hall.food_stress_cumulative = ((city_data.mess_hall.food_percentage_missing_this_month + city_data.mess_hall.food_stress_cumulative) / 2);
+    if (city_data.mess_hall.food_stress_cumulative < 20) {
+        city_data.mess_hall.mess_hall_warning_shown = 0;
+    }
+
+    if (city_data.mess_hall.food_stress_cumulative > 100) {
+        city_data.mess_hall.food_stress_cumulative = 100;
+    }
+
     city_data.resource.food_consumed_last_month = total_consumed;
     city_data.resource.food_produced_last_month = city_data.resource.food_produced_this_month;
     city_data.resource.food_produced_this_month = 0;

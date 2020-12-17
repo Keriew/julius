@@ -108,6 +108,8 @@ static roadblock_permission get_permission_for_figure_type(figure* f)
         return PERMISSION_EDUCATION;
     case FIGURE_TAX_COLLECTOR:
         return PERMISSION_TAX_COLLECTOR;
+    case FIGURE_LABOR_SEEKER:
+        return PERMISSION_LABOR_SEEKER;
     default:
         return PERMISSION_NONE;
         break;
@@ -358,6 +360,16 @@ void figure_movement_move_ticks(figure *f, int num_ticks)
     walk_ticks(f, num_ticks, 0);
 }
 
+void figure_movement_move_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage)
+{
+    f->progress_to_next_tick += tick_percentage;
+    if (f->progress_to_next_tick >= 100) {
+        f->progress_to_next_tick -= 100;
+        num_ticks++;
+    }
+    walk_ticks(f, num_ticks, 0);
+}
+
 void figure_movement_move_ticks_tower_sentry(figure *f, int num_ticks)
 {
     while (num_ticks > 0) {
@@ -383,6 +395,40 @@ void figure_movement_follow_ticks(figure *f, int num_ticks)
         if (f->progress_on_tile < 15) {
             advance_tick(f);
         } else {
+            f->progress_on_tile = 15;
+            f->direction = calc_general_direction(f->x, f->y,
+                leader->previous_tile_x, leader->previous_tile_y);
+            if (f->direction >= 8) {
+                break;
+            }
+            f->previous_tile_direction = f->direction;
+            f->progress_on_tile = 0;
+            move_to_next_tile(f);
+            advance_tick(f);
+        }
+    }
+}
+
+void figure_movement_follow_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage)
+{
+   
+    f->progress_to_next_tick += tick_percentage;
+    if (f->progress_to_next_tick >= 100) {
+        f->progress_to_next_tick -= 100;
+        num_ticks++;
+    }
+
+    const figure* leader = figure_get(f->leading_figure_id);
+    if (f->x == f->source_x && f->y == f->source_y) {
+        f->is_ghost = 1;
+    }
+    while (num_ticks > 0) {
+        num_ticks--;
+        f->progress_on_tile++;
+        if (f->progress_on_tile < 15) {
+            advance_tick(f);
+        }
+        else {
             f->progress_on_tile = 15;
             f->direction = calc_general_direction(f->x, f->y,
                 leader->previous_tile_x, leader->previous_tile_y);

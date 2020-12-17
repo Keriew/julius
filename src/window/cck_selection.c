@@ -11,10 +11,12 @@
 #include "graphics/image_button.h"
 #include "graphics/lang_text.h"
 #include "graphics/panel.h"
+#include "graphics/screen.h"
 #include "graphics/scrollbar.h"
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "input/input.h"
+#include "mods/mods.h"
 #include "scenario/criteria.h"
 #include "scenario/invasion.h"
 #include "scenario/map.h"
@@ -26,12 +28,21 @@
 
 #define MAX_SCENARIOS 15
 
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
+#define BACKGROUND_WIDTH 1024
+#define BACKGROUND_HEIGHT 768
+
 static void button_select_item(int index, int param2);
 static void button_start_scenario(int param1, int param2);
+static void button_back(int param1, int param2);
 static void on_scroll(void);
 
 static image_button start_button =
     {600, 440, 27, 27, IB_NORMAL, GROUP_SIDEBAR_BUTTONS, 56, button_start_scenario, button_none, 1, 0, 1};
+
+static image_button back_button =
+    {330, 440, 27, 27, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_back, button_none, 1, 0, 1 };
 
 static generic_button file_buttons[] = {
     {18, 220, 252, 16, button_select_item, button_none, 0, 0},
@@ -85,7 +96,7 @@ static void draw_scenario_list(void)
         }
         strcpy(file, data.scenarios->files[i + scrollbar.scroll_position]);
         encoding_from_utf8(file, displayable_file, FILE_NAME_MAX);
-        file_remove_extension(displayable_file);
+        file_remove_extension((char *)displayable_file);
         text_ellipsize(displayable_file, font, 240);
         text_draw(displayable_file, 24, 220 + 16 * i, font, 0);
     }
@@ -100,10 +111,12 @@ static void draw_scenario_info(void)
     image_draw(image_group(GROUP_SCENARIO_IMAGE) + scenario_image_id(), 78, 36);
 
     text_ellipsize(data.selected_scenario_display, FONT_LARGE_BLACK, scenario_info_width + 10);
-    text_draw_centered(data.selected_scenario_display, scenario_info_x, 25, scenario_info_width + 10, FONT_LARGE_BLACK, 0);
+    text_draw_centered(data.selected_scenario_display,
+        scenario_info_x, 25, scenario_info_width + 10, FONT_LARGE_BLACK, 0);
     text_draw_centered(scenario_brief_description(), scenario_info_x, 60, scenario_info_width, FONT_NORMAL_WHITE, 0);
     lang_text_draw_year(scenario_property_start_year(), scenario_criteria_x, 90, FONT_LARGE_BLACK);
-    lang_text_draw_centered(44, 77 + scenario_property_climate(), scenario_info_x, 150, scenario_info_width, FONT_NORMAL_BLACK);
+    lang_text_draw_centered(44, 77 + scenario_property_climate(),
+        scenario_info_x, 150, scenario_info_width, FONT_NORMAL_BLACK);
 
     // map size
     int text_id;
@@ -132,40 +145,49 @@ static void draw_scenario_info(void)
     }
     lang_text_draw_centered(44, text_id, scenario_info_x, 190, scenario_info_width, FONT_NORMAL_BLACK);
 
-    lang_text_draw_centered(32, 11 + scenario_property_player_rank(), scenario_info_x, 210, scenario_info_width, FONT_NORMAL_BLACK);
+    lang_text_draw_centered(32, 11 + scenario_property_player_rank(),
+        scenario_info_x, 210, scenario_info_width, FONT_NORMAL_BLACK);
     if (scenario_is_open_play()) {
         if (scenario_open_play_id() < 12) {
-            lang_text_draw_multiline(145, scenario_open_play_id(), scenario_info_x + 10, 270, scenario_info_width - 10, FONT_NORMAL_BLACK);
+            lang_text_draw_multiline(145, scenario_open_play_id(),
+                scenario_info_x + 10, 270, scenario_info_width - 10, FONT_NORMAL_BLACK);
         }
     } else {
         lang_text_draw_centered(44, 127, scenario_info_x, 262, scenario_info_width, FONT_NORMAL_BLACK);
         int width;
         if (scenario_criteria_culture_enabled()) {
-            width = text_draw_number(scenario_criteria_culture(), '@', " ", scenario_criteria_x, 290, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_culture(), '@', " ",
+                scenario_criteria_x, 290, FONT_NORMAL_BLACK);
             lang_text_draw(44, 129, scenario_criteria_x + width, 290, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_prosperity_enabled()) {
-            width = text_draw_number(scenario_criteria_prosperity(), '@', " ", scenario_criteria_x, 306, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_prosperity(), '@', " ",
+                scenario_criteria_x, 306, FONT_NORMAL_BLACK);
             lang_text_draw(44, 130, scenario_criteria_x + width, 306, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_peace_enabled()) {
-            width = text_draw_number(scenario_criteria_peace(), '@', " ", scenario_criteria_x, 322, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_peace(), '@', " ",
+                scenario_criteria_x, 322, FONT_NORMAL_BLACK);
             lang_text_draw(44, 131, scenario_criteria_x + width, 322, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_favor_enabled()) {
-            width = text_draw_number(scenario_criteria_favor(), '@', " ", scenario_criteria_x, 338, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_favor(), '@', " ",
+                scenario_criteria_x, 338, FONT_NORMAL_BLACK);
             lang_text_draw(44, 132, scenario_criteria_x + width, 338, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_population_enabled()) {
-            width = text_draw_number(scenario_criteria_population(), '@', " ", scenario_criteria_x, 354, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_population(), '@', " ",
+                scenario_criteria_x, 354, FONT_NORMAL_BLACK);
             lang_text_draw(44, 133, scenario_criteria_x + width, 354, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_time_limit_enabled()) {
-            width = text_draw_number(scenario_criteria_time_limit_years(), '@', " ", scenario_criteria_x, 370, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_time_limit_years(), '@', " ",
+                scenario_criteria_x, 370, FONT_NORMAL_BLACK);
             lang_text_draw(44, 134, scenario_criteria_x + width, 370, FONT_NORMAL_BLACK);
         }
         if (scenario_criteria_survival_enabled()) {
-            width = text_draw_number(scenario_criteria_survival_years(), '@', " ", scenario_criteria_x, 386, FONT_NORMAL_BLACK);
+            width = text_draw_number(scenario_criteria_survival_years(), '@', " ",
+                scenario_criteria_x, 386, FONT_NORMAL_BLACK);
             lang_text_draw(44, 135, scenario_criteria_x + width, 386, FONT_NORMAL_BLACK);
         }
     }
@@ -174,8 +196,13 @@ static void draw_scenario_info(void)
 
 static void draw_background(void)
 {
-    image_draw_fullscreen_background(image_group(GROUP_CCK_BACKGROUND));
+    image_draw_fullscreen_background(image_group(GROUP_INTERMEZZO_BACKGROUND) + 25);
+    graphics_set_clip_rectangle((screen_width() - WINDOW_WIDTH) / 2, (screen_height() - WINDOW_HEIGHT) / 2,
+        WINDOW_WIDTH, WINDOW_HEIGHT);
     graphics_in_dialog();
+    image_draw(image_group(GROUP_CCK_BACKGROUND), (WINDOW_WIDTH - BACKGROUND_WIDTH) / 2,
+        (WINDOW_HEIGHT - BACKGROUND_HEIGHT) / 2);
+    graphics_reset_clip_rectangle();
     inner_panel_draw(280, 242, 2, 12);
     draw_scenario_list();
     draw_scenario_info();
@@ -186,6 +213,7 @@ static void draw_foreground(void)
 {
     graphics_in_dialog();
     image_buttons_draw(0, 0, &start_button, 1);
+    image_buttons_draw(0, 0, &back_button, 1);
     scrollbar_draw(&scrollbar);
     draw_scenario_list();
     graphics_reset_dialog();
@@ -200,6 +228,9 @@ static void handle_input(const mouse *m, const hotkeys *h)
     if (image_buttons_handle_mouse(m_dialog, 0, 0, &start_button, 1, 0)) {
         return;
     }
+    if (image_buttons_handle_mouse(m_dialog, 0, 0, &back_button, 1, 0)) {
+        return;
+    }
     if (generic_buttons_handle_mouse(m_dialog, 0, 0, file_buttons, MAX_SCENARIOS, &data.focus_button_id)) {
         return;
     }
@@ -212,6 +243,10 @@ static void handle_input(const mouse *m, const hotkeys *h)
     }
 }
 
+static void button_back(int param1, int param2) {
+    window_go_back();
+}
+
 static void button_select_item(int index, int param2)
 {
     if (index >= data.scenarios->num_files) {
@@ -221,7 +256,7 @@ static void button_select_item(int index, int param2)
     strcpy(data.selected_scenario_filename, data.scenarios->files[data.selected_item]);
     game_file_load_scenario_data(data.selected_scenario_filename);
     encoding_from_utf8(data.selected_scenario_filename, data.selected_scenario_display, FILE_NAME_MAX);
-    file_remove_extension(data.selected_scenario_display);
+    file_remove_extension((char *)data.selected_scenario_display);
     window_invalidate();
 }
 

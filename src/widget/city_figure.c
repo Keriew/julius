@@ -206,7 +206,8 @@ static void adjust_pixel_offset(const figure *f, int *pixel_x, int *pixel_y)
     int x_offset = 0;
     int y_offset = 0;
     if (f->use_cross_country) {
-        tile_cross_country_offset_to_pixel_offset(f->cross_country_x % 15, f->cross_country_y % 15, &x_offset, &y_offset);
+        tile_cross_country_offset_to_pixel_offset(
+            f->cross_country_x % 15, f->cross_country_y % 15, &x_offset, &y_offset);
         y_offset -= f->missile_damage;
     } else {
         int direction = figure_image_normalize_direction(f->direction);
@@ -228,9 +229,19 @@ static void adjust_pixel_offset(const figure *f, int *pixel_x, int *pixel_y)
     x_offset += 29;
     y_offset += 15;
 
+    if (f->image_id >= 10000) {
+        // TODO
+        // Ugly hack, remove
+        // Draws new walkers at their proper spots
+        x_offset -= 26;
+        y_offset -= 29;
+    }
+
+
     const image *img = f->is_enemy_image ? image_get_enemy(f->image_id) : image_get(f->image_id);
     *pixel_x += x_offset - img->sprite_offset_x;
     *pixel_y += y_offset - img->sprite_offset_y;
+
 }
 
 static void draw_figure(const figure *f, int x, int y, int highlight)
