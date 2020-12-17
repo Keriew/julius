@@ -364,7 +364,7 @@ static translation_string all_strings[] = {
     {TR_LABEL_PAUSE_MENU, "Pause" },
     {TR_OVERLAY_LEVY, "Abgaben" },
     {TR_TOOLTIP_OVERLAY_LEVY, " Monatlich Abgaben in Denarii." },
-    {TR_MAP_EDITOR_OPTIONS, "Szenario Einstellungen" }
+    {TR_MAP_EDITOR_OPTIONS, "Szenario Einstellungen" },
     {TR_BUILDING_MARS_TEMPLE_MODULE_DESC_NO_MESS, "Dieser Tempel wird Essen für deinen Versorgungsposten sammeln, sobald er gebaut wurde." },
 
 };
