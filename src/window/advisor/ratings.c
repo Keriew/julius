@@ -126,16 +126,16 @@ static int draw_background(void)
             if (culture <= 90) {
              int min_rating = 100;
 				int advice_text = 3;
-				if (city_data.ratings.culture_points.average_education < min_rating) {
-					min_rating = city_data.ratings.culture_points.average_education;
+				if (city_data.ratings.culture_points.average_education_cp < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_education_cp;
 					advice_text = 2;
 				}
-				if (city_data.ratings.culture_points.average_religion < min_rating) {
-					min_rating = city_data.ratings.culture_points.average_religion;
+				if (city_data.ratings.culture_points.average_religion_cp < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_religion_cp;
 					advice_text = 1;
 				}
-				if (city_data.ratings.culture_points.average_entertainment < min_rating) {
-					min_rating = city_data.ratings.culture_points.average_entertainment;
+				if (city_data.ratings.culture_points.average_entertainment_cp < min_rating) {
+					min_rating = city_data.ratings.culture_points.average_entertainment_cp;
 					advice_text = 0;
 				} 				
 				if (city_entertainment_venue_needing_shows() > 0 ) {
