@@ -35,6 +35,12 @@ int city_culture_average_education(void);
 int city_culture_average_entertainment(void);
 int city_culture_average_health(void);
 
+int city_culture_average_theater(void);
+int city_culture_average_amphitheater(void);
+int city_culture_average_school(void);
+int city_culture_average_academy(void);
+int city_culture_average_library(void);
+
 void city_culture_calculate(void);
 
 void city_culture_save_state(buffer *buf);
