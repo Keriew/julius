@@ -102,6 +102,31 @@ int city_culture_average_health(void)
     return city_data.culture.average_health;
 }
 
+int city_culture_average_theater(void)
+{
+    return city_data.culture.average_theater;
+}
+
+int city_culture_average_amphitheater(void)
+{
+    return city_data.culture.average_amphitheater;
+}
+
+int city_culture_average_school(void)
+{
+    return city_data.culture.average_school;
+}
+
+int city_culture_average_academy(void)
+{
+    return city_data.culture.average_academy;
+}
+
+int city_culture_average_library(void)
+{
+    return city_data.culture.average_library;
+}
+
 static int top(int input)
 {
     return input > 100 ? 100 : input;
@@ -206,6 +231,12 @@ void city_culture_calculate(void)
     city_data.culture.average_health = 0;
     city_data.culture.average_desirability = 0;
     city_data.culture.population_with_venus_access = 0; //venus
+    
+    city_data.culture.average_theater = 0;
+    city_data.culture.average_amphitheater = 0;
+    city_data.culture.average_school = 0;
+    city_data.culture.average_library = 0;
+    city_data.culture.average_academy = 0;
 
     int num_houses = 0;
     for (int i = 1; i < building_count(); i++) {
@@ -220,6 +251,12 @@ void city_culture_calculate(void)
             if (b->data.house.temple_venus) {
                 city_data.culture.population_with_venus_access += b->house_population;
             }
+            
+            city_data.culture.average_theater += b->house_theater_accessibility;
+            city_data.culture.average_amphitheater += b->house_amphitheater_accessibility;
+            city_data.culture.average_school += b->house_school_accessibility;
+            city_data.culture.average_library += b->house_library_accessibility;
+            city_data.culture.average_academy += b->house_academy_accessibility;
         }
     }
     if (num_houses) {
@@ -228,6 +265,12 @@ void city_culture_calculate(void)
         city_data.culture.average_education /= num_houses;
         city_data.culture.average_health /= num_houses;
         city_data.culture.average_desirability /= num_houses;
+        
+        city_data.culture.average_theater /= num_houses;
+        city_data.culture.average_amphitheater /= num_houses;
+        city_data.culture.average_school /= num_houses;
+        city_data.culture.average_library /= num_houses;
+        city_data.culture.average_academy /= num_houses;
     }
 
     city_entertainment_calculate_shows();
