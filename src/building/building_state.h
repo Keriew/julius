@@ -5,8 +5,8 @@
 #include "core/buffer.h"
 
 #define BUILDING_STATE_ORIGINAL_BUFFER_SIZE 128
-#define BUILDING_STATE_TOURISM_BUFFER_SIZE 134
-#define BUILDING_STATE_CURRENT_BUFFER_SIZE 134
+#define BUILDING_STATE_CULTURE_BUFFER_SIZE 139
+#define BUILDING_STATE_CURRENT_BUFFER_SIZE 139
 
 void building_state_save_to_buffer(buffer *buf, const building *b);
 
