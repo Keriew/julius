@@ -194,6 +194,12 @@ void building_state_save_to_buffer(buffer *buf, const building *b)
     buffer_write_u8(buf, b->tourism_disabled);
     buffer_write_u8(buf, b->tourism_income);
     buffer_write_u8(buf, b->tourism_income_this_year);
+    buffer_write_u8(buf, b->house_theater_accessibility);
+    buffer_write_u8(buf, b->house_amphitheater_accessibility);
+    buffer_write_u8(buf, b->house_school_accessibility);
+    buffer_write_u8(buf, b->house_library_accessibility);
+    buffer_write_u8(buf, b->house_academy_accessibility);
+
     // New building state code should always be added at the end to preserve savegame retrocompatibility
     // Also, don't forget to update BUILDING_STATE_CURRENT_BUFFER_SIZE and if possible, add a new macro like
     // BUILDING_STATE_NEW_FEATURE_BUFFER_SIZE with the full building state buffer size including all added features
@@ -380,13 +386,18 @@ void building_state_load_from_buffer(buffer *buf, building *b, int building_buf_
     // Building state variables are automatically set to 0, so if the savegame version doesn't include
     // that information, you can be assured that the game will read it as 0
     
-    if (building_buf_size >= BUILDING_STATE_TOURISM_BUFFER_SIZE) {
+    if (building_buf_size >= BUILDING_STATE_CULTURE_BUFFER_SIZE) {
         b->house_arena_gladiator = buffer_read_u8(buf);
         b->house_arena_lion = buffer_read_u8(buf);
         b->is_tourism_venue = buffer_read_u8(buf);
         b->tourism_disabled = buffer_read_u8(buf);
         b->tourism_income = buffer_read_u8(buf);
         b->tourism_income_this_year = buffer_read_u8(buf);
+        b->house_theater_accessibility = buffer_read_u8(buf);
+        b->house_amphitheater_accessibility = buffer_read_u8(buf);
+        b->house_school_accessibility = buffer_read_u8(buf);
+        b->house_library_accessibility = buffer_read_u8(buf);
+        b->house_academy_accessibility = buffer_read_u8(buf);
     }
 
     // The following code should only be executed if the savegame includes building information that is not 
