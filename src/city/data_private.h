@@ -275,6 +275,11 @@ extern struct city_data_t {
         int32_t religion_coverage;
         int32_t population_with_venus_access;
         int32_t average_desirability;
+        int32_t average_theater;
+        int32_t average_amphitheater;
+        int32_t average_school;
+        int32_t average_library;
+        int32_t average_academy;
     } culture;
     struct {
         god_status gods[5];
