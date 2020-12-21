@@ -137,22 +137,22 @@ static void update_culture_explanation(void)
         min_percentage = city_data.culture.religion_coverage;
         reason = 4;
     }
-    int pct_theater = city_culture_coverage_theater();
+    int pct_theater = (city_culture_average_theater() + city_culture_average_amphitheater()) / 2;
     if (pct_theater < min_percentage) {
         min_percentage = pct_theater;
         reason = 5;
     }
-    int pct_library = city_culture_coverage_library();
+    int pct_library = city_culture_average_library();
     if (pct_library < min_percentage) {
         min_percentage = pct_library;
         reason = 2;
     }
-    int pct_school = city_culture_coverage_school();
+    int pct_school = city_culture_average_school();
     if (pct_school < min_percentage) {
         min_percentage = pct_school;
         reason = 1;
     }
-    int pct_academy = city_culture_coverage_academy();
+    int pct_academy = city_culture_average_academy();
     if (pct_academy < min_percentage) {
         reason = 3;
     }
@@ -320,27 +320,17 @@ static void update_culture_rating(void)
         return;
     }
 
-    int pct_theater = city_culture_coverage_theater();
-    if (pct_theater >= 100) {
-        city_data.ratings.culture_points.theater = 25;
-    } else if (pct_theater > 85) {
-        city_data.ratings.culture_points.theater = 18;
-    } else if (pct_theater > 70) {
-        city_data.ratings.culture_points.theater = 12;
-    } else if (pct_theater > 50) {
-        city_data.ratings.culture_points.theater = 8;
-    } else if (pct_theater > 30) {
-        city_data.ratings.culture_points.theater = 3;
-    } else {
-        city_data.ratings.culture_points.theater = 0;
-    }
+	//ENTERTAINMENT MAX 25: 
+    int pct_entertainment = (city_culture_average_theater() + city_culture_average_amphitheater()) / 2;
+	city_data.ratings.culture_points.theater = calc_adjust_with_percentage(pct_entertainment, 96) / 4;
     city_data.ratings.culture += city_data.ratings.culture_points.theater;
-
+    
+    //RELIGION MAX 25:
     int pct_religion = city_data.culture.religion_coverage;
     if (pct_religion >= 100) {
-        city_data.ratings.culture_points.religion = 30;
+        city_data.ratings.culture_points.religion = 25;
     } else if (pct_religion > 85) {
-        city_data.ratings.culture_points.religion = 22;
+        city_data.ratings.culture_points.religion = 20;
     } else if (pct_religion > 70) {
         city_data.ratings.culture_points.religion = 14;
     } else if (pct_religion > 50) {
@@ -351,55 +341,17 @@ static void update_culture_rating(void)
         city_data.ratings.culture_points.religion = 0;
     }
     city_data.ratings.culture += city_data.ratings.culture_points.religion;
-
-    int pct_school = city_culture_coverage_school();
-    if (pct_school >= 100) {
-        city_data.ratings.culture_points.school = 15;
-    } else if (pct_school > 85) {
-        city_data.ratings.culture_points.school = 10;
-    } else if (pct_school > 70) {
-        city_data.ratings.culture_points.school = 6;
-    } else if (pct_school > 50) {
-        city_data.ratings.culture_points.school = 4;
-    } else if (pct_school > 30) {
-        city_data.ratings.culture_points.school = 1;
-    } else {
-        city_data.ratings.culture_points.school = 0;
-    }
+    
+    //EDUCATION MAX 25:
+    int pct_education = (city_culture_average_school() + city_culture_average_academy() + city_culture_average_library()) / 3;
+    city_data.ratings.culture_points.school = calc_adjust_with_percentage(pct_education, 96) / 4;
     city_data.ratings.culture += city_data.ratings.culture_points.school;
-
-    int pct_academy = city_culture_coverage_academy();
-    if (pct_academy >= 100) {
-        city_data.ratings.culture_points.academy = 10;
-    } else if (pct_academy > 85) {
-        city_data.ratings.culture_points.academy = 7;
-    } else if (pct_academy > 70) {
-        city_data.ratings.culture_points.academy = 4;
-    } else if (pct_academy > 50) {
-        city_data.ratings.culture_points.academy = 2;
-    } else if (pct_academy > 30) {
-        city_data.ratings.culture_points.academy = 1;
-    } else {
-        city_data.ratings.culture_points.academy = 0;
-    }
-    city_data.ratings.culture += city_data.ratings.culture_points.academy;
-
-    int pct_library = city_culture_coverage_library();
-    if (pct_library >= 100) {
-        city_data.ratings.culture_points.library = 20;
-    } else if (pct_library > 85) {
-        city_data.ratings.culture_points.library = 14;
-    } else if (pct_library > 70) {
-        city_data.ratings.culture_points.library = 8;
-    } else if (pct_library > 50) {
-        city_data.ratings.culture_points.library = 4;
-    } else if (pct_library > 30) {
-        city_data.ratings.culture_points.library = 2;
-    } else {
-        city_data.ratings.culture_points.library = 0;
-    }
-    city_data.ratings.culture += city_data.ratings.culture_points.library;
-
+    
+    //COLOSSEUM, HIPPODROME MAX 25:
+    city_data.ratings.culture += building_count_active(BUILDING_COLOSSEUM) * 10;
+    city_data.ratings.culture += building_count_active(BUILDING_HIPPODROME) * 15;
+    
+    //MONUMENTS MAX 18 EXTRA:
     if (config_get(CONFIG_GP_CH_MONUMENTS_BOOST_CULTURE_RATING)) {
         city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_CERES) * GT_CULTURE_BONUS;
         city_data.ratings.culture += building_count_active(BUILDING_GRAND_TEMPLE_NEPTUNE) * GT_CULTURE_BONUS;
