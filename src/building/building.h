@@ -158,6 +158,12 @@ typedef struct {
     unsigned char tourism_disabled;
     unsigned char tourism_income;
     unsigned char tourism_income_this_year;
+    unsigned char house_theater_accessibility;
+    unsigned char house_amphitheater_accessibility;
+    unsigned char house_school_accessibility;
+    unsigned char house_library_accessibility;
+    unsigned char house_academy_accessibility;
+
 } building;
 
 building *building_get(int id);
