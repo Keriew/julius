@@ -160,8 +160,8 @@ static translation_string all_strings[] = {
     {TR_BUILDING_GRAND_TEMPLE_VENUS_BONUS_DESC, "Dekorationen und Tempel erstrahlen in neuem Glanz und steigern die Attraktivität. Häuser lagern mehr Waren und bleiben auch ohne Dienste und Waren länger bestehen." },
     {TR_BUILDING_PANTHEON_BONUS_DESC, "Priester des Pantheons bieten Zugang zu allen fünf Gottheiten. Reduziert die Kosten von Tempelarbeitern um 25% und hält kostenlos kleine jährliche Feste ab." },
     {TR_BUILDING_GRAND_TEMPLE_CERES_MODULE_1_DESC, "Priester reduzieren Nahrungsverbrauch um 20% in Häusern mit Zugang zu einem Tempel der Ceres." },
-    {TR_BUILDING_GRAND_TEMPLE_NEPTUNE_MODULE_1_DESC, "Tempel des Neptun produzieren Wagenlenker für die Reitbahn." },
-    {TR_BUILDING_GRAND_TEMPLE_MERCURY_MODULE_1_DESC, "Priester des Merkur reduzieren Tonwaren- und Möbelverbrauch um 20% in Häusern mit Zugang zu einem Tempel des Merkur." },
+    {TR_BUILDING_GRAND_TEMPLE_NEPTUNE_MODULE_1_DESC, "Tempel des Neptun produzieren Wagenlenker für die Hippodrom." },
+    {TR_BUILDING_GRAND_TEMPLE_MERCURY_MODULE_1_DESC, "Priester des Merkur reduzieren Geschirr- und Möbelverbrauch um 20% in Häusern mit Zugang zu einem Tempel des Merkur." },
     {TR_BUILDING_GRAND_TEMPLE_MARS_MODULE_1_DESC, "Priester des Mars erzeugen einmal pro Monat Nahrung, wenn sie Häuser passieren und liefern diese an den Versorgungsposten, sobald eine gewisse Menge erreicht ist. Dies erfordert eine Straßenverbindung." },
     {TR_BUILDING_GRAND_TEMPLE_VENUS_MODULE_1_DESC, "Der Prachttempel produziert Wein im Verhältnis zur Bevölkerung mit Zugang zu Tempeln der Venus. Priester verteilen ihn an die Häuser." },
     {TR_BUILDING_GRAND_TEMPLE_CERES_MODULE_2_DESC, "Tempel der Ceres agieren als Märkte. Sie sammeln und verteilen ein lokal produziertes Nahrungsmittel und Öl." },
@@ -189,7 +189,7 @@ static translation_string all_strings[] = {
     {TR_HEADER_HOUSING, "Wohnraum"},								
     {TR_ADVISOR_HOUSING_ROOM, "In der Stadt gibt es noch Platz für"},
     {TR_ADVISOR_HOUSING_NO_ROOM, "In der Stadt gibt es keinen Wohnraum mehr."},
-    {TR_ADVISOR_RESIDENCES_DEMANDING_POTTERY, "Die Bevölkerung verlangt nach Tonwaren"},
+    {TR_ADVISOR_RESIDENCES_DEMANDING_POTTERY, "Die Bevölkerung verlangt nach Geschirr"},
     {TR_ADVISOR_RESIDENCES_DEMANDING_FURNITURE, "Die Bevölkerung verlangt nach Möbeln"},
     {TR_ADVISOR_RESIDENCES_DEMANDING_OIL, "Die Bevölkerung verlangt nach Öl"},
     {TR_ADVISOR_RESIDENCES_DEMANDING_WINE, "Die Bevölkerung verlangt nach Wein"},
@@ -351,7 +351,7 @@ static translation_string all_strings[] = {
     {TR_NO_MODS_TITLE, "Mods Ordner nicht gefunden." },
     {TR_NO_MODS_MESSAGE,
     "In Ihrer Caesar 3-Installation ist der Mods-Ordner nicht ordnungsgemäß installiert. "
-    "Neue Spielinhalte werden nicht richtig angezeigt."
+    "Neue Spielinhalte werden nicht richtig angezeigt. "
     "Stellen Sie sicher, dass ein '/mods'-Verzeichnis in der obersten Ebene Ihres Caesar 3-Installationsverzeichnisses vorhanden ist."},
     {TR_WARNING_WATER_NEEDED_FOR_LIGHTHOUSE, "Leuchtturm muss nah am Wasser platziert werden."},
     {TR_TOOLTIP_OVERLAY_PANTHEON_ACCESS, "Dieses Haus hat durch das Pantheon Zugang zu allen fünf Göttern."},
