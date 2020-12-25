@@ -366,6 +366,14 @@ static translation_string all_strings[] = {
     {TR_TOOLTIP_OVERLAY_LEVY, " Monatlich Abgaben in Denarii." },
     {TR_MAP_EDITOR_OPTIONS, "Szenario Einstellungen" },
     {TR_BUILDING_MARS_TEMPLE_MODULE_DESC_NO_MESS, "Dieser Tempel wird Essen für deinen Versorgungsposten sammeln, sobald er gebaut wurde." },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_MAINTENANCE, "Durchlass für Präfekten und Ingineure umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_PRIEST, "Durchlass für Priester umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_MARKET, "Durchlass für Marktfrauen umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_ENTERTAINER, "Durchlass für Unterhaltungswesen umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_EDUCATION, "Durchlass für Bildungswesen umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_MEDICINE, "Durchlass für Gesundheitswesen umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_TAX_COLLECTOR, "Durchlass für Steuereintreiber umschalten" },
+    {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_LABOR_SEEKER, "Durchlass für Arbeitslose umschalten" },
 
 };
 
