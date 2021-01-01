@@ -22,13 +22,13 @@ static translation_string all_strings[] = {
         URL_EDITOR},
     {TR_INVALID_LANGUAGE_TITLE, "잘못된 언어 디렉터리"},
     {TR_INVALID_LANGUAGE_MESSAGE,
-        "현재 선택된 디렉터리는 사용 가능한 언어 팩을 포함하고 있지 않습니다. "
+        "현재 선택된 폴더는 사용 가능한 언어 팩을 포함하고 있지 않습니다. "
         "기록에서 오류를 확인해 주세요."},
     {TR_BUTTON_OK, "확인"},
     {TR_BUTTON_CANCEL, "취소"},
     {TR_BUTTON_RESET_DEFAULTS, "기본값으로 초기화"},
     {TR_BUTTON_CONFIGURE_HOTKEYS, "단축키 설정"},
-    {TR_CONFIG_TITLE, "Julius 설정 옵션"},
+    {TR_CONFIG_TITLE, "Augustus 설정 옵션"},
     {TR_CONFIG_LANGUAGE_LABEL, "언어:"},
     {TR_CONFIG_LANGUAGE_DEFAULT, "(기본)"},
     {TR_CONFIG_HEADER_UI_CHANGES, "사용자 인터페이스 변경"},
@@ -104,9 +104,9 @@ static translation_string all_strings[] = {
     {TR_HOTKEY_SET_BOOKMARK_3, "3지점 설정"},
     {TR_HOTKEY_SET_BOOKMARK_4, "4지점 설정"},
     {TR_HOTKEY_EDITOR_TOGGLE_BATTLE_INFO, "전투 정보 전환"},
-    {TR_HOTKEY_EDIT_TITLE, "새 단축키 입력"}
+    {TR_HOTKEY_EDIT_TITLE, "새 단축키 입력"},
     {TR_BUILDING_ROADBLOCK, "도로 블록"},
-    {TR_BUILDING_ROADBLOCK_DESC, "도로 블록은 얼쩡대는 시민들을 막습니다."},
+    {TR_BUILDING_ROADBLOCK_DESC, "도로 블록은 배회하는 시민들을 가로막습니다."},
     {TR_BUILDING_ENGINEER_GUILD, "기술자 길드" },
     {TR_BUILDING_ENGINEER_GUILD_DESC, "이곳의 기술자들은 로마의 영광을 위한 기념물을 세우기 위해 부지런히 일합니다." },
     {TR_BUILDING_GRAND_TEMPLE_ADD_MODULE, "신전에 속성을 부여한다" },
