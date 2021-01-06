@@ -351,7 +351,8 @@ static void draw_default(const map_tile* tile, int x_view, int y_view, building_
         // hack for offsets, not perfect
         int y_offset = (building_size - 1) * MOD_IMAGE_X_OFFSET;
         int x_offset = (building_size - 1) * MOD_IMAGE_Y_OFFSET;
-        int rotation_offset = building_rotation_get_rotation() % 2 * props->rotation_offset;
+        int building_orientation = building_rotation_get_building_orientation(building_rotation_get_rotation());
+        int rotation_offset = ((building_orientation / 2) % 2) * props->rotation_offset;
         image_id = props->image_group+rotation_offset;
         draw_regular_building(type, image_id, x_view- x_offset, y_view+ y_offset, grid_offset);
     } else {
