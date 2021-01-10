@@ -33,6 +33,8 @@ static int init(translation_key title, translation_key message)
 
 static void draw_background(void)
 {
+    window_draw_underlying_window();
+
     graphics_in_dialog();
     outer_panel_draw(80, 80, 30, 12);
     text_draw_centered(data.title, 80, 100, 480, FONT_LARGE_BLACK, 0);
