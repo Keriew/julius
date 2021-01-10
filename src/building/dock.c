@@ -67,29 +67,6 @@ int building_dock_accepts_ship(int ship_id, int dock_id)
     return 0;
 }
 
-int other_ship_going_to_dock_queue(int dock_id, int ship_id) {
-    const int MAX_CITIES = 41;
-    figure *ship = figure_get(ship_id);
-    for (int i = 0; i < MAX_CITIES; i++) {
-        empire_city *city = empire_city_get(i);
-        if (city == 0 || !city->route_id || !city->is_sea_trade) {
-            continue;
-        }
-        for (int index = 0; index < 3; index++) {
-            int other_ship_id = city->trader_figure_ids[index];
-            if (other_ship_id && ship_id != other_ship_id) {
-                figure *other_ship = figure_get(other_ship_id);
-                if (other_ship->building_id == dock_id &&
-                    other_ship->action_state == FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE
-                ) {
-                    return 1;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
 int building_dock_get_free_destination(int ship_id, map_point *tile)
 {
     if (!city_buildings_has_working_dock()) {
@@ -114,13 +91,6 @@ int building_dock_get_free_destination(int ship_id, map_point *tile)
     }
     // BUG: when 10 docks in city, always takes last one... regardless of whether it is free
     if (dock_id <= 0) {
-        return 0;
-    }
-
-    figure *ship = figure_get(ship_id);
-    if (ship->action_state == FIGURE_ACTION_110_TRADE_SHIP_CREATED &&
-        other_ship_going_to_dock_queue(dock_id, ship_id))
-    {
         return 0;
     }
 
