@@ -17,7 +17,7 @@
 #include "figure/trader.h"
 #include "map/road_access.h"
 #include "building/market.h"
-
+#include "figuretype/trader.h"
 static int try_import_resource(int building_id, int resource, int city_id)
 {
     building *warehouse = building_get(building_id);
@@ -266,7 +266,7 @@ static int fetch_export_resource(figure *f, building *dock)
         return 0;
     }
     figure *ship = figure_get(ship_id);
-    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED || ship->trader_amount_bought >= 12) {
+    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED || ship->trader_amount_bought >= figure_trade_sea_trade_units()) {
         return 0;
     }
     int x, y;
