@@ -14,4 +14,5 @@ int building_dock_get_free_destination(int ship_id, map_point *tile);
 
 int building_dock_get_queue_destination(int ship_id, map_point *tile);
 
+int building_dock_get_dock_accepting_ship(int ship_id);
 #endif // BUILDING_DOCK_H

@@ -677,6 +677,7 @@ void figure_trade_ship_action(figure *f)
             f->trader_amount_bought = 0;
             f->is_ghost = 1;
             f->wait_ticks++;
+            f->building_id = 0;
             if (f->wait_ticks > 20) {
                 f->wait_ticks = 0;
                 map_point tile;
@@ -690,7 +691,6 @@ void figure_trade_ship_action(figure *f)
                     f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
-                    f->building_id = dock_id;
                 } else {
                     f->state = FIGURE_STATE_DEAD;
                 }
@@ -720,6 +720,7 @@ void figure_trade_ship_action(figure *f)
             }
             break;
         case FIGURE_ACTION_112_TRADE_SHIP_MOORED:
+            figure_trader_ship_record_dock(f, f->destination_building_id);
             if (trade_ship_lost_queue(f)) {
                 f->trade_ship_failed_dock_attempts = 0;
                 f->action_state = FIGURE_ACTION_115_TRADE_SHIP_LEAVING;
@@ -728,15 +729,33 @@ void figure_trade_ship_action(figure *f)
                 f->destination_x = river_entry.x;
                 f->destination_y = river_entry.y;
             } else if (trade_ship_done_trading(f)) {
-                f->trade_ship_failed_dock_attempts = 0;
-                f->action_state = FIGURE_ACTION_115_TRADE_SHIP_LEAVING;
-                f->wait_ticks = 0;
-                map_point river_entry = scenario_map_river_entry();
-                f->destination_x = river_entry.x;
-                f->destination_y = river_entry.y;
-                building *dst = building_get(f->destination_building_id);
-                dst->data.dock.queued_docker_id = 0;
-                dst->data.dock.num_ships = 0;
+                map_point tile;
+                building *current_dock = building_get(f->destination_building_id);
+                
+                int dock_id = building_dock_get_free_destination(f->id, &tile);
+                if (dock_id) {
+                    f->destination_building_id = dock_id;
+                    f->action_state = FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK;
+                    f->destination_x = tile.x;
+                    f->destination_y = tile.y;
+                    current_dock->data.dock.trade_ship_id = 0;
+                } else if ((dock_id = building_dock_get_queue_destination(f->id,&tile))) {
+                    f->destination_building_id = 0;
+                    f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
+                    f->destination_x = tile.x;
+                    f->destination_y = tile.y;
+                    current_dock->data.dock.trade_ship_id = 0;
+                } else {
+                    f->trade_ship_failed_dock_attempts = 0;
+                    f->action_state = FIGURE_ACTION_115_TRADE_SHIP_LEAVING;
+                    f->wait_ticks = 0;
+                    map_point river_entry = scenario_map_river_entry();
+                    f->destination_x = river_entry.x;
+                    f->destination_y = river_entry.y;
+                    building *dst = building_get(f->destination_building_id);
+                    dst->data.dock.queued_docker_id = 0;
+                    dst->data.dock.num_ships = 0;
+                }
             }
             switch (building_get(f->destination_building_id)->data.dock.orientation) {
                 case 0: f->direction = DIR_2_RIGHT; break;
@@ -771,9 +790,23 @@ void figure_trade_ship_action(figure *f)
                 } else if (map_figure_at(f->grid_offset) != f->id &&
                     (dock_id = building_dock_get_queue_destination(f->id,&tile))) {
                     f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
+                    f->destination_building_id = 0;
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
-                    f->building_id = dock_id;
+                } else if (!building_dock_get_dock_accepting_ship(f->id)) {
+                    f->action_state = FIGURE_ACTION_115_TRADE_SHIP_LEAVING;
+                    f->wait_ticks = 0;
+                    map_point river_exit = scenario_map_river_exit();
+                    f->destination_x = river_exit.x;
+                    f->destination_y = river_exit.y;
+                    switch (building_get(f->destination_building_id)->data.dock.orientation) {
+                        case 0: f->direction = DIR_2_RIGHT; break;
+                        case 1: f->direction = DIR_4_BOTTOM; break;
+                        case 2: f->direction = DIR_6_LEFT; break;
+                        default:f->direction = DIR_0_TOP; break;
+                    }
+                    f->image_offset = 0;
+                    city_message_reset_category_count(MESSAGE_CAT_BLOCKED_DOCK);
                 }
                 f->wait_ticks = 0;
             }
@@ -781,7 +814,6 @@ void figure_trade_ship_action(figure *f)
             break;
         case FIGURE_ACTION_115_TRADE_SHIP_LEAVING:
             figure_movement_move_ticks_with_percentage(f, 1, move_speed);
-            f->building_id = 0;
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_110_TRADE_SHIP_CREATED;
@@ -812,3 +844,24 @@ int figure_trade_sea_trade_units()
     }
     return 12;
 }
+
+void figure_trader_ship_record_dock(figure *ship, int dock_id) {
+    for (int i = 0; i < 10; i++) {
+        if (dock_id == city_buildings_get_working_dock(i)) {
+            ship->building_id |= 1 << i;
+            return;
+        }
+    }
+}
+
+int figure_trader_ship_docked_once(figure *ship, int dock_id) {
+    for (int i = 0; i < 10; i++) {
+        if (dock_id == city_buildings_get_working_dock(i)) {
+            if (ship->building_id & 1 << i) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
