@@ -66,7 +66,7 @@ void city_buildings_set_barracks(int building_id)
 
 int city_buildings_has_mess_hall(void)
 {
-	return city_data.building.mess_hall_building_id > 0;
+    return city_data.building.mess_hall_building_id > 0;
 }
 
 void city_buildings_add_mess_hall(building *mess_hall)
