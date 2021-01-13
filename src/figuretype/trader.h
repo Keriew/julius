@@ -35,6 +35,10 @@ void figure_trader_ship_record_dock(figure *ship, int dock_id);
 
 int figure_trader_ship_docked_once(figure *ship, int dock_id);
 
+int figure_trader_ship_can_queue_for_import(figure *ship);
+
+int figure_trader_ship_can_queue_for_export(figure *ship);
+
 #define IMAGE_CAMEL 4922
 
 #endif // FIGURETYPE_TRADER_H

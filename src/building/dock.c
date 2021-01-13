@@ -176,7 +176,6 @@ int building_dock_get_free_destination(int ship_id, map_point *tile)
     return dock_id;
 }
 
-
 int building_dock_get_queue_destination(int ship_id, map_point *tile)
 {
     if (!city_buildings_has_working_dock()) {
@@ -198,10 +197,6 @@ int building_dock_get_queue_destination(int ship_id, map_point *tile)
         }
         if (figure_trader_ship_docked_once(ship, dock_id)) continue;
         building *dock = building_get(dock_id);
-        // ships moored must be forwarded to a different dock, never the same one, or leave
-        if (ship->action_state == FIGURE_ACTION_112_TRADE_SHIP_MOORED && dock->data.dock.trade_ship_id == ship_id) {
-            continue;
-        }
         int dx, dy;
         switch (dock->data.dock.orientation) {
             case 0: dx = 2; dy = -2; break;
@@ -212,11 +207,11 @@ int building_dock_get_queue_destination(int ship_id, map_point *tile)
         map_point_store_result(dock->x + dx, dock->y + dy, tile);
         if (!map_has_figure_at(map_grid_offset(tile->x, tile->y))) {
             if (!first_queue_available_dock) first_queue_available_dock = dock_id;
-            if (building_dock_can_import_from_ship(dock, ship_id)) {
+            if (figure_trader_ship_can_queue_for_import(ship) && building_dock_can_import_from_ship(dock, ship_id)) {
                 importing_dock_id = dock_id;
                 // prioritize imports
                 break;
-            } else if (building_dock_can_export_to_ship(dock, ship_id)) {
+            } else if (figure_trader_ship_can_queue_for_export(ship) && building_dock_can_export_to_ship(dock, ship_id)) {
                 exporting_dock_id = dock_id;
             }
         }
@@ -240,10 +235,6 @@ int building_dock_get_queue_destination(int ship_id, map_point *tile)
         }
         if (figure_trader_ship_docked_once(ship, dock_id)) continue;
         building *dock = building_get(dock_id);
-        // ships moored must be forwarded to a different dock, never the same one, or leave
-        if (ship->action_state == FIGURE_ACTION_112_TRADE_SHIP_MOORED && dock->data.dock.trade_ship_id == ship_id) {
-            continue;
-        }
         int dx, dy;
         switch (dock->data.dock.orientation) {
             case 0: dx = 2; dy = -3; break;
@@ -254,11 +245,11 @@ int building_dock_get_queue_destination(int ship_id, map_point *tile)
         map_point_store_result(dock->x + dx, dock->y + dy, tile);
         if (!map_has_figure_at(map_grid_offset(tile->x, tile->y))) {
             if (!second_queue_available_dock) second_queue_available_dock = dock_id;
-            if (building_dock_can_import_from_ship(dock, ship_id)) {
+            if (figure_trader_ship_can_queue_for_import(ship) && building_dock_can_import_from_ship(dock, ship_id)) {
                 importing_dock_id = dock_id;
                 // prioritize imports
                 break;
-            } else if (building_dock_can_export_to_ship(dock, ship_id)) {
+            } else if (figure_trader_ship_can_queue_for_export(ship) && building_dock_can_export_to_ship(dock, ship_id)) {
                 exporting_dock_id = dock_id;
                 break;
             }

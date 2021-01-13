@@ -739,7 +739,7 @@ void figure_trade_ship_action(figure *f)
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
                     current_dock->data.dock.trade_ship_id = 0;
-                } else if ((dock_id = building_dock_get_queue_destination(f->id,&tile))) {
+                } else if (building_dock_get_queue_destination(f->id,&tile)) {
                     f->destination_building_id = 0;
                     f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
                     f->destination_x = tile.x;
@@ -865,3 +865,21 @@ int figure_trader_ship_docked_once(figure *ship, int dock_id) {
     return 0;
 }
 
+int figure_trader_ship_can_queue_for_import(figure *ship) {
+    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
+    // better leave, free space for new ships with full load of imports
+    if (ship->loads_sold_or_carrying >= (figure_trade_sea_trade_units() / 3)) {
+        return 1;
+    }
+    return 0;
+}
+
+int figure_trader_ship_can_queue_for_export(figure *ship) {
+    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
+    int available_space = figure_trade_sea_trade_units() - ship->trader_amount_bought;
+    // better leave, free space for new ships with empty containers for exports
+    if (available_space >= (figure_trade_sea_trade_units() / 3)) {
+        return 1;
+    }
+    return 0;
+}
