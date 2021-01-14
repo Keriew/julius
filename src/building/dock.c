@@ -59,6 +59,9 @@ int building_dock_accepts_ship(int ship_id, int dock_id)
     building* dock = building_get(dock_id);
     figure* f = figure_get(ship_id);
     empire_city* city = empire_city_get(f->empire_city_id);
+    if (!building_dock_get_can_trade_with_route(city->route_id, dock_id)) {
+        return 0;
+    }
     for (int resource = RESOURCE_WHEAT; resource < RESOURCE_MAX; resource++) {
         if (city->sells_resource[resource] || city->buys_resource[resource]) {
             if (is_good_accepted(resource - 1, dock)) {
@@ -267,4 +270,22 @@ int building_dock_get_queue_destination(int ship_id, map_point *tile)
         return first_queue_available_dock ? first_queue_available_dock : second_queue_available_dock;
     }
     return 0;
+}
+
+int building_dock_get_can_trade_with_route(int route_id, int dock_id) {
+    building *dock = building_get(dock_id);
+    // for backword compatibility, avoiding default to reject all cities if game saved with older version
+    if (!dock->data.dock.has_accepted_route_ids) return 1;
+    return dock->data.dock.accepted_route_ids[route_id];
+}
+
+void building_dock_set_can_trade_with_route(int route_id, int dock_id, int can_trade) {
+    building *dock = building_get(dock_id);
+    if (!dock->data.dock.has_accepted_route_ids) {
+        dock->data.dock.has_accepted_route_ids = 1;
+        for (int i = 0; i < 20; i++) {
+            dock->data.dock.accepted_route_ids[i] = 1;
+        }
+    }
+    dock->data.dock.accepted_route_ids[route_id] = can_trade;
 }

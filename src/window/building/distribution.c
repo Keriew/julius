@@ -1,12 +1,16 @@
 #include "distribution.h"
 
 #include "building/building.h"
+#include "building/dock.h"
 #include "building/market.h"
 #include "building/storage.h"
 #include "building/warehouse.h"
+#include "core/lang.h"
 #include "city/buildings.h"
 #include "city/military.h"
 #include "city/resource.h"
+#include "empire/city.h"
+#include "empire/object.h"
 #include "figure/figure.h"
 #include "game/resource.h"
 #include "graphics/generic_button.h"
@@ -23,6 +27,7 @@ static void go_to_orders(int param1, int param2);
 static void toggle_resource_state(int index, int param2);
 static void toggle_partial_resource_state(int index, int param2);
 static void granary_orders(int param1, int param2);
+static void dock_toggle_route(int param1, int param2);
 static void warehouse_orders(int index, int param2);
 static void market_orders(int index, int param2);
 static void storage_toggle_permissions(int index, int param2);
@@ -78,6 +83,8 @@ static generic_button granary_distribution_permissions_buttons[] = {
      {0, 0, 20, 22, storage_toggle_permissions, button_none, 1, 0},
      {96, 0, 20, 22, storage_toggle_permissions, button_none, 4, 0},
 };
+
+static generic_button dock_distribution_permissions_buttons[20];
 
 
 static generic_button granary_order_buttons[] = {
@@ -151,6 +158,49 @@ static void draw_granary_permissions_buttons(int x, int y, int buttons)
     }
 }
 
+static void init_dock_permission_buttons(building_info_context* c)
+{
+    int row = 0, col = 0;
+    for (int route_id = 0; route_id < 20; route_id++) {
+        int button_x = 0, button_y = 0, city_id = -1;
+        if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
+            city_id = empire_city_get_for_trade_route(route_id);
+            int city_name_width = 0;
+            if (city_id != -1) {
+                const empire_city *city = empire_city_get(city_id);
+                const uint8_t *city_name = lang_get_string(21, city->name_id);
+                city_name_width = text_get_width(city_name, FONT_NORMAL_BLACK);
+                button_y = 4 + row * 1.5 * c->height_blocks;
+                if (col) {
+                    row++;
+                }
+                button_x = 4 + city_name_width + col * 8 * c->width_blocks;
+                col = !col;
+            }
+        }
+        generic_button button = {button_x, button_y, 20, 22, dock_toggle_route, button_none, route_id, city_id};
+        dock_distribution_permissions_buttons[route_id] = button;
+    }
+}
+
+static void draw_dock_permission_buttons(int x, int y, building_info_context *c)
+{
+    uint8_t permission_button_text[] = { 'x', 0 };
+    for (int i = 0; i < 20; i++)
+    {
+        int city_id = dock_distribution_permissions_buttons[i].parameter2;
+        if (city_id == -1) {
+            continue;
+        }
+        button_border_draw(x + dock_distribution_permissions_buttons[i].x, y + dock_distribution_permissions_buttons[i].y,
+                20, 20, data.permission_focus_button_id == i + 1 ? 1 : 0);
+        if (building_dock_get_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, c->building_id)) {
+            text_draw_centered(permission_button_text, x + dock_distribution_permissions_buttons[i].x + 1,
+                y + dock_distribution_permissions_buttons[i].y + 4, 20, FONT_NORMAL_BLACK, 0);
+        }
+    }
+}
+
 
 void window_building_draw_dock(building_info_context *c)
 {
@@ -191,10 +241,23 @@ void window_building_draw_dock(building_info_context *c)
 
 void window_building_draw_dock_foreground(building_info_context* c)
 {
+    init_dock_permission_buttons(c);
     button_border_draw(c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
         16 * (c->width_blocks - 10), 20, data.focus_button_id == 1 ? 1 : 0);
     lang_text_draw_centered(98, 5, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 30,
         16 * (c->width_blocks - 10), FONT_NORMAL_BLACK);
+    draw_dock_permission_buttons(c->x_offset + 16, c->y_offset + 230, c);
+    for (int i = 0; i < 20; i++) {
+        int city_id = dock_distribution_permissions_buttons[i].parameter2;
+        if (city_id == -1) {
+            continue;
+        }
+        empire_city *city = empire_city_get(city_id);
+        const uint8_t *city_name = lang_get_string(21, city->name_id);
+        int city_name_width = text_get_width(city_name, FONT_NORMAL_BLACK);
+        text_draw(city_name, c->x_offset + 16 + dock_distribution_permissions_buttons[i].x - city_name_width - 4,
+            c->y_offset + 230 + dock_distribution_permissions_buttons[i].y, FONT_NORMAL_BLACK, 0);
+    }
 }
 
 void window_building_draw_dock_orders(building_info_context* c)
@@ -233,9 +296,19 @@ void window_building_draw_dock_orders_foreground(building_info_context* c)
 
 int window_building_handle_mouse_dock(const mouse* m, building_info_context* c)
 {
-    return generic_buttons_handle_mouse(
+    int handled;
+
+    data.building_id = c->building_id;
+    handled = generic_buttons_handle_mouse(
+        m, c->x_offset + 16, c->y_offset + 230,
+        dock_distribution_permissions_buttons, 20, &data.permission_focus_button_id);
+    if (handled) {
+        return handled;
+    }
+    handled = generic_buttons_handle_mouse(
         m, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
         go_to_orders_button, 1, &data.focus_button_id);
+    return handled;
 }
 
 int window_building_handle_mouse_dock_orders(const mouse* m, building_info_context* c)
@@ -877,6 +950,13 @@ static void toggle_partial_resource_state(int index, int param2)
         resource = city_resource_get_available_foods()->items[index-1];
     }
     building_storage_cycle_partial_resource_state(b->storage_id, resource);
+    window_invalidate();
+}
+
+static void dock_toggle_route(int route_id, int city_id)
+{
+    int can_trade = building_dock_get_can_trade_with_route(route_id, data.building_id);
+    building_dock_set_can_trade_with_route(route_id, data.building_id, !can_trade);
     window_invalidate();
 }
 
