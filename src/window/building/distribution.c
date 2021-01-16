@@ -164,19 +164,17 @@ static void init_dock_permission_buttons(building_info_context* c)
     for (int route_id = 0; route_id < 20; route_id++) {
         int button_x = 0, button_y = 0, city_id = -1;
         if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
-            city_id = empire_city_get_for_trade_route(route_id);
-            int city_name_width = 0;
-            if (city_id != -1) {
-                const empire_city *city = empire_city_get(city_id);
-                const uint8_t *city_name = lang_get_string(21, city->name_id);
-                city_name_width = text_get_width(city_name, FONT_NORMAL_BLACK);
-                button_y = 4 + row * 1.5 * c->height_blocks;
-                if (col) {
-                    row++;
-                }
-                button_x = 4 + city_name_width + col * 8 * c->width_blocks;
-                col = !col;
+          city_id = empire_city_get_for_trade_route(route_id);
+          if (city_id != -1) {
+            button_y = 4 + row * 1.5 * c->height_blocks;
+            if (col) {
+              button_x = 16 * c->width_blocks - 50;
+              row++;
+            } else {
+              button_x = 8 * c->width_blocks - 50;
             }
+            col = !col;
+          }
         }
         generic_button button = {button_x, button_y, 20, 22, dock_toggle_route, button_none, route_id, city_id};
         dock_distribution_permissions_buttons[route_id] = button;
