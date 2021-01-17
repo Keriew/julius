@@ -203,6 +203,11 @@ static void show_overlay_from_grid_offset(int grid_offset)
     int clone_type = get_building_type_from_grid_offset(grid_offset);
     if (clone_type) {
         switch (clone_type) {
+            case BUILDING_PLAZA:
+            case BUILDING_ROAD:
+            case BUILDING_ROADBLOCK:
+                overlay = OVERLAY_ROADS;
+                break;
             case BUILDING_AQUEDUCT:
             case BUILDING_RESERVOIR:
             case BUILDING_FOUNTAIN:
@@ -220,6 +225,12 @@ static void show_overlay_from_grid_offset(int grid_offset)
             case BUILDING_LARGE_TEMPLE_MERCURY:
             case BUILDING_LARGE_TEMPLE_MARS:
             case BUILDING_LARGE_TEMPLE_VENUS:
+            case BUILDING_GRAND_TEMPLE_CERES:
+            case BUILDING_GRAND_TEMPLE_NEPTUNE:
+            case BUILDING_GRAND_TEMPLE_MERCURY:
+            case BUILDING_GRAND_TEMPLE_MARS:
+            case BUILDING_GRAND_TEMPLE_VENUS:
+            case BUILDING_PANTHEON:
                 overlay = OVERLAY_RELIGION;
                 break;
             case BUILDING_PREFECTURE:
@@ -310,11 +321,36 @@ static void show_overlay_from_grid_offset(int grid_offset)
             case BUILDING_HOUSE_MEDIUM_PALACE:
             case BUILDING_HOUSE_LARGE_PALACE:
             case BUILDING_HOUSE_LUXURY_PALACE:
-            case BUILDING_PLAZA:
             case BUILDING_SMALL_STATUE:
             case BUILDING_MEDIUM_STATUE:
             case BUILDING_LARGE_STATUE:
             case BUILDING_TRIUMPHAL_ARCH:
+            case BUILDING_SMALL_POND:
+            case BUILDING_LARGE_POND:
+            case BUILDING_PINE_TREE:
+            case BUILDING_FIR_TREE:
+            case BUILDING_OAK_TREE:
+            case BUILDING_ELM_TREE:
+            case BUILDING_FIG_TREE:
+            case BUILDING_PLUM_TREE:
+            case BUILDING_PALM_TREE:
+            case BUILDING_DATE_TREE:
+            case BUILDING_PINE_PATH:
+            case BUILDING_FIR_PATH:
+            case BUILDING_OAK_PATH:
+            case BUILDING_ELM_PATH:
+            case BUILDING_FIG_PATH:
+            case BUILDING_PLUM_PATH:
+            case BUILDING_PALM_PATH:
+            case BUILDING_DATE_PATH:
+            case BUILDING_PAVILION_BLUE:
+            case BUILDING_PAVILION_RED:
+            case BUILDING_PAVILION_ORANGE:
+            case BUILDING_PAVILION_YELLOW:
+            case BUILDING_PAVILION_GREEN:
+            case BUILDING_SMALL_STATUE_ALT:
+            case BUILDING_SMALL_STATUE_ALT_B:
+            case BUILDING_OBELISK:
                 overlay = OVERLAY_DESIRABILITY;
                 break;
             case BUILDING_MISSION_POST:
