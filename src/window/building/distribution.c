@@ -17,11 +17,14 @@
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
 #include "graphics/panel.h"
+#include "graphics/scrollbar.h"
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "scenario/property.h"
 #include "translation/translation.h"
 #include "window/building_info.h"
+
+#define MAX_DOCK_CITIES_VISIBLE 12
 
 static void go_to_orders(int param1, int param2);
 static void toggle_resource_state(int index, int param2);
@@ -31,6 +34,11 @@ static void dock_toggle_route(int param1, int param2);
 static void warehouse_orders(int index, int param2);
 static void market_orders(int index, int param2);
 static void storage_toggle_permissions(int index, int param2);
+static void init_dock_permission_buttons();
+static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id);
+static void on_dock_cities_scroll(void);
+static int dock_cities_scroll_position(void);
+static void dock_cities_set_scroll_position(int);
 
 static generic_button go_to_orders_button[] = {
     {0, 0, 304, 20, go_to_orders, button_none, 0, 0}
@@ -88,6 +96,8 @@ static generic_button dock_distribution_permissions_buttons[20];
 
 static int dock_distribution_permissions_buttons_count;
 
+static scrollbar_type dock_scrollbar = { 0, 0, 0, on_dock_cities_scroll};
+
 static generic_button granary_order_buttons[] = {
     {0, 0, 304, 20, granary_orders, button_none, 0, 0},
     {314, 0, 20, 20, granary_orders, button_none, 1, 0},
@@ -111,7 +121,8 @@ static struct {
     int building_id;
     int partial_resource_focus_button_id;
     int tooltip_id;
-} data = {0, 0, 0, 0, 0, 0, 0};
+    int dock_scrollbar_position;
+} data = {0, 0, 0, 0, 0, 0, 0, 0};
 
 uint8_t warehouse_full_button_text[] = "32";
 uint8_t warehouse_3quarters_button_text[] = "24";
@@ -121,7 +132,6 @@ uint8_t granary_full_button_text[] = "24";
 uint8_t granary_3quarters_button_text[] = "18";
 uint8_t granary_half_button_text[] = "12";
 uint8_t granary_quarter_button_text[] = "6";
-
 
 static void draw_accept_none_button(int x, int y, int focused)
 {
@@ -167,7 +177,7 @@ static void init_dock_permission_buttons()
     if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
       city_id = empire_city_get_for_trade_route(route_id);
       if (city_id != -1) {
-        generic_button button = {165, 22 * dock_distribution_permissions_buttons_count, 210, 22, dock_toggle_route, button_none, route_id, city_id};
+        generic_button button = {0, 0, 210, 22, dock_toggle_route, button_none, route_id, city_id};
         dock_distribution_permissions_buttons[dock_distribution_permissions_buttons_count] = button;
         dock_distribution_permissions_buttons_count++;
       }
@@ -179,17 +189,22 @@ static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id
 {
   int button_order = 0;
   for (int i = 0; i < dock_distribution_permissions_buttons_count; i++) {
-    generic_button button = dock_distribution_permissions_buttons[i];
-    button_border_draw(x_offset + button.x, y_offset + button.y, button.width, button.height, data.permission_focus_button_id == i + 1 ? 1 : 0);
+    if (i < dock_scrollbar.scroll_position || i - dock_scrollbar.scroll_position >= MAX_DOCK_CITIES_VISIBLE) continue;
+    generic_button *button = &dock_distribution_permissions_buttons[i];
+    int scrollbar_shown = dock_distribution_permissions_buttons_count > MAX_DOCK_CITIES_VISIBLE;
+    button->x = scrollbar_shown ? 160 : 190;
+    button->y = 22 * (i - dock_scrollbar.scroll_position);
+    
+    button_border_draw(x_offset + button->x, y_offset + button->y, button->width, button->height, data.permission_focus_button_id == i + 1 ? 1 : 0);
     int state = building_dock_get_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, dock_id);
     if (state) {
-      lang_text_draw(99, 7, x_offset + 215, y_offset + button.y + 5, FONT_NORMAL_WHITE);
+      lang_text_draw_centered(99, 7, x_offset + button->x, y_offset + button->y + 5, button->width, FONT_NORMAL_WHITE);
     } else {
-      lang_text_draw(99, 8, x_offset + 215, y_offset + button.y + 5, FONT_NORMAL_RED);
+      lang_text_draw_centered(99, 8, x_offset + button->x, y_offset + button->y + 5, button->width, FONT_NORMAL_RED);
     }
-    empire_city *city = empire_city_get(button.parameter2);
-    const uint8_t *city_name = lang_get_string(21, city->name_id);
-    text_draw(city_name, x_offset + 56, y_offset + 4 + i * 22, FONT_NORMAL_WHITE, 0);
+    empire_city *city = empire_city_get(button->parameter2);
+
+    lang_text_draw(21, city->name_id, x_offset + (scrollbar_shown ? 10 : 30), y_offset + 4 + button->y, FONT_NORMAL_WHITE);
   }
 }
 
@@ -226,19 +241,31 @@ void window_building_draw_dock(building_info_context *c)
         }
     }
 
+    
     inner_panel_draw(c->x_offset + 16, c->y_offset + 136, c->width_blocks - 2, 4);
     window_building_draw_employment(c, 142);
-    inner_panel_draw(c->x_offset + 16, c->y_offset + 205, c->width_blocks - 2, 10);
+    init_dock_permission_buttons();
+    text_draw_centered(translation_for(TR_BUILDING_DOCK_CITIES_CONFIG_DESC), c->x_offset, c->y_offset + 240, 16 * c->width_blocks, FONT_NORMAL_BLACK, 0);
+    int scrollbar_shown = dock_distribution_permissions_buttons_count > MAX_DOCK_CITIES_VISIBLE;
+    if (scrollbar_shown) {
+        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 5, 17);
+    } else {
+        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 2, 17);
+    }
+    dock_scrollbar.x = c->x_offset + (c->width_blocks - 4) * 16;
+    dock_scrollbar.y = c->y_offset + 270;
+    dock_scrollbar.height = 17 * 16;
+    scrollbar_init(&dock_scrollbar, dock_cities_scroll_position(), dock_distribution_permissions_buttons_count - MAX_DOCK_CITIES_VISIBLE);
 }
 
 void window_building_draw_dock_foreground(building_info_context* c)
 {
-    init_dock_permission_buttons();
     button_border_draw(c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
         16 * (c->width_blocks - 10), 20, data.focus_button_id == 1 ? 1 : 0);
     lang_text_draw_centered(98, 5, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 30,
         16 * (c->width_blocks - 10), FONT_NORMAL_BLACK);
-    draw_dock_permission_buttons(c->x_offset + 16, c->y_offset + 208, c->building_id);
+    draw_dock_permission_buttons(c->x_offset + 16, c->y_offset + 270 + 5, c->building_id);
+    scrollbar_draw(&dock_scrollbar);
 }
 
 void window_building_draw_dock_orders(building_info_context* c)
@@ -281,11 +308,13 @@ int window_building_handle_mouse_dock(const mouse* m, building_info_context* c)
 
     data.building_id = c->building_id;
     handled = generic_buttons_handle_mouse(
-        m, c->x_offset + 16, c->y_offset + 208,
+        m, c->x_offset + 16, c->y_offset + 270 + 5,
         dock_distribution_permissions_buttons, dock_distribution_permissions_buttons_count, &data.permission_focus_button_id);
-    if (handled) {
-        return handled;
-    }
+    if (handled) return handled;
+
+    handled = scrollbar_handle_mouse(&dock_scrollbar, m);
+    if (handled) return handled;
+
     handled = generic_buttons_handle_mouse(
         m, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
         go_to_orders_button, 1, &data.focus_button_id);
@@ -303,6 +332,19 @@ int window_building_handle_mouse_dock_orders(const mouse* m, building_info_conte
         return 1;
     }
     return generic_buttons_handle_mouse(m, c->x_offset + 80, y_offset + 404, market_order_buttons, 1, &data.orders_focus_button_id);
+}
+
+static void on_dock_cities_scroll() {
+  dock_cities_set_scroll_position(dock_scrollbar.scroll_position);
+  window_invalidate();
+}
+
+static int dock_cities_scroll_position() {
+  return data.dock_scrollbar_position;
+}
+
+void dock_cities_set_scroll_position(int scroll_position) {
+  data.dock_scrollbar_position = scroll_position;
 }
 
 void window_building_draw_stocks(building_info_context* c, building* b, int draw_goods, int always_show_food) 
