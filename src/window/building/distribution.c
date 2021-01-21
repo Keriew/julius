@@ -86,6 +86,7 @@ static generic_button granary_distribution_permissions_buttons[] = {
 
 static generic_button dock_distribution_permissions_buttons[20];
 
+static int dock_distribution_permissions_buttons_count;
 
 static generic_button granary_order_buttons[] = {
     {0, 0, 304, 20, granary_orders, button_none, 0, 0},
@@ -158,62 +159,39 @@ static void draw_granary_permissions_buttons(int x, int y, int buttons)
     }
 }
 
-static void init_dock_permission_buttons(building_info_context* c)
+static void init_dock_permission_buttons()
 {
-    int row = 0, col = 0;
-    int button_width = 20;
-    int button_height = 22;
-    int x_margin = 25;
-    for (int route_id = 0; route_id < 20; route_id++) {
-        int button_x = 0, button_y = 0, city_id = -1;
-        if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
-          city_id = empire_city_get_for_trade_route(route_id);
-          if (city_id != -1) {
-            button_y = 4 + row * 1.5 * c->height_blocks;
-            if (col) {
-              button_x = 15 * c->width_blocks - x_margin - button_width;
-              row++;
-            } else {
-              button_x = 0 + x_margin;
-            }
-            col = !col;
-          }
-        }
-        generic_button button = {button_x, button_y, button_width, button_height, dock_toggle_route, button_none, route_id, city_id};
-        dock_distribution_permissions_buttons[route_id] = button;
+  dock_distribution_permissions_buttons_count = 0;
+  for (int route_id = 0; route_id < 20; route_id++) {
+    int city_id = -1;
+    if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
+      city_id = empire_city_get_for_trade_route(route_id);
+      if (city_id != -1) {
+        generic_button button = {165, 22 * dock_distribution_permissions_buttons_count, 210, 22, dock_toggle_route, button_none, route_id, city_id};
+        dock_distribution_permissions_buttons[dock_distribution_permissions_buttons_count] = button;
+        dock_distribution_permissions_buttons_count++;
+      }
     }
+  }
 }
 
-static void draw_dock_permission_buttons(int x, int y, building_info_context *c)
+static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id)
 {
-    uint8_t permission_button_text[] = { 'x', 0 };
-    int button_index = -1;
-    for (int i = 0; i < 20; i++)
-    {
-        int city_id = dock_distribution_permissions_buttons[i].parameter2;
-        if (city_id == -1) {
-            continue;
-        }
-        button_border_draw(x + dock_distribution_permissions_buttons[i].x, y + dock_distribution_permissions_buttons[i].y,
-                20, 20, data.permission_focus_button_id == i + 1 ? 1 : 0);
-        if (building_dock_get_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, c->building_id)) {
-            text_draw_centered(permission_button_text, x + dock_distribution_permissions_buttons[i].x + 1,
-                y + dock_distribution_permissions_buttons[i].y + 4, 20, FONT_NORMAL_BLACK, 0);
-        }
-        empire_city *city = empire_city_get(city_id);
-        const uint8_t *city_name = lang_get_string(21, city->name_id);
-        int city_name_width = text_get_width(city_name, FONT_NORMAL_BLACK);
-        int draw_label_left_to_button = ++button_index % 2;
-        if (draw_label_left_to_button) {
-          text_draw(city_name, c->x_offset + 16 + dock_distribution_permissions_buttons[i].x - city_name_width - 4,
-              c->y_offset + 235 + dock_distribution_permissions_buttons[i].y, FONT_NORMAL_BLACK, 0);
-        } else {
-          text_draw(city_name, c->x_offset + 16 + dock_distribution_permissions_buttons[i].x + 20 + 4,
-            c->y_offset + 235 + dock_distribution_permissions_buttons[i].y, FONT_NORMAL_BLACK, 0);
-        }
+  int button_order = 0;
+  for (int i = 0; i < dock_distribution_permissions_buttons_count; i++) {
+    generic_button button = dock_distribution_permissions_buttons[i];
+    button_border_draw(x_offset + button.x, y_offset + button.y, button.width, button.height, data.permission_focus_button_id == i + 1 ? 1 : 0);
+    int state = building_dock_get_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, dock_id);
+    if (state) {
+      lang_text_draw(99, 7, x_offset + 215, y_offset + button.y + 5, FONT_NORMAL_WHITE);
+    } else {
+      lang_text_draw(99, 8, x_offset + 215, y_offset + button.y + 5, FONT_NORMAL_RED);
     }
+    empire_city *city = empire_city_get(button.parameter2);
+    const uint8_t *city_name = lang_get_string(21, city->name_id);
+    text_draw(city_name, x_offset + 56, y_offset + 4 + i * 22, FONT_NORMAL_WHITE, 0);
+  }
 }
-
 
 void window_building_draw_dock(building_info_context *c)
 {
@@ -250,16 +228,17 @@ void window_building_draw_dock(building_info_context *c)
 
     inner_panel_draw(c->x_offset + 16, c->y_offset + 136, c->width_blocks - 2, 4);
     window_building_draw_employment(c, 142);
+    inner_panel_draw(c->x_offset + 16, c->y_offset + 205, c->width_blocks - 2, 10);
 }
 
 void window_building_draw_dock_foreground(building_info_context* c)
 {
-    init_dock_permission_buttons(c);
+    init_dock_permission_buttons();
     button_border_draw(c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
         16 * (c->width_blocks - 10), 20, data.focus_button_id == 1 ? 1 : 0);
     lang_text_draw_centered(98, 5, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 30,
         16 * (c->width_blocks - 10), FONT_NORMAL_BLACK);
-    draw_dock_permission_buttons(c->x_offset + 16, c->y_offset + 230, c);
+    draw_dock_permission_buttons(c->x_offset + 16, c->y_offset + 208, c->building_id);
 }
 
 void window_building_draw_dock_orders(building_info_context* c)
@@ -302,8 +281,8 @@ int window_building_handle_mouse_dock(const mouse* m, building_info_context* c)
 
     data.building_id = c->building_id;
     handled = generic_buttons_handle_mouse(
-        m, c->x_offset + 16, c->y_offset + 230,
-        dock_distribution_permissions_buttons, 20, &data.permission_focus_button_id);
+        m, c->x_offset + 16, c->y_offset + 208,
+        dock_distribution_permissions_buttons, dock_distribution_permissions_buttons_count, &data.permission_focus_button_id);
     if (handled) {
         return handled;
     }
