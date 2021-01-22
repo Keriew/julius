@@ -24,7 +24,7 @@
 #include "translation/translation.h"
 #include "window/building_info.h"
 
-#define MAX_DOCK_CITIES_VISIBLE 12
+#include <math.h>
 
 static void go_to_orders(int param1, int param2);
 static void toggle_resource_state(int index, int param2);
@@ -122,6 +122,7 @@ static struct {
     int partial_resource_focus_button_id;
     int tooltip_id;
     int dock_scrollbar_position;
+    int dock_max_cities_visible;
 } data = {0, 0, 0, 0, 0, 0, 0, 0};
 
 uint8_t warehouse_full_button_text[] = "32";
@@ -189,9 +190,9 @@ static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id
 {
   int button_order = 0;
   for (int i = 0; i < dock_distribution_permissions_buttons_count; i++) {
-    if (i < dock_scrollbar.scroll_position || i - dock_scrollbar.scroll_position >= MAX_DOCK_CITIES_VISIBLE) continue;
+    if (i < dock_scrollbar.scroll_position || i - dock_scrollbar.scroll_position >= data.dock_max_cities_visible) continue;
     generic_button *button = &dock_distribution_permissions_buttons[i];
-    int scrollbar_shown = dock_distribution_permissions_buttons_count > MAX_DOCK_CITIES_VISIBLE;
+    int scrollbar_shown = dock_distribution_permissions_buttons_count > data.dock_max_cities_visible;
     button->x = scrollbar_shown ? 160 : 190;
     button->y = 22 * (i - dock_scrollbar.scroll_position);
     
@@ -246,16 +247,18 @@ void window_building_draw_dock(building_info_context *c)
     window_building_draw_employment(c, 142);
     init_dock_permission_buttons();
     text_draw_centered(translation_for(TR_BUILDING_DOCK_CITIES_CONFIG_DESC), c->x_offset, c->y_offset + 240, 16 * c->width_blocks, FONT_NORMAL_BLACK, 0);
-    int scrollbar_shown = dock_distribution_permissions_buttons_count > MAX_DOCK_CITIES_VISIBLE;
+    int panel_height = c->height_blocks - 21;
+    data.dock_max_cities_visible = floor(panel_height * 16 / 22);
+    int scrollbar_shown = dock_distribution_permissions_buttons_count > data.dock_max_cities_visible;
     if (scrollbar_shown) {
-        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 5, 17);
+        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 5, panel_height);
     } else {
-        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 2, 17);
+        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 2, panel_height);
     }
     dock_scrollbar.x = c->x_offset + (c->width_blocks - 4) * 16;
     dock_scrollbar.y = c->y_offset + 270;
-    dock_scrollbar.height = 17 * 16;
-    scrollbar_init(&dock_scrollbar, dock_cities_scroll_position(), dock_distribution_permissions_buttons_count - MAX_DOCK_CITIES_VISIBLE);
+    dock_scrollbar.height = panel_height * 16;
+    scrollbar_init(&dock_scrollbar, dock_cities_scroll_position(), dock_distribution_permissions_buttons_count - data.dock_max_cities_visible);
 }
 
 void window_building_draw_dock_foreground(building_info_context* c)
