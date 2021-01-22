@@ -867,19 +867,19 @@ int figure_trader_ship_docked_once(figure *ship, int dock_id) {
 
 int figure_trader_ship_can_queue_for_import(figure *ship) {
     if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
-    // better leave, free space for new ships with full load of imports
     if (ship->loads_sold_or_carrying >= (figure_trade_sea_trade_units() / 3)) {
         return 1;
     }
+    // better leave, free space for new ships with full load of imports
     return 0;
 }
 
 int figure_trader_ship_can_queue_for_export(figure *ship) {
     if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
     int available_space = figure_trade_sea_trade_units() - ship->trader_amount_bought;
-    // better leave, free space for new ships with empty containers for exports
     if (available_space >= (figure_trade_sea_trade_units() / 3)) {
         return 1;
     }
+    // better leave, free space for new ships with empty containers for exports
     return 0;
 }
