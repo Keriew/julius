@@ -276,16 +276,19 @@ int building_dock_get_can_trade_with_route(int route_id, int dock_id) {
     building *dock = building_get(dock_id);
     // for backword compatibility, avoiding default to reject all cities if game saved with older version
     if (!dock->data.dock.has_accepted_route_ids) return 1;
-    return dock->data.dock.accepted_route_ids[route_id];
+    return dock->data.dock.accepted_route_ids & (1 << route_id);
 }
 
 void building_dock_set_can_trade_with_route(int route_id, int dock_id, int can_trade) {
     building *dock = building_get(dock_id);
     if (!dock->data.dock.has_accepted_route_ids) {
         dock->data.dock.has_accepted_route_ids = 1;
-        for (int i = 0; i < 20; i++) {
-            dock->data.dock.accepted_route_ids[i] = 1;
-        }
+        dock->data.dock.accepted_route_ids  = 0xffffffff;
     }
-    dock->data.dock.accepted_route_ids[route_id] = can_trade;
+    int mask = 1 << route_id;
+    if (can_trade) {
+        dock->data.dock.accepted_route_ids |= mask;
+    } else {
+        dock->data.dock.accepted_route_ids &= ~mask;
+    }
 }

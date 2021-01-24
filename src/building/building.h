@@ -76,7 +76,7 @@ typedef struct {
             short docker_ids[3];
             short trade_ship_id;
             unsigned char has_accepted_route_ids;
-            unsigned char accepted_route_ids[20];
+            int accepted_route_ids;
         } dock;
         struct {
             short inventory[8];
