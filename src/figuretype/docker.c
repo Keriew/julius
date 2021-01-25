@@ -312,8 +312,6 @@ void figure_docker_action(figure *f)
         figure *ship = figure_get(b->data.dock.trade_ship_id);
         if (ship->state != FIGURE_STATE_ALIVE || ship->type != FIGURE_TRADE_SHIP) {
             b->data.dock.trade_ship_id = 0;
-        } else if (trader_has_traded_max(ship->trader_id)) {
-            b->data.dock.trade_ship_id = 0;
         } else if (ship->action_state == FIGURE_ACTION_115_TRADE_SHIP_LEAVING) {
             b->data.dock.trade_ship_id = 0;
         }
@@ -469,6 +467,10 @@ void figure_docker_action(figure *f)
                     f->action_state = FIGURE_ACTION_138_DOCKER_IMPORT_RETURNING;
                     f->destination_x = f->source_x;
                     f->destination_y = f->source_y;
+                    if (b->data.dock.trade_ship_id) {
+                        figure *ship = figure_get(b->data.dock.trade_ship_id);
+                        ship->loads_sold_or_carrying++;
+                    }
                 }
                 f->wait_ticks = 0;
             }
