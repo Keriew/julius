@@ -701,16 +701,12 @@ void figure_trade_ship_action(figure *f)
             } else if (f->wait_ticks >= 40) {
                 map_point tile;
                 int dock_id;
-                if ((dock_id = building_dock_get_closer_free_destination(f->id, &tile)) &&
-                    building_dock_request_docking(f->id, dock_id, &tile)
-                ) {
-                    f->action_state = FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK;
+                if ((dock_id = building_dock_get_closer_free_destination(f->id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile))) {
+                    f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
                     f->destination_building_id = dock_id;
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
                     f->direction = DIR_FIGURE_REROUTE;
-                    building *dock = building_get(f->destination_building_id);
-                    dock->data.dock.trade_ship_id = f->id;
                 }
             }
             if (f->wait_ticks++ > 40) {
@@ -750,7 +746,7 @@ void figure_trade_ship_action(figure *f)
                     building *dock = building_get(f->destination_building_id);
                     dock->data.dock.trade_ship_id = f->id;
                 } else if (
-                    (dock_id = building_dock_get_closer_free_destination(f->id, &tile)) &&
+                    (dock_id = building_dock_get_closer_free_destination(f->id, SHIP_DOCK_REQUEST_1_DOCKING, &tile)) &&
                     building_dock_request_docking(f->id, dock_id, &tile)
                 ) {
                     f->action_state = FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK;

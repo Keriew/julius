@@ -20,7 +20,7 @@ int building_dock_is_connected_to_open_water(int x, int y);
 
 int building_dock_get_destination(int ship_id, int exclude_dock_id, map_point *tile);
 
-int building_dock_get_closer_free_destination(int ship_id, map_point *tile);
+int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_type request_type, map_point *tile);
 
 int building_dock_request_docking(int ship_id, int dock_id, map_point *tile);
 

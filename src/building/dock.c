@@ -119,11 +119,16 @@ int building_dock_get_destination(int ship_id, int exclude_dock_id, map_point *t
     }
 }
 
-int building_dock_get_closer_free_destination(int ship_id, map_point *tile)
+int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_type request_type, map_point *tile)
 {
     figure *ship = figure_get(ship_id);
     int max_distance = 50;
     int min_distance = -1;
+    if (ship->destination_building_id && ship->action_state == FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE) {
+        if (building_dock_is_working(ship->destination_building_id) && building_dock_accepts_ship(ship_id, ship->destination_building_id)) {
+            min_distance = figure_trader_ship_get_distance_to_dock(ship_id, ship->destination_building_id);
+        }
+    }
     int min_distance_dock_id = 0;
     for (int i = 0; i < 10; i++) {
         int dock_id = city_buildings_get_working_dock(i);
@@ -137,14 +142,14 @@ int building_dock_get_closer_free_destination(int ship_id, map_point *tile)
         if (distance_to_dock > max_distance) continue;
         if (figure_trader_ship_other_ship_closer_to_destination_dock(ship_id, dock_id, distance_to_dock)) continue;
         if (building_dock_can_import_from_ship(dock, ship_id) || building_dock_can_export_to_ship(dock, ship_id)) {
-            if (min_distance == -1 || distance_to_dock > min_distance) {
+            if (min_distance == -1 || distance_to_dock < min_distance) {
                 min_distance_dock_id = dock_id;
                 min_distance = distance_to_dock;
             }
         }
     }
     if (min_distance_dock_id) {
-        building_dock_get_ship_request_tile(ship_id, building_get(min_distance_dock_id), SHIP_DOCK_REQUEST_1_DOCKING, tile);
+        building_dock_get_ship_request_tile(ship_id, building_get(min_distance_dock_id), request_type, tile);
         return min_distance_dock_id;
     }
     return 0;
