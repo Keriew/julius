@@ -363,7 +363,9 @@ static void show_overlay_from_grid_offset(int grid_offset)
         default:
             break;
     }
-    show_overlay(overlay);
+    if (game_state_overlay() != overlay) {
+        show_overlay(overlay);
+    }
 }
 
 static void cycle_legion(void)
