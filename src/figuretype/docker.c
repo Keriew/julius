@@ -467,10 +467,6 @@ void figure_docker_action(figure *f)
                     f->action_state = FIGURE_ACTION_138_DOCKER_IMPORT_RETURNING;
                     f->destination_x = f->source_x;
                     f->destination_y = f->source_y;
-                    if (b->data.dock.trade_ship_id) {
-                        figure *ship = figure_get(b->data.dock.trade_ship_id);
-                        ship->loads_sold_or_carrying++;
-                    }
                 }
                 f->wait_ticks = 0;
             }
