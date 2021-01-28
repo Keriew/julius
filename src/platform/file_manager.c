@@ -1,11 +1,15 @@
 #include "file_manager.h"
 
+#include "assets/assets.h"
 #include "core/file.h"
 #include "core/log.h"
 #include "core/string.h"
 #include "platform/android/android.h"
 #include "platform/file_manager_cache.h"
+#include "platform/platform.h"
 #include "platform/vita/vita.h"
+
+#include "SDL.h"
 
 #include <dirent.h>
 #include <stdlib.h>
@@ -91,6 +95,89 @@ static int is_file(int mode)
 }
 #endif
 
+#ifndef __ANDROID__
+#define MAX_ASSET_DIRS 10
+
+#ifndef CUSTOM_ASSETS_DIR
+#define CUSTOM_ASSETS_DIR "\0"
+#endif
+
+static const char ASSET_DIRS[MAX_ASSET_DIRS][FILE_NAME_MAX] = {
+    ".",
+#ifdef __vita__
+    VITA_PATH_PREFIX,
+    "app0:",
+#elif defined (__SWITCH__)
+    // todo switch asset dir
+#elif defined (__APPLE__)
+    "***SDL_BASE_PATH***"
+#elif !defined (_WIN32)
+    "~/.local/share/augustus-game",
+    "/usr/share/augustus-game",
+    "/usr/local/share/augustus-game",
+    "/opt/augustus-game",
+#endif
+    CUSTOM_ASSETS_DIR
+};
+
+static char assets_directory[FILE_NAME_MAX];
+static char assets_directory_length;
+#endif
+
+const dir_name get_assets_directory(void)
+{
+#ifndef __ANDROID__
+    if (*assets_directory) {
+        return set_dir_name(assets_directory);
+    }
+    // Find assets directory from list
+    for (int i = 0; i < MAX_ASSET_DIRS && *ASSET_DIRS[i]; ++i) {
+        // Special case - home directory
+        if (*ASSET_DIRS[i] == '~') {
+            const char *home_dir = getenv("HOME");
+            if (!home_dir) {
+                continue;
+            }
+            size_t home_dir_length = strlen(home_dir);
+            strncpy(assets_directory, home_dir, FILE_NAME_MAX);
+            strncpy(assets_directory + home_dir_length, &ASSET_DIRS[i][1], FILE_NAME_MAX - home_dir_length);
+            // Special case - SDL base path
+        } else if (strcmp(ASSET_DIRS[i], "***SDL_BASE_PATH***") == 0) {
+#if SDL_VERSION_ATLEAST(2, 0, 1)
+            if (!platform_sdl_version_at_least(2, 0, 1)) {
+                continue;
+            }
+            char *base_path = SDL_GetBasePath();
+            if (!base_path) {
+                continue;
+            }
+            strncpy(assets_directory, base_path, FILE_NAME_MAX);
+            SDL_free(base_path);
+#else
+            continue;
+#endif
+        } else {
+            strncpy(assets_directory, ASSET_DIRS[i], FILE_NAME_MAX);
+        }
+        int offset = strlen(assets_directory);
+        assets_directory[offset++] = '/';
+        strncpy(&assets_directory[offset], ASSETS_DIR_NAME, FILE_NAME_MAX - offset);
+        assets_directory_length = strlen(assets_directory);
+        dir_name result = set_dir_name(assets_directory);
+        fs_dir_type *dir = fs_dir_open(result);
+        if (dir) {
+            fs_dir_close(dir);
+            log_info("Asset path detected at", assets_directory, 0);
+            return result;
+        }
+        free_dir_name(result);
+    }
+#else
+    return ASSETS_DIRECTORY;
+#endif
+    return CURRENT_DIR;
+}
+
 int platform_file_manager_list_directory_contents(
     const char *dir, int type, const char *extension, int (*callback)(const char *))
 {
@@ -102,6 +189,8 @@ int platform_file_manager_list_directory_contents(
 
     if (!dir || !*dir || strcmp(dir, ".") == 0) {
         current_dir = CURRENT_DIR;
+    } else if(strcmp(dir, ASSETS_DIRECTORY) == 0) {
+        current_dir = get_assets_directory();
     } else {
         current_dir = set_dir_name(dir);
     }
@@ -196,6 +285,12 @@ FILE *platform_file_manager_open_file(const char *filename, const char *mode)
     return fopen(vita_prepend_path(filename), mode);
 }
 
+FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
+{
+    const char *cased_asset_path = dir_get_asset(assets_directory, asset);
+    return fopen(cased_asset_path, mode);
+}
+
 int platform_file_manager_remove_file(const char *filename)
 {
     platform_file_manager_cache_delete_file_info(filename);
@@ -207,6 +302,21 @@ int platform_file_manager_remove_file(const char *filename)
 FILE *platform_file_manager_open_file(const char *filename, const char *mode)
 {
     wchar_t *wfile = utf8_to_wchar(filename);
+    wchar_t *wmode = utf8_to_wchar(mode);
+
+    FILE *fp = _wfopen(wfile, wmode);
+
+    free(wfile);
+    free(wmode);
+
+    return fp;
+}
+
+FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
+{
+    const char *cased_asset_path = dir_get_asset(assets_directory, asset);
+    
+    wchar_t *wfile = utf8_to_wchar(cased_asset_path);
     wchar_t *wmode = utf8_to_wchar(mode);
 
     FILE *fp = _wfopen(wfile, wmode);
@@ -261,4 +371,9 @@ int platform_file_manager_remove_file(const char *filename)
     return remove(filename) == 0;
 }
 
+FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
+{
+    const char *cased_asset_path = dir_get_asset(assets_directory, asset);
+    return fopen(cased_asset_path, mode);
+}
 #endif

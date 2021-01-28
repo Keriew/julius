@@ -48,8 +48,6 @@ static void (*xml_end_element_callback[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH
 static struct {
     char file_name[FILE_NAME_MAX];
     size_t file_name_position;
-    char image_base_path[FILE_NAME_MAX];
-    size_t image_base_path_position;
     int image_index;
     int depth;
     int error;
@@ -59,16 +57,16 @@ static struct {
 
 static void set_asset_image_base_path(const char *author, const char *name)
 {
-    size_t position = data.file_name_position;
-    char *dst = data.image_base_path;
-    memset(dst + position, 0, FILE_NAME_MAX - position);
-    strncpy(dst + position, author, FILE_NAME_MAX - position - 1);
+    size_t position = 0;
+    char *dst = data.file_name;
+    memset(dst, 0, FILE_NAME_MAX);
+    strncpy(dst, author, FILE_NAME_MAX - 1);
     position += strlen(author);
     dst[position++] = '/';
     strncpy(dst + position, name, FILE_NAME_MAX - position - 1);
     position += strlen(name);
     dst[position++] = '/';
-    data.image_base_path_position = position;
+    data.file_name_position = position;
 }
 
 static int count_xml_attributes(const char **attributes)
@@ -367,12 +365,6 @@ static void XMLCALL xml_end_element(void *unused, const char *name)
     (*xml_end_element_callback[data.depth][index])();
 }
 
-static const char *append_file_to_assets_folder(const char *file_name)
-{
-    strncpy(&data.file_name[data.file_name_position], file_name, FILE_NAME_MAX - data.file_name_position - 1);
-    return data.file_name;
-}
-
 static void clear_xml_info(void)
 {
     data.error = 0;
@@ -381,21 +373,11 @@ static void clear_xml_info(void)
     data.image_index = 0;
 }
 
-void xml_setup_base_folder_string(const char *base_folder)
-{
-    size_t base_folder_length = strlen(base_folder);
-    strcpy(data.file_name, base_folder);
-    data.file_name[base_folder_length] = '/';
-    data.file_name_position = base_folder_length + 1;
-    strncpy(data.image_base_path, data.file_name, FILE_NAME_MAX);
-}
-
 void xml_process_assetlist_file(const char *xml_file_name)
 {
-    xml_file_name = append_file_to_assets_folder(xml_file_name);
     log_info("Loading assetlist file", xml_file_name, 0);
 
-    FILE *xml_file = file_open(xml_file_name, "r");
+    FILE *xml_file = file_open_asset(xml_file_name, "r");
 
     if (!xml_file) {
         log_error("Error opening assetlist file", xml_file_name, 0);
@@ -427,11 +409,11 @@ void xml_process_assetlist_file(const char *xml_file_name)
     file_close(xml_file);
 }
 
-void xml_get_current_full_path_for_image(char *full_path, const char *file_name)
+void xml_get_full_image_path(char *full_path, const char *image_file_name)
 {
-    strncpy(full_path, data.image_base_path, data.image_base_path_position);
-    size_t file_name_size = strlen(file_name);
-    strncpy(full_path + data.image_base_path_position, file_name, FILE_NAME_MAX - data.image_base_path_position);
-    strncpy(full_path + data.image_base_path_position + file_name_size, ".png",
-        FILE_NAME_MAX - data.image_base_path_position - file_name_size);
+    strncpy(full_path, data.file_name, data.file_name_position);
+    size_t file_name_size = strlen(image_file_name);
+    strncpy(full_path + data.file_name_position, image_file_name, FILE_NAME_MAX - data.file_name_position);
+    strncpy(full_path + data.file_name_position + file_name_size, ".png",
+        FILE_NAME_MAX - data.file_name_position - file_name_size);
 }

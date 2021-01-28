@@ -116,7 +116,7 @@ layer *layer_add_from_image_path(layer *l, const char *path, int offset_x, int o
         return 0;
     }
     l->asset_image_path = malloc(FILE_NAME_MAX * sizeof(char));
-    xml_get_current_full_path_for_image(l->asset_image_path, path);
+    xml_get_full_image_path(l->asset_image_path, path);
     if (!png_get_image_size(l->asset_image_path, &l->width, &l->height)) {
         log_info("Unable to load image", path, 0);
         layer_unload(l);

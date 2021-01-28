@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *ASSETS_FOLDER = "assets";
-
 static struct {
     int loaded;
     asset_image *roadblock_image;
@@ -22,9 +20,7 @@ void assets_init(void)
         return;
     }
 
-    xml_setup_base_folder_string(ASSETS_FOLDER);
-
-    const dir_listing *xml_files = dir_find_files_with_extension(ASSETS_FOLDER, "xml");
+    const dir_listing *xml_files = dir_find_files_with_extension(ASSETS_DIRECTORY, "xml");
 
     if (!group_create_all(xml_files->num_files)) {
         log_error("Not enough memory to initialize extra assets. The game will probably crash.", 0, 0);

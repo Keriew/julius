@@ -187,3 +187,8 @@ const char *dir_get_file(const char *filepath, int localizable)
 
     return get_case_corrected_file(0, filepath);
 }
+
+const char *dir_get_asset(const char *asset_path, const char *filepath)
+{
+    return get_case_corrected_file(asset_path, filepath);
+}
