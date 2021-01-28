@@ -197,7 +197,7 @@ static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id
     button->y = 22 * (i - dock_scrollbar.scroll_position);
     
     button_border_draw(x_offset + button->x, y_offset + button->y, button->width, button->height, data.permission_focus_button_id == i + 1 ? 1 : 0);
-    int state = building_dock_get_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, dock_id);
+    int state = building_dock_can_trade_with_route(dock_distribution_permissions_buttons[i].parameter1, dock_id);
     if (state) {
       lang_text_draw_centered(99, 7, x_offset + button->x, y_offset + button->y + 5, button->width, FONT_NORMAL_WHITE);
     } else {
@@ -981,7 +981,7 @@ static void toggle_partial_resource_state(int index, int param2)
 
 static void dock_toggle_route(int route_id, int city_id)
 {
-    int can_trade = building_dock_get_can_trade_with_route(route_id, data.building_id);
+    int can_trade = building_dock_can_trade_with_route(route_id, data.building_id);
     building_dock_set_can_trade_with_route(route_id, data.building_id, !can_trade);
     window_invalidate();
 }

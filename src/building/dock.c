@@ -63,7 +63,7 @@ int building_dock_accepts_ship(int ship_id, int dock_id)
     building* dock = building_get(dock_id);
     figure* f = figure_get(ship_id);
     empire_city* city = empire_city_get(f->empire_city_id);
-    if (!building_dock_get_can_trade_with_route(city->route_id, dock_id)) {
+    if (!building_dock_can_trade_with_route(city->route_id, dock_id)) {
         return 0;
     }
     for (int resource = RESOURCE_WHEAT; resource < RESOURCE_MAX; resource++) {
@@ -220,7 +220,7 @@ static int building_dock_get_queue_destination(int ship_id, int exclude_dock_id,
     return importing_dock_id ? importing_dock_id : exporting_dock_id;
 }
 
-int building_dock_get_can_trade_with_route(int route_id, int dock_id) {
+int building_dock_can_trade_with_route(int route_id, int dock_id) {
     building *dock = building_get(dock_id);
     if (!dock->data.dock.has_accepted_route_ids) return 1;
     return dock->data.dock.accepted_route_ids & (1 << route_id);
