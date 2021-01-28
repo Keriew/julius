@@ -363,7 +363,7 @@ static void show_overlay_from_grid_offset(int grid_offset)
         default:
             break;
     }
-    if (game_state_overlay() != overlay) {
+    if (!(game_state_overlay() == OVERLAY_NONE && overlay == OVERLAY_NONE)) {
         show_overlay(overlay);
     }
 }
