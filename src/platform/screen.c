@@ -187,13 +187,13 @@ int platform_screen_create(const char *title, int display_scale_percentage)
 
 static void destroy_screen_textures(void)
 {
-    if (SDL.texture_ui) {
-        SDL_DestroyTexture(SDL.texture_ui);
-        SDL.texture_ui = 0;
-    }
     if (SDL.texture_city) {
         SDL_DestroyTexture(SDL.texture_city);
         SDL.texture_city = 0;
+    }
+    if (SDL.texture_ui) {
+        SDL_DestroyTexture(SDL.texture_ui);
+        SDL.texture_ui = 0;
     }
 }
 
@@ -221,8 +221,14 @@ static int create_textures(int width, int height)
         SDL_SetTextureBlendMode(SDL.texture_ui, SDL_BLENDMODE_NONE);
     }
 
-    if (SDL.texture_ui && !city_texture_error) {
-        SDL_Log("Textures created (%d x %d)", width, height);
+    if (SDL.texture_ui) {
+        if(city_texture_error) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create city texture, zoom will be disabled: %s", SDL_GetError());
+            SDL_SetTextureBlendMode(SDL.texture_ui, SDL_BLENDMODE_NONE);
+            config_set(CONFIG_UI_ZOOM, 0);
+        } else {
+            SDL_Log("Textures created (%d x %d)", width, height);
+        }
         return 1;
     } else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create textures: %s", SDL_GetError());

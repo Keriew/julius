@@ -669,6 +669,10 @@ if(MSVC)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
+if(CMAKE_INSTALL_DATADIR)
+    add_compile_definitions(CUSTOM_ASSETS_DIR="${CMAKE_INSTALL_DATADIR}")
+endif()
+
 if(APPLE)
     # generating a macOS icns file (see https://stackoverflow.com/a/20703594)
     add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/res/augustus.icns
@@ -834,6 +838,7 @@ if (VITA_BUILD)
         FILE res/vita/bg.png sce_sys/livearea/contents/bg.png
         FILE res/vita/startup.png sce_sys/livearea/contents/startup.png
         FILE res/vita/template.xml sce_sys/livearea/contents/template.xml
+        FILE assets assets
     )
 elseif(SWITCH_BUILD)
     target_link_libraries (${SHORT_NAME}

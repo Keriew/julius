@@ -151,19 +151,23 @@ const dir_name get_assets_directory(void)
             if (!base_path) {
                 continue;
             }
-            strncpy(assets_directory, base_path, FILE_NAME_MAX);
+            strncpy(assets_directory, base_path, FILE_NAME_MAX - 1);
             SDL_free(base_path);
 #else
             continue;
 #endif
         } else {
-            strncpy(assets_directory, ASSET_DIRS[i], FILE_NAME_MAX);
+            strncpy(assets_directory, ASSET_DIRS[i], FILE_NAME_MAX - 1);
         }
         int offset = strlen(assets_directory);
         assets_directory[offset++] = '/';
         strncpy(&assets_directory[offset], ASSETS_DIR_NAME, FILE_NAME_MAX - offset);
         assets_directory_length = strlen(assets_directory);
+#ifndef __vita__
         dir_name result = set_dir_name(assets_directory);
+#else
+        dir_name result = assets_directory;
+#endif
         fs_dir_type *dir = fs_dir_open(result);
         if (dir) {
             fs_dir_close(dir);
@@ -189,10 +193,18 @@ int platform_file_manager_list_directory_contents(
 
     if (!dir || !*dir || strcmp(dir, ".") == 0) {
         current_dir = CURRENT_DIR;
-    } else if(strcmp(dir, ASSETS_DIRECTORY) == 0) {
+    } else if (strcmp(dir, ASSETS_DIRECTORY) == 0) {
         current_dir = get_assets_directory();
     } else {
+#ifdef __vita__
+        if (strncmp(dir, "app0:", 5) != 0) {
+            current_dir = set_dir_name(dir);
+        } else {
+            current_dir = dir;
+        }
+#else
         current_dir = set_dir_name(dir);
+#endif
     }
 #ifdef __ANDROID__
     int match = android_get_directory_contents(current_dir, type, extension, callback);
@@ -279,10 +291,17 @@ int platform_file_manager_set_base_path(const char *path)
 #ifdef __vita__
 FILE *platform_file_manager_open_file(const char *filename, const char *mode)
 {
-    if (strchr(mode, 'w') && !file_exists(filename, NOT_LOCALIZED)) {
-        platform_file_manager_cache_add_file_info(filename);
+    if (strchr(mode, 'w')) {
+        char temp[FILE_NAME_MAX];
+        strncpy(temp, filename, FILE_NAME_MAX - 1);
+        if(!file_exists(temp, NOT_LOCALIZED)) {
+            platform_file_manager_cache_add_file_info(filename);
+        }
     }
-    return fopen(vita_prepend_path(filename), mode);
+    if (strncmp(filename, "app0:", 5) != 0) {
+        filename = vita_prepend_path(filename);
+    }
+    return fopen(filename, mode);
 }
 
 FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
