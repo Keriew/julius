@@ -13,7 +13,7 @@ case "$BUILD_TARGET" in
 	cd release && zip -r julius_switch.zip julius
 	;;
 "mac")
-	cp -r mods ./build	
+	cp -r assets ./build	
 	cp -r res/maps ./build	
 	cp -r res/augustus_manual.pdf ./build	
 	cd build && make -j4 && make install && \
@@ -21,13 +21,13 @@ case "$BUILD_TARGET" in
 	hdiutil create -volname Augustus -srcfolder augustus.app -ov -format UDZO augustus.dmg
 	if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]
 	then
-		zip -r augustus.zip augustus.dmg mods maps augustus_manual.pdf
+		zip -r augustus.zip augustus.dmg assets maps augustus_manual.pdf
 	else
 		zip -r augustus.zip augustus.dmg 	
 	fi
 	;;
 "appimage")
-	cp -r mods ./build		
+	cp -r assets ./build		
 	cp -r res/maps ./build	
 	cp -r res/augustus_manual.pdf ./build	
 	cd build && make -j4 && \
@@ -36,19 +36,19 @@ case "$BUILD_TARGET" in
 	./.ci_scripts/package_appimage.sh
 	if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]	
 	then
-		zip -r augustus.zip augustus.AppImage mods maps augustus_manual.pdf
+		zip -r augustus.zip augustus.AppImage assets maps augustus_manual.pdf
 	else
 		zip zip -r augustus.zip . -i augustus.AppImage	
 	fi
 	;;
 "linux")
-	cp -r mods ./build
+	cp -r assets ./build
 	cp -r res/maps ./build	
 	cp -r res/augustus_manual.pdf ./build	
 	cd build && make -j4
 	if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]
 	then
-		zip -r augustus.zip augustus mods maps augustus_manual.pdf
+		zip -r augustus.zip augustus assets maps augustus_manual.pdf
 	else
 		zip -r augustus.zip augustus
 	fi

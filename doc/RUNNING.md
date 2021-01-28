@@ -74,7 +74,7 @@ If you bought the GOG edition, you can download the offline installer exe, and u
 
         $ innoextract -m setup_caesar3_2.0.0.9.exe
 
-5. Move the `augustus` executable, `mods` and `maps` directories to the extracted `app` directory and run from there, OR run Augustus
+5. Move the `augustus` executable, `assets` and `maps` directories to the extracted `app` directory and run from there, OR run Augustus
    with the path to the game files as parameter:
 
         $ augustus path-to-app-directory

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
-<mod author="Areldir" name="Aesthetics">
+<!DOCTYPE assetlist>
+<assetlist author="Areldir" name="Aesthetics">
 
 
 <!-- Note: Assets for 'Ornamental Pine Tree', 'Ornamental Fir Tree', 'Ornamental Oak Tree', 'Ornamental Elm Tree', 'Ornamental Fig Tree', 'Ornamental Plum Tree', 'Ornamental Palm Tree' and 'Ornamental Date Tree' respectively -->
@@ -238,4 +238,4 @@
 
 
 	
-</mod>
+</assetlist>

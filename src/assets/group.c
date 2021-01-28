@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Do not change the seed. Doing so breaks savegame compatibility with mod images
-#define MOD_HASH_SEED 0x12345678
+// Do not change the seed. Doing so breaks savegame compatibility with extra asset images
+#define ASSET_HASH_SEED 0x12345678
 #define GROUP_HASH_MASK 0xffffff00
 #define GROUP_MIN_HASH 0x4000
 
@@ -37,7 +37,7 @@ image_groups *group_get_current(void)
 
 uint32_t group_get_hash(const char *author, const char *name)
 {
-    uint32_t hash = MOD_HASH_SEED;
+    uint32_t hash = ASSET_HASH_SEED;
     uint32_t carry = 0;
     uint32_t author_length = (uint32_t) strlen(author);
     uint32_t name_length = (uint32_t) strlen(name);
@@ -69,11 +69,11 @@ image_groups *group_get_from_hash(uint32_t hash)
 void group_unload_current(void)
 {
     image_groups *group = group_get_current();
-    modded_image *img = group->first_image;
+    asset_image *img = group->first_image;
     memset(group, 0, sizeof(image_groups));
     while (img) {
-        modded_image *next = img->next;
-        modded_image_unload(img);
+        asset_image *next = img->next;
+        asset_image_unload(img);
         free(img);
         img = next;
     }

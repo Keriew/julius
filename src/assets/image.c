@@ -1,23 +1,23 @@
 #include "image.h"
 
+#include "assets/group.h"
 #include "core/image.h"
 #include "core/log.h"
 #include "graphics/color.h"
 #include "graphics/graphics.h"
 #include "graphics/image.h"
-#include "mods/group.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-static void load_image_layers(modded_image *img)
+static void load_image_layers(asset_image *img)
 {
     for (layer *l = img->last_layer; l; l = l->prev) {
         layer_load(l);
     }
 }
 
-void modded_image_unload_layers(modded_image *img)
+void asset_image_unload_layers(asset_image *img)
 {
     layer *l = img->last_layer;
     while (l) {
@@ -28,7 +28,7 @@ void modded_image_unload_layers(modded_image *img)
     img->last_layer = &img->first_layer;
 }
 
-int modded_image_load(modded_image *img)
+int asset_image_load(asset_image *img)
 {
     if (img->loaded) {
         return 1;
@@ -43,8 +43,8 @@ int modded_image_load(modded_image *img)
             l->x_offset == 0 && l->y_offset == 0 &&
             l->invert == INVERT_NONE && l->rotate == ROTATE_NONE) {
             img->data = l->data;
-            img->is_clone = l->is_modded_image_reference;
-            l->is_modded_image_reference = 1;
+            img->is_clone = l->is_asset_image_reference;
+            l->is_asset_image_reference = 1;
             layer_unload(l);
             img->loaded = 1;
             return 1;
@@ -54,7 +54,7 @@ int modded_image_load(modded_image *img)
     img->data = malloc(img->img.draw.data_length);
     if (!img->data) {
         log_error("Not enough memory to load image", img->id, 0);
-        modded_image_unload_layers(img);
+        asset_image_unload_layers(img);
         img->active = 0;
         return 0;
     }
@@ -87,12 +87,12 @@ int modded_image_load(modded_image *img)
             ++pixel;
         }
     }
-    modded_image_unload_layers(img);
+    asset_image_unload_layers(img);
     img->loaded = 1;
     return 1;
 }
 
-static layer *create_layer_for_image(modded_image *img)
+static layer *create_layer_for_image(asset_image *img)
 {
     if (!img->last_layer->width || !img->last_layer->height) {
         return img->last_layer;
@@ -107,7 +107,7 @@ static layer *create_layer_for_image(modded_image *img)
     return l;
 }
 
-int modded_image_add_layer(modded_image *img,
+int asset_image_add_layer(asset_image *img,
     const char *path, const char *group_id, const char *image_id,
     int offset_x, int offset_y,
     layer_invert_type invert, layer_rotate_type rotate, layer_isometric_part part)
@@ -138,14 +138,14 @@ int modded_image_add_layer(modded_image *img,
     return 1;
 }
 
-modded_image *modded_image_get_from_id(int image_id)
+asset_image *asset_image_get_from_id(int image_id)
 {
     image_groups *group = group_get_from_hash(image_id);
     if (!group) {
         return 0;
     }
     int image_index = image_id & 0xff;
-    for (modded_image *img = group->first_image; img; img = img->next) {
+    for (asset_image *img = group->first_image; img; img = img->next) {
         if (img->index == image_index) {
             return img;
         }
@@ -153,10 +153,10 @@ modded_image *modded_image_get_from_id(int image_id)
     return 0;
 }
 
-void modded_image_unload(modded_image *img)
+void asset_image_unload(asset_image *img)
 {
     if (!img->loaded) {
-        modded_image_unload_layers(img);
+        asset_image_unload_layers(img);
     }
     if (!img->is_clone) {
         free(img->data);

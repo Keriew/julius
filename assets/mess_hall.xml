@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
+<!DOCTYPE assetlist>
 
-<mod author="Areldir" name="Mess_Hall">
+<assetlist author="Areldir" name="Mess_Hall">
 <!-- Note: Mess Hall Variants for Central, North and South Climates Respectively -->
     <image id="Mess OFF Central" src="Mess_Hall_Central" />
     <image id="Mess OFF North" src="Mess_Hall_North" />	
@@ -36,4 +36,4 @@
 
 
 
-</mod>		
+</assetlist>

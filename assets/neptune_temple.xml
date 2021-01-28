@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
+<!DOCTYPE assetlist>
 
-<mod author="Areldir" name="Neptune_Temple">
+<assetlist author="Areldir" name="Neptune_Temple">
 <!-- Note: Neptune Large Temple Off state for NO Reservoir Access -->
     <image id="Neptune LTemple Off" >
 		<layer group="72" image="1" />
@@ -139,4 +139,4 @@
         <layer src="Neptune_Temple_Complex_Top_Layer" x="189" y="84" />	
         <layer src="Neptune_Temple_Complex_Module_OFF" x="98" y="27" />			
     </image>		
-</mod>	
+</assetlist>

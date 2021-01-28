@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
+<!DOCTYPE assetlist>
 
-<mod author="Areldir" name="UI_Elements">
+<assetlist author="Areldir" name="UI_Elements">
 
     <image id="Main Menu" src="Main_Menu_Alt" />
     <image id="7x7 Map Icon" src="7x7_Minimap_Icon" />
@@ -60,4 +60,4 @@
     <image src="Map_Selection_Overlay_Border_Right" />
     <image src="Map_Selection_Overlay_Border_Bottom" />
 
-</mod>
+</assetlist>

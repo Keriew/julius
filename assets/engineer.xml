@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
+<!DOCTYPE assetlist>
 
-<mod author="Areldir" name="Engineer">
+<assetlist author="Areldir" name="Engineer">
 <!-- Note: Engineer animation frames 01-12 -->
     <image id="Engineer 01" src="engineer_01" />
     <image id="Engineer 02" src="engineer_02" />
@@ -38,4 +38,4 @@
     <image src="Engineers_Guild_On_12" />
 
 	
-</mod>		
+</assetlist>

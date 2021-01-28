@@ -1,14 +1,14 @@
 #include "layer.h"
 
+#include "assets/group.h"
+#include "assets/image.h"
+#include "assets/xml.h"
 #include "core/file.h"
 #include "core/log.h"
 #include "core/png_read.h"
 #include "core/string.h"
 #include "graphics/image.h"
 #include "graphics/graphics.h"
-#include "mods/group.h"
-#include "mods/image.h"
-#include "mods/xml.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -20,17 +20,17 @@ static void load_dummy_layer(layer *l)
     l->data = &DUMMY_LAYER_DATA;
     l->width = 1;
     l->height = 1;
-    l->is_modded_image_reference = 1;
+    l->is_asset_image_reference = 1;
 }
 
 void layer_load(layer *l)
 {
     const image *layer_image = image_get(l->original_image_id);
-    if (layer_image->draw.type == IMAGE_TYPE_MOD) {
+    if (layer_image->draw.type == IMAGE_TYPE_EXTRA_ASSET) {
         // Ugly const removal. The only other way would be to memcpy the image data.
         // That's a waste of ram, and we're not going to change l->data anyway
         l->data = (color_t *) image_data(l->original_image_id);
-        l->is_modded_image_reference = 1;
+        l->is_asset_image_reference = 1;
         if (!l->data) {
             log_error("Problem loading layer from image id", 0, l->original_image_id);
             load_dummy_layer(l);
@@ -40,15 +40,15 @@ void layer_load(layer *l)
     int size = l->width * l->height * sizeof(color_t);
     l->data = malloc(size);
     if (!l->data) {
-        log_error("Problem loading layer", l->modded_image_path, 0);
+        log_error("Problem loading layer", l->asset_image_path, 0);
         load_dummy_layer(l);
         return;
     }
     memset(l->data, 0, size);
-    if (l->modded_image_path) {
-        if (!png_read(l->modded_image_path, (uint8_t *) l->data)) {
+    if (l->asset_image_path) {
+        if (!png_read(l->asset_image_path, (uint8_t *) l->data)) {
             free(l->data);
-            log_error("Problem loading layer from file", l->modded_image_path, 0);
+            log_error("Problem loading layer from file", l->asset_image_path, 0);
             load_dummy_layer(l);
         }
         return;
@@ -72,15 +72,15 @@ void layer_load(layer *l)
 
 void layer_unload(layer *l)
 {
-    free(l->modded_image_path);
-    if (!l->is_modded_image_reference) {
+    free(l->asset_image_path);
+    if (!l->is_asset_image_reference) {
         free(l->data);
     }
     if (l->prev) {
         free(l);
     } else {
         l->data = 0;
-        l->modded_image_path = 0;
+        l->asset_image_path = 0;
     }
 }
 
@@ -115,9 +115,9 @@ layer *layer_add_from_image_path(layer *l, const char *path, int offset_x, int o
     if (!l) {
         return 0;
     }
-    l->modded_image_path = malloc(FILE_NAME_MAX * sizeof(char));
-    xml_get_current_full_path_for_image(l->modded_image_path, path);
-    if (!png_get_image_size(l->modded_image_path, &l->width, &l->height)) {
+    l->asset_image_path = malloc(FILE_NAME_MAX * sizeof(char));
+    xml_get_current_full_path_for_image(l->asset_image_path, path);
+    if (!png_get_image_size(l->asset_image_path, &l->width, &l->height)) {
         log_info("Unable to load image", path, 0);
         layer_unload(l);
         return 0;
@@ -137,7 +137,7 @@ layer *layer_add_from_image_id(layer *l, const char *group_id, const char *image
     const image *original_image = 0;
     if (strcmp(group_id, "this") == 0) {
         const image_groups *group = group_get_current();
-        for (const modded_image *image = group->first_image; image; image = image->next) {
+        for (const asset_image *image = group->first_image; image; image = image->next) {
             if (strcmp(image->id, image_id) == 0) {
                 l->original_image_id = group->id + image->index;
                 original_image = &image->img;

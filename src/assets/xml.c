@@ -1,13 +1,13 @@
 #include "xml.h"
 
+#include "assets/group.h"
+#include "assets/image.h"
 #include "core/calc.h"
 #include "core/dir.h"
 #include "core/file.h"
 #include "core/log.h"
 #include "core/png_read.h"
 #include "core/string.h"
-#include "mods/group.h"
-#include "mods/image.h"
 
 #include "expat.h"
 
@@ -20,29 +20,29 @@
 #define XML_TAG_MAX_LENGTH 12
 #define XML_MAX_IMAGE_INDEXES 256
 
-static const char XML_FILE_ELEMENTS[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH][XML_TAG_MAX_LENGTH] = { { "mod" }, { "image" }, { "layer", "animation" } };
+static const char XML_FILE_ELEMENTS[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH][XML_TAG_MAX_LENGTH] = { { "assetlist" }, { "image" }, { "layer", "animation" } };
 static const char XML_FILE_ATTRIBUTES[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH][XML_MAX_ATTRIBUTES][XML_TAG_MAX_LENGTH] = {
-    { { "author", "name" } }, // mod
+    { { "author", "name" } }, // assetlist
     { { "id", "src", "width", "height", "group", "image", "index" } }, // image
     { { "src", "group", "image", "x", "y", "invert", "rotate", "part" }, // layer
     { "frames", "speed", "reversible", "x", "y" } } // animation
 };
 
-static void xml_start_mod_element(const char **attributes);
+static void xml_start_assetlist_element(const char **attributes);
 static void xml_start_image_element(const char **attributes);
 static void xml_start_layer_element(const char **attributes);
 static void xml_start_animation_element(const char **attributes);
-static void xml_end_mod_element(void);
+static void xml_end_assetlist_element(void);
 static void xml_end_image_element(void);
 static void xml_end_layer_element(void);
 static void xml_end_animation_element(void);
 
 static void (*xml_start_element_callback[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH])(const char **attributes) = {
-    { xml_start_mod_element }, { xml_start_image_element }, { xml_start_layer_element, xml_start_animation_element }
+    { xml_start_assetlist_element }, { xml_start_image_element }, { xml_start_layer_element, xml_start_animation_element }
 };
 
 static void (*xml_end_element_callback[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH])(void) = {
-    { xml_end_mod_element }, { xml_end_image_element }, { xml_end_layer_element, xml_end_animation_element }
+    { xml_end_assetlist_element }, { xml_end_image_element }, { xml_end_layer_element, xml_end_animation_element }
 };
 
 static struct {
@@ -54,10 +54,10 @@ static struct {
     int depth;
     int error;
     int finished;
-    modded_image *current_image;
+    asset_image *current_image;
 } data;
 
-static void set_modded_image_base_path(const char *author, const char *name)
+static void set_asset_image_base_path(const char *author, const char *name)
 {
     size_t position = data.file_name_position;
     char *dst = data.image_base_path;
@@ -80,7 +80,7 @@ static int count_xml_attributes(const char **attributes)
     return total;
 }
 
-static void xml_start_mod_element(const char **attributes)
+static void xml_start_assetlist_element(const char **attributes)
 {
     image_groups *group = group_get_new();
     if (count_xml_attributes(attributes) != 4) {
@@ -103,7 +103,7 @@ static void xml_start_mod_element(const char **attributes)
     data.image_index = 0;
     data.current_image = 0;
     group->id = group_get_hash(group->author, group->name);
-    set_modded_image_base_path(group->author, group->name);
+    set_asset_image_base_path(group->author, group->name);
 }
 
 static void xml_start_image_element(const char **attributes)
@@ -117,12 +117,12 @@ static void xml_start_image_element(const char **attributes)
         data.error = 1;
         return;
     }
-    modded_image *img = malloc(sizeof(modded_image));
+    asset_image *img = malloc(sizeof(asset_image));
     if (!img) {
         data.error = 1;
         return;
     }
-    memset(img, 0, sizeof(modded_image));
+    memset(img, 0, sizeof(asset_image));
     if (!data.current_image) {
         group_get_current()->first_image = img;
     } else {
@@ -161,7 +161,7 @@ static void xml_start_image_element(const char **attributes)
     img->last_layer = &img->first_layer;
     img->index = data.image_index;
     if (path || group) {
-        modded_image_add_layer(img, path, group, id, 0, 0, INVERT_NONE, ROTATE_NONE, PART_BOTH);
+        asset_image_add_layer(img, path, group, id, 0, 0, INVERT_NONE, ROTATE_NONE, PART_BOTH);
     }
 }
 
@@ -175,7 +175,7 @@ static void xml_start_layer_element(const char **attributes)
     const char *id = 0;
     int offset_x = 0;
     int offset_y = 0;
-    modded_image *img = data.current_image;
+    asset_image *img = data.current_image;
     int total_attributes = count_xml_attributes(attributes);
     if (total_attributes < 2 || total_attributes > 14 || total_attributes % 2) {
         data.error = 1;
@@ -226,7 +226,7 @@ static void xml_start_layer_element(const char **attributes)
             }
         }
     }
-    if (!modded_image_add_layer(img, path, group, id, offset_x, offset_y, invert, rotate, part)) {
+    if (!asset_image_add_layer(img, path, group, id, offset_x, offset_y, invert, rotate, part)) {
         log_info("Invalid layer for image", img->id, 0);
         return;
     }
@@ -237,7 +237,7 @@ static void xml_start_animation_element(const char **attributes)
     if (data.image_index >= XML_MAX_IMAGE_INDEXES) {
         return;
     }
-    modded_image *img = data.current_image;
+    asset_image *img = data.current_image;
     if (img->img.num_animation_sprites) {
         return;
     }
@@ -270,7 +270,7 @@ static void xml_start_animation_element(const char **attributes)
     }
 }
 
-static void xml_end_mod_element(void)
+static void xml_end_assetlist_element(void)
 {
     data.finished = 1;
 }
@@ -285,8 +285,8 @@ static void xml_end_image_element(void)
     img->draw.data_length = img->width * img->height * sizeof(color_t);
     img->draw.uncompressed_length = img->draw.data_length;
     if (!img->draw.data_length) {
-        modded_image *prev = 0;
-        modded_image *latest_image = group->first_image;
+        asset_image *prev = 0;
+        asset_image *latest_image = group->first_image;
         while (latest_image) {
             if (latest_image == data.current_image) {
                 break;
@@ -303,10 +303,10 @@ static void xml_end_image_element(void)
 
         return;
     }
-    img->draw.type = IMAGE_TYPE_MOD;
+    img->draw.type = IMAGE_TYPE_EXTRA_ASSET;
     data.current_image->active = 1;
     if (img->draw.data_length < IMAGE_PRELOAD_MAX_SIZE) {
-        modded_image_load(data.current_image);
+        asset_image_load(data.current_image);
     }
     data.image_index++;
 }
@@ -367,7 +367,7 @@ static void XMLCALL xml_end_element(void *unused, const char *name)
     (*xml_end_element_callback[data.depth][index])();
 }
 
-static const char *append_file_to_mods_folder(const char *file_name)
+static const char *append_file_to_assets_folder(const char *file_name)
 {
     strncpy(&data.file_name[data.file_name_position], file_name, FILE_NAME_MAX - data.file_name_position - 1);
     return data.file_name;
@@ -390,15 +390,15 @@ void xml_setup_base_folder_string(const char *base_folder)
     strncpy(data.image_base_path, data.file_name, FILE_NAME_MAX);
 }
 
-void xml_process_mod_file(const char *xml_file_name)
+void xml_process_assetlist_file(const char *xml_file_name)
 {
-    xml_file_name = append_file_to_mods_folder(xml_file_name);
-    log_info("Loading mod file", xml_file_name, 0);
+    xml_file_name = append_file_to_assets_folder(xml_file_name);
+    log_info("Loading assetlist file", xml_file_name, 0);
 
     FILE *xml_file = file_open(xml_file_name, "r");
 
     if (!xml_file) {
-        log_error("Error opening mod file", xml_file_name, 0);
+        log_error("Error opening assetlist file", xml_file_name, 0);
         return;
     }
 

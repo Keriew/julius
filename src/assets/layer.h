@@ -1,5 +1,5 @@
-#ifndef MODS_LAYER_H
-#define MODS_LAYER_H
+#ifndef ASSETS_LAYER_H
+#define ASSETS_LAYER_H
 
 #include "core/image.h"
 
@@ -25,7 +25,7 @@ typedef enum {
 } layer_isometric_part;
 
 typedef struct layer {
-    char *modded_image_path;
+    char *asset_image_path;
     int original_image_id;
     int x_offset;
     int y_offset;
@@ -34,7 +34,7 @@ typedef struct layer {
     layer_invert_type invert;
     layer_rotate_type rotate;
     layer_isometric_part part;
-    int is_modded_image_reference;
+    int is_asset_image_reference;
     color_t *data;
     struct layer *prev;
 } layer;
@@ -47,4 +47,4 @@ color_t layer_get_color_for_image_position(const layer *l, int x, int y);
 layer *layer_add_from_image_path(layer *l, const char *path, int offset_x, int offset_y);
 layer *layer_add_from_image_id(layer *l, const char *group_id, const char *image_id, int offset_x, int offset_y);
 
-#endif // MODS_LAYER_H
+#endif // ASSETS_LAYER_H

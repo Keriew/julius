@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE mod>
+<!DOCTYPE assetlist>
 
-<mod author="Areldir" name="Mess_Hall_Walker">
+<assetlist author="Areldir" name="Mess_Hall_Walker">
 <!-- Note: Mess Hall Walker Portrait -->
     <image id="M Hall Portrait" >
 		<layer group="190" image="14" />
@@ -132,4 +132,4 @@
     <image id="M Hall N 11" src="Mess_Walker_n_11" />
     <image id="M Hall N 12" src="Mess_Walker_n_12" />	
 	
-</mod>		
+</assetlist>		
