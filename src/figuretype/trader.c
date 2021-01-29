@@ -698,7 +698,7 @@ void figure_trade_ship_action(figure *f)
             } else if (f->direction == DIR_FIGURE_LOST) {
                 f->wait_ticks = 0;
                 f->state = FIGURE_STATE_DEAD;
-            } else if (f->wait_ticks >= 40) {
+            } else if (f->wait_ticks >= 100) {
                 map_point tile;
                 int dock_id;
                 if ((dock_id = building_dock_get_closer_free_destination(f->id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile))) {
@@ -707,9 +707,18 @@ void figure_trade_ship_action(figure *f)
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
                     f->direction = DIR_FIGURE_REROUTE;
+                } else if (!building_dock_is_working(f->destination_building_id) ||
+                    !building_dock_accepts_ship(f->id, f->destination_building_id)) {
+                    if ((dock_id = building_dock_get_destination(f->id, 0, &tile))) {
+                        f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
+                        f->destination_building_id = dock_id;
+                        f->destination_x = tile.x;
+                        f->destination_y = tile.y;
+                        f->direction = DIR_FIGURE_REROUTE;
+                    }
                 }
             }
-            if (f->wait_ticks++ > 40) {
+            if (++f->wait_ticks > 100) {
                 f->wait_ticks = 0;
             }
             break;
@@ -787,7 +796,9 @@ void figure_trade_ship_action(figure *f)
                 trade_ship_dock_ignoring_ship(f)
             ) {
                 building *dock = building_get(f->destination_building_id);
-                if (dock->data.dock.trade_ship_id == f->id) dock->data.dock.trade_ship_id = 0;
+                if (dock->data.dock.trade_ship_id == f->id) {
+                    dock->data.dock.trade_ship_id = 0;
+                }
                 map_point tile;
                 int dock_id;
                 if ((dock_id = building_dock_get_destination(f->id, f->destination_building_id, &tile))) {
@@ -893,18 +904,20 @@ int figure_trader_ship_can_queue_for_export(figure *ship) {
     return 0;
 }
 
-int figure_trader_ship_get_distance_to_dock(int ship_id, int dock_id) {
-    figure *ship = figure_get(ship_id);
+int figure_trader_ship_get_distance_to_dock(const figure *ship, int dock_id) {
+    if (ship->destination_building_id == dock_id) {
+        return ship->routing_path_length - ship->routing_path_current_tile;
+    }
     building *dock = building_get(dock_id);
     map_routing_calculate_distances_water_boat(ship->x, ship->y);
     uint8_t path[500];
     map_point tile;
-    building_dock_get_ship_request_tile(ship_id, dock, SHIP_DOCK_REQUEST_1_DOCKING, &tile);
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_1_DOCKING, &tile);
     int path_length = map_routing_get_path_on_water(&path[0], tile.x, tile.y, 0);
     return path_length;
 }
 
-int figure_trader_ship_other_ship_closer_to_destination_dock(int ship_id, int dock_id, int distance) {
+int figure_trader_ship_other_ship_closer_to_dock(int ship_id, int dock_id, int distance) {
     for (int route_id = 0; route_id < 20; route_id++) {
         if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
             int city_id = empire_city_get_for_trade_route(route_id);
@@ -912,10 +925,8 @@ int figure_trader_ship_other_ship_closer_to_destination_dock(int ship_id, int do
                 empire_city *city = empire_city_get(city_id);
                 for (int i = 0; i < 3; i++) {
                     figure *other_ship = figure_get(city->trader_figure_ids[i]);
-                    if (other_ship->destination_building_id == dock_id &&
-                        other_ship->routing_path_length
-                    ) {
-                        int other_ship_distance_to_dock = figure_trader_ship_get_distance_to_dock(other_ship->id, dock_id);
+                    if (other_ship->destination_building_id == dock_id && other_ship->routing_path_length) {
+                        int other_ship_distance_to_dock = figure_trader_ship_get_distance_to_dock(other_ship, dock_id);
                         if (other_ship_distance_to_dock < distance) {
                             return other_ship->id;
                         }

@@ -13,8 +13,7 @@
 #include "figure/trader.h"
 #include "figuretype/trader.h"
 
-static int building_dock_get_free_destination(int ship_id, int exclude_dock_id, map_point *tile);
-static int building_dock_get_queue_destination(int ship_id, int exclude_dock_id, ship_dock_request_type dock_request_type, map_point *tile);
+#define MAX_DISTANCE_FOR_REROUTING_ANCHORED 50
 
 int building_dock_count_idle_dockers(const building *dock)
 {
@@ -104,58 +103,7 @@ int building_dock_can_export_to_ship(building *dock, int ship_id) {
     return 0;
 }
 
-int building_dock_get_destination(int ship_id, int exclude_dock_id, map_point *tile)
-{
-    if (!city_buildings_has_working_dock()) {
-        return 0;
-    }
-    int dock_id = 0;
-    if ((dock_id = building_dock_get_free_destination(ship_id, exclude_dock_id, tile))) {
-        return dock_id;
-    } else if ((dock_id = building_dock_get_queue_destination(ship_id, exclude_dock_id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, tile))) {
-        return dock_id;
-    } else {
-        return building_dock_get_queue_destination(ship_id, exclude_dock_id, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, tile);
-    }
-}
-
-int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_type request_type, map_point *tile)
-{
-    figure *ship = figure_get(ship_id);
-    int max_distance = 50;
-    int min_distance = -1;
-    if (ship->destination_building_id && ship->action_state == FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE) {
-        if (building_dock_is_working(ship->destination_building_id) && building_dock_accepts_ship(ship_id, ship->destination_building_id)) {
-            min_distance = figure_trader_ship_get_distance_to_dock(ship_id, ship->destination_building_id);
-        }
-    }
-    int min_distance_dock_id = 0;
-    for (int i = 0; i < 10; i++) {
-        int dock_id = city_buildings_get_working_dock(i);
-        if (!dock_id) continue;
-        building *dock = building_get(dock_id);
-        if (dock->data.dock.trade_ship_id) continue;
-        if (dock_id == ship->destination_building_id) continue;
-        if (figure_trader_ship_docked_once_at_dock(ship, dock_id)) continue;
-        if (!building_dock_accepts_ship(ship_id, dock_id)) continue;
-        int distance_to_dock = figure_trader_ship_get_distance_to_dock(ship_id, dock_id);
-        if (distance_to_dock > max_distance) continue;
-        if (figure_trader_ship_other_ship_closer_to_destination_dock(ship_id, dock_id, distance_to_dock)) continue;
-        if (building_dock_can_import_from_ship(dock, ship_id) || building_dock_can_export_to_ship(dock, ship_id)) {
-            if (min_distance == -1 || distance_to_dock < min_distance) {
-                min_distance_dock_id = dock_id;
-                min_distance = distance_to_dock;
-            }
-        }
-    }
-    if (min_distance_dock_id) {
-        building_dock_get_ship_request_tile(ship_id, building_get(min_distance_dock_id), request_type, tile);
-        return min_distance_dock_id;
-    }
-    return 0;
-}
-
-static int building_dock_get_free_destination(int ship_id, int exclude_dock_id, map_point *tile)
+static int get_free_destination(int ship_id, int exclude_dock_id, map_point *tile)
 {
     figure *ship = figure_get(ship_id);
     int importing_dock_id = 0;
@@ -183,12 +131,12 @@ static int building_dock_get_free_destination(int ship_id, int exclude_dock_id, 
     dock_id = importing_dock_id ? importing_dock_id : exporting_dock_id;
     if (!dock_id) return 0;
     building *dock = building_get(dock_id);
-    building_dock_get_ship_request_tile(ship_id, dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, tile);
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, tile);
     return dock_id;
 }
 
 
-static int building_dock_get_queue_destination(int ship_id, int exclude_dock_id, ship_dock_request_type request_type, map_point *tile)
+static int get_queue_destination(int ship_id, int exclude_dock_id, ship_dock_request_type request_type, map_point *tile)
 {
     figure *ship = figure_get(ship_id);
     int importing_dock_id = 0;
@@ -202,7 +150,7 @@ static int building_dock_get_queue_destination(int ship_id, int exclude_dock_id,
         if (!building_dock_accepts_ship(ship_id, dock_id)) continue;
         building *dock = building_get(dock_id);
         map_point requested_tile;
-        building_dock_get_ship_request_tile(ship_id, dock, request_type, &requested_tile);
+        building_dock_get_ship_request_tile(dock, request_type, &requested_tile);
 
         int figure_at_offset = map_figure_at(map_grid_offset(requested_tile.x, requested_tile.y));
         if (figure_at_offset && figure_at_offset != ship_id) continue;
@@ -218,6 +166,90 @@ static int building_dock_get_queue_destination(int ship_id, int exclude_dock_id,
     }
 
     return importing_dock_id ? importing_dock_id : exporting_dock_id;
+}
+
+static int get_dock_queue_length(const building* dock) {
+    map_point tile_first_queue, tile_second_queue;
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile_first_queue);
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, &tile_second_queue);
+    return map_has_figure_at(map_grid_offset(tile_second_queue.x, tile_first_queue.y)) + map_has_figure_at(map_grid_offset(tile_second_queue.x, tile_second_queue.y));
+}
+
+
+int building_dock_get_destination(int ship_id, int exclude_dock_id, map_point *tile)
+{
+    if (!city_buildings_has_working_dock()) {
+        return 0;
+    }
+    int dock_id = 0;
+    if ((dock_id = get_free_destination(ship_id, exclude_dock_id, tile))) {
+        return dock_id;
+    } else if ((dock_id = get_queue_destination(ship_id, exclude_dock_id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, tile))) {
+        return dock_id;
+    } else {
+        return get_queue_destination(ship_id, exclude_dock_id, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, tile);
+    }
+}
+
+int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_type request_type, map_point *tile)
+{
+    figure *ship = figure_get(ship_id);
+    int min_distance = -1;
+    int nearest_dock_id = 0;
+    int distance_to_destination = figure_trader_ship_get_distance_to_dock(ship, ship->destination_building_id);
+    for (int i = 0; i < 10; i++) {
+        int dock_id = city_buildings_get_working_dock(i);
+        if (!dock_id) {
+            continue;
+        }
+
+        building *dock = building_get(dock_id);
+        if (dock->data.dock.trade_ship_id ||
+            dock_id == ship->destination_building_id ||
+            figure_trader_ship_docked_once_at_dock(ship, dock_id) ||
+            !building_dock_accepts_ship(ship_id, dock_id)) {
+            continue;
+        }
+
+        int distance_to_dock = figure_trader_ship_get_distance_to_dock(ship, dock_id);
+        switch (ship->action_state) {
+            case FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE:
+                if (figure_trader_ship_other_ship_closer_to_dock(ship_id, dock_id, distance_to_dock)) {
+                    continue;
+                }
+                if (ship->destination_building_id) {
+                    building *destination_dock = building_get(ship->destination_building_id);
+                    if ((!destination_dock->data.dock.trade_ship_id || destination_dock->data.dock.trade_ship_id == ship->id) &&
+                        distance_to_dock > distance_to_destination &&
+                        building_dock_is_working(destination_dock->id) &&
+                        building_dock_accepts_ship(ship->id, destination_dock->id) &&
+                        (building_dock_can_import_from_ship(destination_dock, ship->id) || building_dock_can_export_to_ship(destination_dock, ship->id))) {
+                        continue;
+                    }
+                }
+                break;
+            case FIGURE_ACTION_114_TRADE_SHIP_ANCHORED:
+                if (figure_trader_ship_other_ship_closer_to_dock(ship_id, dock_id, distance_to_dock) ||
+                    distance_to_dock > MAX_DISTANCE_FOR_REROUTING_ANCHORED) {
+                    continue;
+                }
+                break;
+        }
+
+        if (building_dock_can_import_from_ship(dock, ship_id) || building_dock_can_export_to_ship(dock, ship_id)) {
+            if (min_distance == -1 || distance_to_dock < min_distance) {
+                nearest_dock_id = dock_id;
+                min_distance = distance_to_dock;
+            }
+        }
+    }
+
+    if (nearest_dock_id) {
+        building_dock_get_ship_request_tile(building_get(nearest_dock_id), request_type, tile);
+        return nearest_dock_id;
+    }
+
+    return 0;
 }
 
 int building_dock_can_trade_with_route(int route_id, int dock_id) {
@@ -243,13 +275,13 @@ void building_dock_set_can_trade_with_route(int route_id, int dock_id, int can_t
 int building_dock_request_docking(int ship_id, int dock_id, map_point *tile) {
     building *dock = building_get(dock_id);
     if ((!dock->data.dock.trade_ship_id || dock->data.dock.trade_ship_id == ship_id)) {
-        building_dock_get_ship_request_tile(ship_id, dock, SHIP_DOCK_REQUEST_1_DOCKING, tile);
+        building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_1_DOCKING, tile);
         return 1;
     }
     return 0;
 }
 
-void building_dock_get_ship_request_tile(int ship_id, building *dock, ship_dock_request_type request_type, map_point *tile) {
+void building_dock_get_ship_request_tile(const building *dock, ship_dock_request_type request_type, map_point *tile) {
     int dx, dy;
     switch (request_type) {
         case SHIP_DOCK_REQUEST_1_DOCKING:
@@ -291,8 +323,8 @@ int building_dock_reposition_anchored_ship(int ship_id, map_point *tile) {
     building *dock = building_get(ship->destination_building_id);
     map_point tile_first_queue;
     map_point tile_second_queue;
-    building_dock_get_ship_request_tile(ship_id, dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile_first_queue);
-    building_dock_get_ship_request_tile(ship_id, dock, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, &tile_second_queue);
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile_first_queue);
+    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, &tile_second_queue);
     if (map_figure_at(ship->grid_offset) != ship->id) {
         if (ship->grid_offset == map_grid_offset(tile_first_queue.x, tile_first_queue.y) && !map_has_figure_at(map_grid_offset(tile_second_queue.x, tile_second_queue.y))) {
             map_point_store_result(tile_second_queue.x, tile_second_queue.y, tile);

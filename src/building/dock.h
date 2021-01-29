@@ -24,7 +24,7 @@ int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_typ
 
 int building_dock_request_docking(int ship_id, int dock_id, map_point *tile);
 
-void building_dock_get_ship_request_tile(int ship_id, building *dock, ship_dock_request_type request_type, map_point *tile);
+void building_dock_get_ship_request_tile(const building *dock, ship_dock_request_type request_type, map_point *tile);
 
 int building_dock_is_working(int dock_id);
 
