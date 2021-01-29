@@ -185,10 +185,10 @@ set(PMURHASH_FILES
 
 set(PLATFORM_FILES
     ${PROJECT_SOURCE_DIR}/src/platform/arguments.c
+    ${PROJECT_SOURCE_DIR}/src/platform/augustus.c
     ${PROJECT_SOURCE_DIR}/src/platform/cursor.c
     ${PROJECT_SOURCE_DIR}/src/platform/file_manager.c
     ${PROJECT_SOURCE_DIR}/src/platform/file_manager_cache.c
-    ${PROJECT_SOURCE_DIR}/src/platform/julius.c
     ${PROJECT_SOURCE_DIR}/src/platform/keyboard_input.c
     ${PROJECT_SOURCE_DIR}/src/platform/log.c
     ${PROJECT_SOURCE_DIR}/src/platform/mouse.c
@@ -692,7 +692,7 @@ if(APPLE)
         MACOSX_PACKAGE_LOCATION "Resources")
 
     # setting variables that will populate Info.plist
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "nl.biancavanschaik.julius")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "pl.Keriew.augustus")
     set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME})
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version" FORCE)
     set(MACOSX_BUNDLE_ICON_FILE "augustus.icns")
@@ -775,7 +775,7 @@ else()
     include_directories("ext/expat")
     target_sources(${SHORT_NAME} PRIVATE "${EXPAT_FILES}")
     if(NOT WIN32)
-        add_compile_definitions(XML_DEV_URANDOM)
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DXML_DEV_URANDOM")
     endif()
 endif()
 
@@ -826,7 +826,7 @@ if (VITA_BUILD)
         ScePgf_stub
         SceAppMgr_stub
     )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__vita__")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__vita__ -DPNG_ARM_NEON_OPT=0")
     # this setting enables larger heap memory sizes on Vita, up to ~330 MB
     # useful for pre-loading videos into memory
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")
@@ -862,6 +862,7 @@ elseif(SWITCH_BUILD)
     )
 
     set(FLAGS
+         -DPNG_ARM_NEON_OPT=0
         -fPIE
         -L${DEVKITPRO}/portlibs/switch/lib
         -L${DEVKITPRO}/libnx/lib
@@ -884,6 +885,7 @@ else()
         target_link_libraries(${SHORT_NAME} m)
     endif()
     if(ANDROID_BUILD)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPNG_ARM_NEON_OPT=0")
         find_library(log-lib log)
         target_link_libraries(${SHORT_NAME} ${log-lib})
     endif()

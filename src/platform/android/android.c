@@ -15,8 +15,8 @@ typedef struct {
 } java_function_handler;
 
 #define GAME_PATH_MAX 300
-#define CLASS_JULIUS_ACTIVITY "com/github/bvschaik/julius/JuliusMainActivity"
-#define CLASS_FILE_MANAGER "com/github/bvschaik/julius/FileManager"
+#define CLASS_AUGUSTUS_ACTIVITY "com/github/Keriew/augustus/AugustusMainActivity"
+#define CLASS_FILE_MANAGER "com/github/Keriew/augustus/FileManager"
 
 static int has_directory;
 static char path[GAME_PATH_MAX];
@@ -106,7 +106,7 @@ static const char *get_c3_path(void)
 const char *android_show_c3_path_dialog(int again)
 {
     java_function_handler handler;
-    if (get_java_method_handler(CLASS_JULIUS_ACTIVITY, "showDirectorySelection", "(Z)V", &handler)) {
+    if (get_java_method_handler(CLASS_AUGUSTUS_ACTIVITY, "showDirectorySelection", "(Z)V", &handler)) {
         (*handler.env)->CallVoidMethod(handler.env, handler.activity, handler.method,
             again ? JNI_TRUE : JNI_FALSE);
     }
@@ -124,7 +124,7 @@ const char *android_show_c3_path_dialog(int again)
 void android_toast_message(const char *message)
 {
     java_function_handler handler;
-    if (get_java_method_handler(CLASS_JULIUS_ACTIVITY, "toastMessage", "(Ljava/lang/String;)V", &handler)) {
+    if (get_java_method_handler(CLASS_AUGUSTUS_ACTIVITY, "toastMessage", "(Ljava/lang/String;)V", &handler)) {
         jstring jmessage = (*handler.env)->NewStringUTF(handler.env, message);
         (*handler.env)->CallVoidMethod(handler.env, handler.activity, handler.method, jmessage);
         (*handler.env)->DeleteLocalRef(handler.env, jmessage);
@@ -136,7 +136,7 @@ float android_get_screen_density(void)
 {
     java_function_handler handler;
     float result = 1.0f;
-    if (get_java_method_handler(CLASS_JULIUS_ACTIVITY, "getScreenDensity", "()F", &handler)) {
+    if (get_java_method_handler(CLASS_AUGUSTUS_ACTIVITY, "getScreenDensity", "()F", &handler)) {
         result = (float) (*handler.env)->CallFloatMethod(handler.env, handler.activity, handler.method);
     }
     destroy_java_function_handler(&handler);
@@ -148,7 +148,7 @@ int android_get_file_descriptor(const char *filename, const char *mode)
     int result = 0;
     java_function_handler handler;
     if (!get_java_static_method_handler(CLASS_FILE_MANAGER, "openFileDescriptor",
-        "(Lcom/github/bvschaik/julius/JuliusMainActivity;Ljava/lang/String;Ljava/lang/String;)I", &handler)) {
+        "(Lcom/github/Keriew/augustus/AugustusMainActivity;Ljava/lang/String;Ljava/lang/String;)I", &handler)) {
         destroy_java_function_handler(&handler);
         return 0;
     }
@@ -183,7 +183,7 @@ int android_get_directory_contents(const char *dir, int type, const char *extens
 {
     java_function_handler handler;
     if (!get_java_static_method_handler(CLASS_FILE_MANAGER, "getDirectoryFileList",
-        "(Lcom/github/bvschaik/julius/JuliusMainActivity;Ljava/lang/String;ILjava/lang/String;)[Ljava/lang/String;",
+        "(Lcom/github/Keriew/augustus/AugustusMainActivity;Ljava/lang/String;ILjava/lang/String;)[Ljava/lang/String;",
         &handler)) {
         destroy_java_function_handler(&handler);
         return LIST_ERROR;
@@ -216,7 +216,7 @@ int android_remove_file(const char *filename)
     int result = 0;
     java_function_handler handler;
     if (!get_java_static_method_handler(CLASS_FILE_MANAGER, "deleteFile",
-        "(Lcom/github/bvschaik/julius/JuliusMainActivity;Ljava/lang/String;)Z", &handler)) {
+        "(Lcom/github/Keriew/augustus/AugustusMainActivity;Ljava/lang/String;)Z", &handler)) {
         destroy_java_function_handler(&handler);
         return 0;
     }
@@ -229,7 +229,7 @@ int android_remove_file(const char *filename)
     return result;
 }
 
-JNIEXPORT void JNICALL Java_com_github_bvschaik_julius_JuliusMainActivity_gotDirectory(JNIEnv *env, jobject thiz)
+JNIEXPORT void JNICALL Java_com_github_Keriew_augustus_AugustusMainActivity_gotDirectory(JNIEnv *env, jobject thiz)
 {
     has_directory = 1;
 }

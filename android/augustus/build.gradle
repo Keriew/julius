@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.github.triplet.play'
+// apply plugin: 'com.github.triplet.play'
 
 task getVersion {
     def cmakeFile = rootProject.file("../CMakeLists.txt").text
@@ -70,7 +70,7 @@ android {
     ndkVersion "21.3.6528147"
 
     defaultConfig {
-        applicationId "com.github.bvschaik.julius"
+        applicationId "com.github.Keriew.augustus"
         minSdkVersion 21
         targetSdkVersion 30
 
@@ -87,19 +87,20 @@ android {
         }
         sourceSets {
             main.res.srcDirs += '../../res/android'
+            main.assets.srcDirs += '../../assets'
         }
     }
-    signingConfigs {
+    /** signingConfigs {
         release {
             def isCI = System.getenv("CI") == "true"
             if (isCI) {
-                storeFile file("../julius.keystore")
+                storeFile file("../augustus.keystore")
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                keyAlias "julius"
+                keyAlias "augustus"
                 keyPassword System.getenv("ANDROID_KEYSTORE_KEY_PASSWORD")
             }
         }
-    }
+    } **/
     buildTypes {
         debug {
             ext.alwaysUpdateBuildId = false
@@ -108,7 +109,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // signingConfig signingConfigs.release
         }
     }
     externalNativeBuild {
@@ -118,9 +119,9 @@ android {
     }
 }
 
-play {
+/** play {
     serviceAccountCredentials.set(file("../play-publisher.json"))
-}
+} **/
 
 repositories {
     google()

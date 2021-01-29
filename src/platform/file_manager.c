@@ -372,6 +372,12 @@ FILE *platform_file_manager_open_file(const char *filename, const char *mode)
     return fdopen(fd, mode);
 }
 
+FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
+{
+    // TODO
+    return 0;
+}
+
 int platform_file_manager_remove_file(const char *filename)
 {
     return android_remove_file(filename);

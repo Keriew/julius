@@ -1,4 +1,4 @@
-package com.github.bvschaik.julius;
+package com.github.Keriew.augustus;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -6,7 +6,7 @@ import android.widget.Toast;
 
 import org.libsdl.app.SDLActivity;
 
-public class JuliusMainActivity extends SDLActivity {
+public class AugustusMainActivity extends SDLActivity {
     private static final int GET_FOLDER_RESULT = 500;
 
     @Override
@@ -20,7 +20,7 @@ public class JuliusMainActivity extends SDLActivity {
         return new String[]{
                 "SDL2",
                 "SDL2_mixer",
-                "julius"
+                "augustus"
         };
     }
 
