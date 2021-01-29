@@ -8,9 +8,6 @@ case "$BUILD_TARGET" in
 	;;
 "switch")
 	docker exec switchdev /bin/bash -c "cd build && make -j4"
-	mkdir -p release/julius
-	cp -f build/julius.nro release/julius/julius.nro
-	cd release && zip -r julius_switch.zip julius
 	;;
 "mac")
 	cp -r assets ./build	
