@@ -88,7 +88,7 @@ const dir_info *platform_file_manager_cache_get_dir_info(const char *dir)
         }
         if (stat_status == STAT_WORKS) {
             stat(file_item->name, &file_info);
-            if (!S_ISREG(file_info.st_mode)) {
+            if (S_ISDIR(file_info.st_mode)) {
                 type = TYPE_DIR;
             }
         } else {

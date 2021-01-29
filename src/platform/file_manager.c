@@ -108,7 +108,7 @@ static const char ASSET_DIRS[MAX_ASSET_DIRS][FILE_NAME_MAX] = {
     VITA_PATH_PREFIX,
     "app0:",
 #elif defined (__SWITCH__)
-    // todo switch asset dir
+    "romfs:"
 #elif defined (__APPLE__)
     "***SDL_BASE_PATH***"
 #elif !defined (_WIN32)
@@ -161,7 +161,14 @@ const dir_name get_assets_directory(void)
         }
         int offset = strlen(assets_directory);
         assets_directory[offset++] = '/';
-        strncpy(&assets_directory[offset], ASSETS_DIR_NAME, FILE_NAME_MAX - offset);
+        // Special case for romfs on switch
+#ifdef __SWITCH__
+        if(strcmp(assets_directory, "romfs:/") != 0) {
+#endif
+            strncpy(&assets_directory[offset], ASSETS_DIR_NAME, FILE_NAME_MAX - offset);
+#ifdef __SWITCH__
+        }
+#endif
         assets_directory_length = strlen(assets_directory);
 #ifndef __vita__
         dir_name result = set_dir_name(assets_directory);
@@ -375,8 +382,12 @@ int platform_file_manager_remove_file(const char *filename)
 FILE *platform_file_manager_open_file(const char *filename, const char *mode)
 {
 #ifdef USE_FILE_CACHE
-    if (strchr(mode, 'w') && !file_exists(filename, NOT_LOCALIZED)) {
-        platform_file_manager_cache_add_file_info(filename);
+    if (strchr(mode, 'w')) {
+        char temp[FILE_NAME_MAX];
+        strncpy(temp, filename, FILE_NAME_MAX - 1);
+        if(!file_exists(temp, NOT_LOCALIZED)) {
+            platform_file_manager_cache_add_file_info(filename);
+        }
     }
 #endif
     return fopen(filename, mode);

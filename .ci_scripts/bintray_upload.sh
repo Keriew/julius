@@ -37,6 +37,11 @@ case "$DEPLOY" in
   DEPLOY_FILE=augustus-$VERSION-vita.vpk
   cp "${build_dir}/augustus.vpk" "deploy/$DEPLOY_FILE"
   ;;
+"switch")
+  PACKAGE=switch
+  DEPLOY_FILE=augustus-$VERSION-switch.nro
+  cp "${build_dir}/augustus.nro" "deploy/$DEPLOY_FILE"
+  ;;
 "appimage")
   PACKAGE=linux
   DEPLOY_FILE=augustus-$VERSION-linux.AppImage
