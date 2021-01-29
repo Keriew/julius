@@ -10,7 +10,7 @@ Chat: [Discord](http://www.discord.gg/GamerZakh) (kindly hosted by GamerZakh)
 | Windows  | [![Download](https://api.bintray.com/packages/keriew/Augustus/windows_release/images/download.svg)](https://bintray.com/keriew/Augustus/windows_release/_latestVersion) | [![Download](https://api.bintray.com/packages/keriew/Augustus-unstable/windows-unstable/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/windows-unstable/_latestVersion) | 
 | Linux AppImage | [![Download](https://api.bintray.com/packages/keriew/Augustus/linux/images/download.svg)](https://bintray.com/keriew/Augustus/linux/_latestVersion#files) | [![Download](https://api.bintray.com/packages/keriew/Augustus-unstable/linux/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/linux/_latestVersion#files)
 | Mac | [![Download](https://api.bintray.com/packages/keriew/Augustus/mac/images/download.svg)](https://bintray.com/keriew/Augustus/mac/_latestVersion#files) | [![Download](https://api.bintray.com/packages/keriew/Augustus-unstable/mac/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/mac/_latestVersion#files) |
-| PS Vita | [![Download](https://api.bintray.com/packages/keriew/Augustus/vita-unstable/images/download.svg)](https://bintray.com/keriew/Augustus/vita-unstable/_latestVersion#files) |
+| PS Vita | [![Download](https://api.bintray.com/packages/keriew/Augustus/vita-unstable/images/download.svg)](https://bintray.com/keriew/Augustus-unstable/vita/_latestVersion#files) |
 
 
 Augustus is a fork of the Julius project that intends to incorporate gameplay changes.

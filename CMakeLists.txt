@@ -37,7 +37,7 @@ project(${SHORT_NAME} C)
 
 if (VITA_BUILD)
     include("${VITASDK}/share/vita.cmake" REQUIRED)
-    set(VITA_TITLEID  "AUGUSTUS001")
+    set(VITA_TITLEID  "AUGUSTUS1")
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/")
