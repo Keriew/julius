@@ -235,7 +235,7 @@ static void show_overlay_from_grid_offset(int grid_offset)
             overlay = OVERLAY_FIRE;
             break;
         case BUILDING_ENGINEERS_POST:
-        case BUILDING_ENGINEER_GUILD:
+        case BUILDING_ARCHITECT_GUILD:
             overlay = OVERLAY_DAMAGE;
             break;
         case BUILDING_THEATER:

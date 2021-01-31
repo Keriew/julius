@@ -1651,7 +1651,7 @@ void building_figure_generate(void)
                 case BUILDING_WORKCAMP:
                     spawn_figure_work_camp(b);
                     break;
-                case BUILDING_ENGINEER_GUILD:
+                case BUILDING_ARCHITECT_GUILD:
                     spawn_figure_engineer_guild(b);
                     break;
                 case BUILDING_MESS_HALL:
