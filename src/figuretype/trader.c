@@ -628,7 +628,7 @@ int figure_trade_ship_is_trading(figure *ship)
     return TRADE_SHIP_NONE;
 }
 
-static int trade_ship_dock_ignoring_ship(figure *f)
+static int trade_dock_ignoring_ship(figure *f)
 {
     building *b = building_get(f->destination_building_id);
     if (b->state == BUILDING_STATE_IN_USE && b->type == BUILDING_DOCK && b->num_workers > 0 && b->data.dock.trade_ship_id == f->id) {
@@ -792,7 +792,7 @@ void figure_trade_ship_action(figure *f)
         case FIGURE_ACTION_112_TRADE_SHIP_MOORED:
             if (!building_dock_is_working(f->destination_building_id) ||
                 !building_dock_accepts_ship(f->id, f->destination_building_id) ||
-                trade_ship_dock_ignoring_ship(f)
+                trade_dock_ignoring_ship(f)
             ) {
                 building *dock = building_get(f->destination_building_id);
                 if (dock->data.dock.trade_ship_id == f->id) {
@@ -885,7 +885,9 @@ int figure_trader_ship_docked_once_at_dock(figure *ship, int dock_id) {
 }
 
 int figure_trader_ship_can_queue_for_import(figure *ship) {
-    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
+    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) {
+        return 1;
+    }
     if (ship->loads_sold_or_carrying >= (figure_trade_sea_trade_units() / 3)) {
         return 1;
     }
@@ -894,7 +896,9 @@ int figure_trader_ship_can_queue_for_import(figure *ship) {
 }
 
 int figure_trader_ship_can_queue_for_export(figure *ship) {
-    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) return 1;
+    if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) {
+        return 1;
+    }
     int available_space = figure_trade_sea_trade_units() - ship->trader_amount_bought;
     if (available_space >= (figure_trade_sea_trade_units() / 3)) {
         return 1;

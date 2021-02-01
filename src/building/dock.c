@@ -112,13 +112,17 @@ static int get_free_destination(int ship_id, int exclude_dock_id, map_point *til
 
     for (int i = 0; i < 10; i++) {
         dock_id = city_buildings_get_working_dock(i);
-        if (!dock_id) continue;
-        if (dock_id == exclude_dock_id) continue;
-        if (figure_trader_ship_docked_once_at_dock(ship, dock_id)) continue;
-        if (!building_dock_accepts_ship(ship_id, dock_id)) continue;
+        if (!dock_id ||
+            dock_id == exclude_dock_id ||
+            figure_trader_ship_docked_once_at_dock(ship, dock_id) ||
+            !building_dock_accepts_ship(ship_id, dock_id)){
+            continue;
+        }
 
         building* dock = building_get(dock_id);
-        if (dock->data.dock.trade_ship_id) continue;
+        if (dock->data.dock.trade_ship_id) {
+            continue;
+        }
 
         if (building_dock_can_import_from_ship(dock, ship_id)) {
             importing_dock_id = dock_id;
@@ -129,7 +133,9 @@ static int get_free_destination(int ship_id, int exclude_dock_id, map_point *til
         }
     }
     dock_id = importing_dock_id ? importing_dock_id : exporting_dock_id;
-    if (!dock_id) return 0;
+    if (!dock_id) {
+        return 0;
+    }
     building *dock = building_get(dock_id);
     building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, tile);
     return dock_id;
@@ -144,16 +150,20 @@ static int get_queue_destination(int ship_id, int exclude_dock_id, ship_dock_req
 
     for (int i = 0; i < 10; i++) {
         int dock_id = city_buildings_get_working_dock(i);
-        if (!dock_id) continue;
-        if (dock_id == exclude_dock_id) continue;
-        if (figure_trader_ship_docked_once_at_dock(ship, dock_id)) continue;
-        if (!building_dock_accepts_ship(ship_id, dock_id)) continue;
+        if (!dock_id ||
+            dock_id == exclude_dock_id ||
+            figure_trader_ship_docked_once_at_dock(ship, dock_id) ||
+            !building_dock_accepts_ship(ship_id, dock_id)) {
+            continue;
+        }
         building *dock = building_get(dock_id);
         map_point requested_tile;
         building_dock_get_ship_request_tile(dock, request_type, &requested_tile);
 
         int figure_at_offset = map_figure_at(map_grid_offset(requested_tile.x, requested_tile.y));
-        if (figure_at_offset && figure_at_offset != ship_id) continue;
+        if (figure_at_offset && figure_at_offset != ship_id) {
+            continue;
+        }
 
         if (figure_trader_ship_can_queue_for_import(ship) && building_dock_can_import_from_ship(dock, ship_id)) {
             importing_dock_id = dock_id;
@@ -246,7 +256,9 @@ int building_dock_get_closer_free_destination(int ship_id, ship_dock_request_typ
 
 int building_dock_can_trade_with_route(int route_id, int dock_id) {
     building *dock = building_get(dock_id);
-    if (!dock->data.dock.has_accepted_route_ids) return 1;
+    if (!dock->data.dock.has_accepted_route_ids) {
+        return 1;
+    }
     return dock->data.dock.accepted_route_ids & (1 << route_id);
 }
 

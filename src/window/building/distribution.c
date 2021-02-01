@@ -190,7 +190,9 @@ static void draw_dock_permission_buttons(int x_offset, int y_offset, int dock_id
 {
   int button_order = 0;
   for (int i = 0; i < dock_distribution_permissions_buttons_count; i++) {
-    if (i < dock_scrollbar.scroll_position || i - dock_scrollbar.scroll_position >= data.dock_max_cities_visible) continue;
+    if (i < dock_scrollbar.scroll_position || i - dock_scrollbar.scroll_position >= data.dock_max_cities_visible) {
+        continue;
+    }
     generic_button *button = &dock_distribution_permissions_buttons[i];
     int scrollbar_shown = dock_distribution_permissions_buttons_count > data.dock_max_cities_visible;
     button->x = scrollbar_shown ? 160 : 190;
@@ -313,10 +315,14 @@ int window_building_handle_mouse_dock(const mouse* m, building_info_context* c)
     handled = generic_buttons_handle_mouse(
         m, c->x_offset + 16, c->y_offset + 270 + 5,
         dock_distribution_permissions_buttons, dock_distribution_permissions_buttons_count, &data.permission_focus_button_id);
-    if (handled) return handled;
+    if (handled) {
+        return handled;
+    }
 
     handled = scrollbar_handle_mouse(&dock_scrollbar, m);
-    if (handled) return handled;
+    if (handled) {
+        return handled;
+    }
 
     handled = generic_buttons_handle_mouse(
         m, c->x_offset + 80, c->y_offset + 16 * c->height_blocks - 34,
