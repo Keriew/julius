@@ -697,7 +697,7 @@ void figure_trade_ship_action(figure *f)
             } else if (f->direction == DIR_FIGURE_LOST) {
                 f->wait_ticks = 0;
                 f->state = FIGURE_STATE_DEAD;
-            } else if (f->wait_ticks >= 100) {
+            } else if (f->wait_ticks >= 40) {
                 map_point tile;
                 int dock_id;
                 if ((dock_id = building_dock_get_closer_free_destination(f->id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile))) {
@@ -705,7 +705,7 @@ void figure_trade_ship_action(figure *f)
                     f->destination_building_id = dock_id;
                     f->destination_x = tile.x;
                     f->destination_y = tile.y;
-                    f->direction = DIR_FIGURE_REROUTE;
+                    figure_route_remove(f);
                 } else if (!building_dock_is_working(f->destination_building_id) ||
                     !building_dock_accepts_ship(f->id, f->destination_building_id)) {
                     if ((dock_id = building_dock_get_destination(f->id, 0, &tile))) {
@@ -713,11 +713,11 @@ void figure_trade_ship_action(figure *f)
                         f->destination_building_id = dock_id;
                         f->destination_x = tile.x;
                         f->destination_y = tile.y;
-                        f->direction = DIR_FIGURE_REROUTE;
+                        figure_route_remove(f);
                     }
                 }
             }
-            if (++f->wait_ticks > 100) {
+            if (++f->wait_ticks > 40) {
                 f->wait_ticks = 0;
             }
             break;
