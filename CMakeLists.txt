@@ -607,7 +607,25 @@ set(TRANSLATION_FILES
 
 set(MACOSX_FILES "")
 if(APPLE)
-    set(MACOSX_FILES ${PROJECT_SOURCE_DIR}/res/augustus.icns)
+    function(resource VAR SOURCE_PATH DESTINATION PATTERN)
+    file(GLOB_RECURSE _LIST CONFIGURE_DEPENDS ${SOURCE_PATH}/${PATTERN})
+    foreach (RESOURCE ${_LIST})
+        get_filename_component(_PARENT ${RESOURCE} DIRECTORY)
+        if (${_PARENT} STREQUAL ${SOURCE_PATH})
+            set(_DESTINATION ${DESTINATION})
+        else ()
+            file(RELATIVE_PATH _DESTINATION ${SOURCE_PATH} ${_PARENT})
+            set(_DESTINATION ${DESTINATION}/${_DESTINATION})
+        endif ()
+        set_property(SOURCE ${RESOURCE} PROPERTY MACOSX_PACKAGE_LOCATION ${_DESTINATION})
+    endforeach (RESOURCE)
+    set(${VAR} ${_LIST} PARENT_SCOPE)
+    endfunction()
+    resource(ASSET_SOURCES ${PROJECT_SOURCE_DIR}/assets Resources/assets *)
+    set(MACOSX_FILES
+        ${PROJECT_SOURCE_DIR}/res/augustus.icns
+        ${ASSET_SOURCES}
+    )
 endif()
 
 set(SOURCE_FILES

@@ -18,7 +18,7 @@ case "$BUILD_TARGET" in
 	hdiutil create -volname Augustus -srcfolder augustus.app -ov -format UDZO augustus.dmg
 	if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]
 	then
-		zip -r augustus.zip augustus.dmg assets maps augustus_manual.pdf
+		zip -r augustus.zip augustus.dmg maps augustus_manual.pdf
 	else
 		zip -r augustus.zip augustus.dmg 	
 	fi
