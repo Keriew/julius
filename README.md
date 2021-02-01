@@ -1,6 +1,6 @@
 # Augustus ![](res/julius_48.png)
 
-[![Travis](https://travis-ci.com/Keriew/augustus.svg?branch=master)](https://travis-ci.com/Keriew/augustus)
+[![Github Actions](https://github.com/Keriew/augustus/workflows/Build%20Augustus/badge.svg)](https://github.com/Keriew/Augustus/actions)
 
 Chat: [Discord](http://www.discord.gg/GamerZakh) (kindly hosted by GamerZakh)
 
@@ -33,7 +33,7 @@ Because of gameplay changes and additions, save files from Augustus are NOT comp
 Augustus, like project Julius requires the original assets (graphics, sounds, etc) from Caesar 3 to run.
 It optionally [supports the high-quality MP3 files](https://github.com/bvschaik/julius/wiki/MP3-Support) once provided on the Sierra website.
 
-![](res/vita/bg.png)
+[![](doc/main-image.png)](https://ppb.chymera.eu/fefa2d.png)
 
 ## Running the game
 

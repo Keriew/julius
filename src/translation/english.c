@@ -22,6 +22,7 @@ static translation_string all_strings[] = {
     {TR_INVALID_LANGUAGE_MESSAGE,
         "The directory you selected does not contain a valid language pack. "
         "Please check the log for errors."},
+    {TR_BUILD_ALL_TEMPLES, "All"},
     {TR_BUTTON_OK, "OK"},
     {TR_BUTTON_CANCEL, "Cancel"},
     {TR_BUTTON_RESET_DEFAULTS, "Reset defaults"},
@@ -32,11 +33,14 @@ static translation_string all_strings[] = {
     {TR_CONFIG_LANGUAGE_LABEL, "Language:"},
     {TR_CONFIG_LANGUAGE_DEFAULT, "(default)"},
     {TR_CONFIG_PAGE_LABEL, "Page"},
+    {TR_CONFIG_DISPLAY_SCALE, "Display scale:"},
+    {TR_CONFIG_CURSOR_SCALE, "Cursor scale:"},
     {TR_CONFIG_HEADER_UI_CHANGES, "User Interface"},
     {TR_CONFIG_HEADER_GAMEPLAY_CHANGES, "Difficulty"},
     {TR_CONFIG_SHOW_INTRO_VIDEO, "Play intro videos"},
     {TR_CONFIG_SIDEBAR_INFO, "Extra information in the control panel"},
     {TR_CONFIG_SMOOTH_SCROLLING, "Enable smooth scrolling"},
+    {TR_CONFIG_DISABLE_MOUSE_EDGE_SCROLLING, "Disable map scrolling on window edge"},
     {TR_CONFIG_DISABLE_RIGHT_CLICK_MAP_DRAG, "Disable right click to drag the map"},
     {TR_CONFIG_VISUAL_FEEDBACK_ON_DELETE, "Improve visual feedback when clearing land"},
     {TR_CONFIG_ALLOW_CYCLING_TEMPLES, "Allow building each temple in succession"},
@@ -120,6 +124,7 @@ static translation_string all_strings[] = {
     {TR_HOTKEY_SHOW_ADVISOR_CHIEF, "Chief advisor"},
     {TR_HOTKEY_SHOW_ADVISOR_HOUSING, "Housing advisor"},
     {TR_HOTKEY_TOGGLE_OVERLAY, "Toggle current overlay"},
+    {TR_HOTKEY_SHOW_OVERLAY_RELATIVE, "Show relative overlay"},
     {TR_HOTKEY_SHOW_OVERLAY_WATER, "Show water overlay"},
     {TR_HOTKEY_SHOW_OVERLAY_FIRE, "Show fire overlay"},
     {TR_HOTKEY_SHOW_OVERLAY_DAMAGE, "Damage overlay"},
@@ -283,6 +288,10 @@ static translation_string all_strings[] = {
     {TR_BUILDING_LEGION_FOOD_WARNING_1, "Recent food shortage decreased morale"},
     {TR_BUILDING_LEGION_FOOD_WARNING_2, "Recent food shortage greatly decreased morale"},
     {TR_BUILDING_LEGION_STARVING, "Food shortage" },
+    {TR_ADVISOR_TRADE_MAX, "Max"},
+    {TR_ADVISOR_TRADE_NO_LIMIT, "No limit"},
+    {TR_ADVISOR_TRADE_IMPORTABLE, "Importable"},
+    {TR_ADVISOR_TRADE_EXPORTABLE, "Exportable"},
     {TR_ADVISOR_LEGION_FOOD_SATISFIED, "Your soldiers have all the food they require."},
     {TR_ADVISOR_LEGION_FOOD_NEEDED, "Your soldiers need more food." },
     {TR_ADVISOR_LEGION_FOOD_CRITICAL, "Your soldiers are starving!"},
@@ -375,7 +384,8 @@ static translation_string all_strings[] = {
     {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_MEDICINE, "Toggle health walker access" },
     {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_TAX_COLLECTOR, "Toggle tax collector access" },
     {TR_TOOLTIP_BUTTON_ROADBLOCK_PERMISSION_LABOR_SEEKER, "Toggle labor seekers access" },
-
+    {TR_HOTKEY_DUPLICATE_TITLE, "Hotkey already used"},
+    {TR_HOTKEY_DUPLICATE_MESSAGE, "This key combination is already assigned to the following action:"}
 };
 
 void translation_english(const translation_string **strings, int *num_strings)
