@@ -168,14 +168,6 @@ static int get_queue_destination(int ship_id, int exclude_dock_id, ship_dock_req
     return importing_dock_id ? importing_dock_id : exporting_dock_id;
 }
 
-static int get_dock_queue_length(const building* dock) {
-    map_point tile_first_queue, tile_second_queue;
-    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile_first_queue);
-    building_dock_get_ship_request_tile(dock, SHIP_DOCK_REQUEST_4_SECOND_QUEUE, &tile_second_queue);
-    return map_has_figure_at(map_grid_offset(tile_second_queue.x, tile_first_queue.y)) + map_has_figure_at(map_grid_offset(tile_second_queue.x, tile_second_queue.y));
-}
-
-
 int building_dock_get_destination(int ship_id, int exclude_dock_id, map_point *tile)
 {
     if (!city_buildings_has_working_dock()) {
