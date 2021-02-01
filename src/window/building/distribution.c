@@ -252,15 +252,20 @@ void window_building_draw_dock(building_info_context *c)
     int panel_height = c->height_blocks - 21;
     data.dock_max_cities_visible = floor(panel_height * 16 / 22);
     int scrollbar_shown = dock_distribution_permissions_buttons_count > data.dock_max_cities_visible;
+    int panel_width;
     if (scrollbar_shown) {
-        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 5, panel_height);
+      panel_width = c->width_blocks - 5;
     } else {
-        inner_panel_draw(c->x_offset + 16, c->y_offset + 270, c->width_blocks - 2, panel_height);
+      panel_width = c->width_blocks - 2;
     }
+    inner_panel_draw(c->x_offset + 16, c->y_offset + 270, panel_width, panel_height);
     dock_scrollbar.x = c->x_offset + (c->width_blocks - 4) * 16;
     dock_scrollbar.y = c->y_offset + 270;
     dock_scrollbar.height = panel_height * 16;
     scrollbar_init(&dock_scrollbar, dock_cities_scroll_position(), dock_distribution_permissions_buttons_count - data.dock_max_cities_visible);
+    if (!dock_distribution_permissions_buttons_count) {
+        text_draw_centered(translation_for(TR_BUILDING_DOCK_CITIES_NO_ROUTES), c->x_offset + 16, c->y_offset + 270 + panel_height * 16 / 2 - 7, panel_width * 16, FONT_SMALL_BLACK, 0);
+    }
 }
 
 void window_building_draw_dock_foreground(building_info_context* c)
