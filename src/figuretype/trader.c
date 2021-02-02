@@ -13,9 +13,9 @@
 #include "city/trade.h"
 #include "core/calc.h"
 #include "core/image.h"
-#include "empire/object.h"
 #include "empire/city.h"
 #include "empire/empire.h"
+#include "empire/object.h"
 #include "empire/trade_prices.h"
 #include "empire/trade_route.h"
 #include "figure/combat.h"
@@ -31,7 +31,8 @@
 #include "scenario/property.h"
 
 // Mercury Grand Temple base bonus to trader speed
-int trader_bonus_speed(void) {
+int trader_bonus_speed(void)
+{
     if (building_monument_working(BUILDING_GRAND_TEMPLE_MERCURY)) {
         return 25;
     }
@@ -41,7 +42,8 @@ int trader_bonus_speed(void) {
 }
 
 // Neptune Grand Temple base bonus to trader speed
-int sea_trader_bonus_speed(void) {
+int sea_trader_bonus_speed(void)
+{
     if (building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
         return 25;
     }
@@ -700,6 +702,15 @@ void figure_trade_ship_action(figure *f)
             } else if (f->wait_ticks >= 40) {
                 map_point tile;
                 int dock_id;
+                if (!f->destination_building_id &&
+                    (dock_id = building_dock_get_destination(f->id, 0, &tile))) {
+                    f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
+                    f->destination_building_id = dock_id;
+                    f->destination_x = tile.x;
+                    f->destination_y = tile.y;
+                    figure_route_remove(f);
+                }
+
                 if ((dock_id = building_dock_get_closer_free_destination(f->id, SHIP_DOCK_REQUEST_2_FIRST_QUEUE, &tile))) {
                     f->action_state = FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE;
                     f->destination_building_id = dock_id;
@@ -776,6 +787,7 @@ void figure_trade_ship_action(figure *f)
         case FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK:
             figure_movement_move_ticks_with_percentage(f, 1, move_speed);
             f->height_adjusted_ticks = 0;
+            f->trade_ship_failed_dock_attempts = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_112_TRADE_SHIP_MOORED;
                 figure_trader_ship_record_dock(f, f->destination_building_id);
@@ -862,7 +874,8 @@ int figure_trade_sea_trade_units()
     return 12;
 }
 
-void figure_trader_ship_record_dock(figure *ship, int dock_id) {
+void figure_trader_ship_record_dock(figure *ship, int dock_id)
+{
     building *dock = building_get(dock_id);
     dock->data.dock.trade_ship_id = ship->id;
     for (int i = 0; i < 10; i++) {
@@ -873,7 +886,8 @@ void figure_trader_ship_record_dock(figure *ship, int dock_id) {
     }
 }
 
-int figure_trader_ship_docked_once_at_dock(figure *ship, int dock_id) {
+int figure_trader_ship_docked_once_at_dock(figure *ship, int dock_id)
+{
     for (int i = 0; i < 10; i++) {
         if (dock_id == city_buildings_get_working_dock(i)) {
             if (ship->building_id & 1 << i) {
@@ -884,7 +898,8 @@ int figure_trader_ship_docked_once_at_dock(figure *ship, int dock_id) {
     return 0;
 }
 
-int figure_trader_ship_can_queue_for_import(figure *ship) {
+int figure_trader_ship_can_queue_for_import(figure *ship)
+{
     if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) {
         return 1;
     }
@@ -895,7 +910,8 @@ int figure_trader_ship_can_queue_for_import(figure *ship) {
     return 0;
 }
 
-int figure_trader_ship_can_queue_for_export(figure *ship) {
+int figure_trader_ship_can_queue_for_export(figure *ship)
+{
     if (ship->action_state != FIGURE_ACTION_112_TRADE_SHIP_MOORED) {
         return 1;
     }
@@ -907,7 +923,8 @@ int figure_trader_ship_can_queue_for_export(figure *ship) {
     return 0;
 }
 
-int figure_trader_ship_get_distance_to_dock(const figure *ship, int dock_id) {
+int figure_trader_ship_get_distance_to_dock(const figure *ship, int dock_id)
+{
     if (ship->destination_building_id == dock_id) {
         return ship->routing_path_length - ship->routing_path_current_tile;
     }
@@ -920,7 +937,8 @@ int figure_trader_ship_get_distance_to_dock(const figure *ship, int dock_id) {
     return path_length;
 }
 
-int figure_trader_ship_other_ship_closer_to_dock(int ship_id, int dock_id, int distance) {
+int figure_trader_ship_other_ship_closer_to_dock(int ship_id, int dock_id, int distance)
+{
     for (int route_id = 0; route_id < 20; route_id++) {
         if (is_sea_trade_route(route_id) && empire_city_is_trade_route_open(route_id)) {
             int city_id = empire_city_get_for_trade_route(route_id);

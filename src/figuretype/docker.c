@@ -1,6 +1,7 @@
 #include "docker.h"
 
 #include "building/building.h"
+#include "building/market.h"
 #include "building/storage.h"
 #include "building/warehouse.h"
 #include "city/buildings.h"
@@ -15,9 +16,9 @@
 #include "figure/movement.h"
 #include "figure/route.h"
 #include "figure/trader.h"
-#include "map/road_access.h"
-#include "building/market.h"
 #include "figuretype/trader.h"
+#include "map/road_access.h"
+
 static int try_import_resource(int building_id, int resource, int city_id)
 {
     building *warehouse = building_get(building_id);
