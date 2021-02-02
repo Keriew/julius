@@ -10,7 +10,6 @@ case "$BUILD_TARGET" in
 	docker exec switchdev /bin/bash -c "cd build && make -j4"
 	;;
 "mac")
-	cp -r assets ./build	
 	cp -r res/maps ./build	
 	cp -r res/augustus_manual.pdf ./build	
 	cd build && make -j4 && make install && \
@@ -23,8 +22,7 @@ case "$BUILD_TARGET" in
 		zip -r augustus.zip augustus.dmg 	
 	fi
 	;;
-"appimage")
-	cp -r assets ./build		
+"appimage")	
 	cp -r res/maps ./build	
 	cp -r res/augustus_manual.pdf ./build	
 	cd build && make -j4 && \
@@ -33,9 +31,9 @@ case "$BUILD_TARGET" in
 	./.ci_scripts/package_appimage.sh
 	if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]	
 	then
-		zip -r augustus.zip augustus.AppImage assets maps augustus_manual.pdf
+		zip -r augustus.zip augustus.AppImage maps augustus_manual.pdf
 	else
-		zip zip -r augustus.zip . -i augustus.AppImage	
+		zip -r augustus.zip . -i augustus.AppImage	
 	fi
 	;;
 "linux")
@@ -51,6 +49,6 @@ case "$BUILD_TARGET" in
 	fi
 	;;
 *)
-	cd build && make -j4 && make test
+	cd build && make -j4 && make
 	;;
 esac

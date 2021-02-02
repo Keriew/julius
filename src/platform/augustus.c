@@ -405,7 +405,7 @@ static const char *ask_for_data_dir(int again)
 #else
     if (again) {
         int result = tinyfd_messageBox("Wrong folder selected",
-            "Julius requires the original files from Caesar 3 to run.\n\n"
+            "Augustus requires the original files from Caesar 3 to run.\n\n"
             "The selected folder is not a proper Caesar 3 folder.\n\n"
             "Press OK to select another folder or Cancel to exit.",
             "okcancel", "warning", 1);
@@ -473,9 +473,9 @@ static int pre_init(const char *custom_data_dir)
         }
     #else
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-            "Julius requires the original files from Caesar 3 to run.",
-            "Move the Julius executable to the directory containing an existing "
-            "Caesar 3 installation, or run:\njulius path-to-c3-directory",
+            "Augustus requires the original files from Caesar 3 to run.",
+            "Move the Augustus executable to the directory containing an existing "
+            "Caesar 3 installation, or run:\naugustus path-to-c3-directory",
             NULL);
     #endif
 
