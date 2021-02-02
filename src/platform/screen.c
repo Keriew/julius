@@ -11,6 +11,7 @@
 #include "input/cursor.h"
 #include "platform/android/android.h"
 #include "platform/cursor.h"
+#include "platform/icon.h"
 #include "platform/switch/switch.h"
 #include "platform/vita/vita.h"
 
@@ -118,6 +119,17 @@ void platform_screen_get_scaled_params(int* width, int* height)
     }
 }
 
+static void set_window_icon(void)
+{
+    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(platform_icon_get_pixels(), 16, 16, 32, 16 * 4,
+                                                        0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+    if (!surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create surface for icon. Reason: %s", SDL_GetError());
+    }
+    SDL_SetWindowIcon(SDL.window, surface);
+    SDL_FreeSurface(surface);
+}
+
 int platform_screen_create(const char *title, int display_scale_percentage)
 {
     set_scale_percentage(display_scale_percentage, 0, 0);
@@ -159,6 +171,8 @@ int platform_screen_create(const char *title, int display_scale_percentage)
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window: %s", SDL_GetError());
         return 0;
     }
+
+    set_window_icon();
 
     if (system_is_fullscreen_only()) {
         SDL_GetWindowSize(SDL.window, &width, &height);
