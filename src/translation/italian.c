@@ -308,7 +308,7 @@ static translation_string all_strings[] = {
     {TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Deliziato dalla tua devozione, Mercurio ha benedetto la tua industria, fornendo materiali grezzi per i tuoi artigiani."},
     {TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Capomastro"},
     {TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Trasportatore"},
-    {TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Ingeniere"}, 
+    {TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Architetto"},
     {TR_FIGURE_TYPE_MESS_HALL_BUYER, "Borgomastro"}, 
     {TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Operaio"}, 
     {TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "Il grande tempio organizza i sacerdoti di Cerere per aiutare a distribuire cibo e olio ai cittadini affamati."},

@@ -309,7 +309,7 @@ static translation_string all_strings[] = {
     {TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Delighted by your devotion, Mercury has blessed your industry, uncovering raw materials for your craftsmen."},
     {TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Foreman"},
     {TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Hauler"},
-    {TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Engineer"},
+    {TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Architect"},
     {TR_FIGURE_TYPE_MESS_HALL_BUYER, "Quartermaster"},
     {TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Camp-servant"},
     {TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "The grand temple organizes priests of Ceres to aid in distributing food and oil to your hungry citizens."},

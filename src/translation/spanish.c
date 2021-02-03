@@ -301,7 +301,7 @@ static translation_string all_strings[] = {
     {TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Encantado por tu atención, Mercurio bendice tu industria, descubriendo materias primas para tus artesanos."},
     {TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Capataz"},
     {TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Transportista"},
-    {TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Ingeniero"},
+    {TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Arquitecto"},
     {TR_FIGURE_TYPE_MESS_HALL_BUYER, "Intendente militar"},
     {TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Sirviente del campo"},
     {TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "El Gran templo coordina a los sacerdotes de Ceres para ayudar distributendo comida y aceite a tus hambrientos ciudadanos."},

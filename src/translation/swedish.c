@@ -300,7 +300,7 @@ static translation_string all_strings[] = {
     {TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Förtjust över din hängivenhet har Merkurius välsignat din industri och upptäckt bortglömda råmaterial till dina hantverkare."},
     {TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Förman"},
     {TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Fraktare"},
-    {TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Ingenjör"},
+    {TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Arkitekt"},
     {TR_FIGURE_TYPE_MESS_HALL_BUYER, "Kvartermmästare"},
     {TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Lägertjänare"},
     {TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "Ceres präster från det storslagna templet bidrar med att distribuera mat och olja till dina hungriga invånare."},

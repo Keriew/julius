@@ -274,7 +274,7 @@ static translation_string all_strings[] = {
     { TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Encantado com a tua devoção, Mercúrio abençoa a tua indústria, revelando matérias-primas aos artesãos." },
     { TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Capataz" },
     { TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Carregador" },
-    { TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Engenheiro" },
+    { TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Arquiteto" },
     { TR_FIGURE_TYPE_MESS_HALL_BUYER, "Contramestre" },
     { TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Servente" },
     { TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "O Santuário de Ceres mobiliza seus sacerdotes para a distribuição de comida e azeite aos cidadãos famintos." },

@@ -302,7 +302,7 @@ static translation_string all_strings[] = {
     { TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Uradowany twoim oddaniem, Merkury zapewnił twoim rzemieślnikom materiały do produkcji dóbr." },
     { TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Brygadzista" },
     { TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Tragarz" },
-    { TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Inżynier" },
+    { TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Architekt" },
     { TR_FIGURE_TYPE_MESS_HALL_BUYER, "Kwartermistrz" },
     { TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Sługa obozowy" },
     { TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "Wielka świątynia organizuje kapłanów Ceres by doręczali żywność i oliwę głodnym mieszkańcom." },

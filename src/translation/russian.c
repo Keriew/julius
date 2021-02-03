@@ -289,7 +289,7 @@ static translation_string all_strings[] = {
     { TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Радуясь вашей преданности делу, Меркурий благословил вашу индустрию, раскрыв сырье для ваших мастеров." },
     { TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Прораб" },
     { TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Переносчик" },
-    { TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Инженер" },
+    { TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Aрхитектор" },
     { TR_FIGURE_TYPE_MESS_HALL_BUYER, "Квартирмейстер" },
     { TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Лагерьный слуга" },
     { TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "Великий храм организует жрецов Цереры, чтобы они помогали раздавать еду и масло вашим голодным гражданам." },

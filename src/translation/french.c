@@ -306,7 +306,7 @@ static translation_string all_strings[] = {
     {TR_CITY_MESSAGE_TEXT_MERCURY_BLESSING, "Ravi de votre dévouement, Mercure a béni votre industrie en découvrant des matières premières pour vos artisans."},
     {TR_FIGURE_TYPE_WORK_CAMP_WORKER, "Contremaître"},
     {TR_FIGURE_TYPE_WORK_CAMP_SLAVE, "Transporteur"},
-    {TR_FIGURE_TYPE_WORK_CAMP_ENGINEER, "Ingénieur"},
+    {TR_FIGURE_TYPE_WORK_CAMP_ARCHITECT, "Architect"},
     {TR_FIGURE_TYPE_MESS_HALL_BUYER, "Intendant"},
     {TR_FIGURE_TYPE_MESS_HALL_COLLECTOR, "Collecteur"},
     {TR_BUILDING_CERES_TEMPLE_MODULE_DESC, "Le temple monumental envoie des prêtres de Cérès pour aider à distribuer de la nourriture et de l'huile à vos citoyens affamés."},
