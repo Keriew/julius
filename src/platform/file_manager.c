@@ -99,19 +99,20 @@ static int is_file(int mode)
 #define MAX_ASSET_DIRS 10
 
 #ifndef CUSTOM_ASSETS_DIR
-#define CUSTOM_ASSETS_DIR "\0"
+#define CUSTOM_ASSETS_DIR 0
 #endif
 
-static const char ASSET_DIRS[MAX_ASSET_DIRS][FILE_NAME_MAX] = {
+static const char *ASSET_DIRS[MAX_ASSET_DIRS] = {
     ".",
 #ifdef __vita__
     VITA_PATH_PREFIX,
     "app0:",
 #elif defined (__SWITCH__)
-    "romfs:"
+    "romfs:",
 #elif defined (__APPLE__)
-    "***SDL_BASE_PATH***"
+    "***SDL_BASE_PATH***",
 #elif !defined (_WIN32)
+    "***RELATIVE_PATH***",
     "~/.local/share/augustus-game",
     "/usr/share/augustus-game",
     "/usr/local/share/augustus-game",
@@ -122,16 +123,36 @@ static const char ASSET_DIRS[MAX_ASSET_DIRS][FILE_NAME_MAX] = {
 
 static char assets_directory[FILE_NAME_MAX];
 static char assets_directory_length;
+
+static int write_base_path_to(char *dest)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 1)
+    if (!platform_sdl_version_at_least(2, 0, 1)) {
+        return 0;
+    }
+    char *base_path = SDL_GetBasePath();
+    if (!base_path) {
+        return 0;
+    }
+    strncpy(dest, base_path, FILE_NAME_MAX - 1);
+    SDL_free(base_path);
+    return 1;
+#else
+    return 0;
+#endif
+}
 #endif
 
-const dir_name get_assets_directory(void)
+static const dir_name get_assets_directory(void)
 {
-#ifndef __ANDROID__
+#ifdef __ANDROID__
+    return ASSETS_DIRECTORY;
+#else
     if (*assets_directory) {
         return set_dir_name(assets_directory);
     }
     // Find assets directory from list
-    for (int i = 0; i < MAX_ASSET_DIRS && *ASSET_DIRS[i]; ++i) {
+    for (int i = 0; i < MAX_ASSET_DIRS && ASSET_DIRS[i]; ++i) {
         // Special case - home directory
         if (*ASSET_DIRS[i] == '~') {
             const char *home_dir = getenv("HOME");
@@ -141,21 +162,21 @@ const dir_name get_assets_directory(void)
             size_t home_dir_length = strlen(home_dir);
             strncpy(assets_directory, home_dir, FILE_NAME_MAX);
             strncpy(assets_directory + home_dir_length, &ASSET_DIRS[i][1], FILE_NAME_MAX - home_dir_length);
-            // Special case - SDL base path
+        // Special case - SDL base path
         } else if (strcmp(ASSET_DIRS[i], "***SDL_BASE_PATH***") == 0) {
-#if SDL_VERSION_ATLEAST(2, 0, 1)
-            if (!platform_sdl_version_at_least(2, 0, 1)) {
+            if (!write_base_path_to(assets_directory)) {
                 continue;
             }
-            char *base_path = SDL_GetBasePath();
-            if (!base_path) {
+        // Special case - Path relative to executable location (AppImage)
+        } else if (strcmp(ASSET_DIRS[i], "***RELATIVE_PATH***") == 0) {
+            if (!write_base_path_to(assets_directory)) {
                 continue;
             }
-            strncpy(assets_directory, base_path, FILE_NAME_MAX - 1);
-            SDL_free(base_path);
-#else
-            continue;
-#endif
+            char *parent = strstr(assets_directory, "/bin");
+            if (!parent) {
+                continue;
+            }
+            strncpy(parent, "/share/augustus-game", FILE_NAME_MAX - (parent - assets_directory) - 1);
         } else {
             strncpy(assets_directory, ASSET_DIRS[i], FILE_NAME_MAX - 1);
         }
@@ -183,10 +204,8 @@ const dir_name get_assets_directory(void)
         }
         free_dir_name(result);
     }
-#else
-    return ASSETS_DIRECTORY;
-#endif
     return CURRENT_DIR;
+#endif
 }
 
 int platform_file_manager_list_directory_contents(
