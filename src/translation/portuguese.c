@@ -110,7 +110,7 @@ static translation_string all_strings[] = {
     { TR_BUILDING_ROADBLOCK, "Bloqueio de Estrada" },
     { TR_BUILDING_ROADBLOCK_DESC, "Bloqueio de estrada - impede cidadãos ociosos." },
     { TR_BUILDING_ARCHITECT_GUILD, "Guilda de Arquitetos" },
-    { TR_BUILDING_ARCHITECT_GUILD_DESC, "Os engenheiros trabalham incansavelmente, construindo monumentos pela glória de Roma." },
+    { TR_BUILDING_ARCHITECT_GUILD_DESC, "Os arquitetos trabalham incansavelmente, construindo monumentos pela glória de Roma." },
     { TR_BUILDING_GRAND_TEMPLE_ADD_MODULE, "Designa um epíteto no templo" },
     { TR_BUILDING_GRAND_TEMPLE_CERES, "Santuário de Ceres" },
     { TR_BUILDING_GRAND_TEMPLE_NEPTUNE, "Santuário de Netuno" },
