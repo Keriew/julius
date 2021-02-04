@@ -12,6 +12,7 @@ public class AugustusMainActivity extends SDLActivity {
     @Override
     public void onStop() {
         super.onStop();
+        releaseAssetManager();
         FileManager.clearCache();
     }
 
@@ -54,4 +55,5 @@ public class AugustusMainActivity extends SDLActivity {
     }
 
     private native void gotDirectory();
+    private native void releaseAssetManager();
 }

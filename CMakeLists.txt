@@ -218,6 +218,8 @@ elseif (ANDROID_BUILD)
     set(PLATFORM_FILES
         ${PLATFORM_FILES}
         ${PROJECT_SOURCE_DIR}/src/platform/android/android.c
+        ${PROJECT_SOURCE_DIR}/src/platform/android/asset_handler.c
+        ${PROJECT_SOURCE_DIR}/src/platform/android/jni.c
     )
 endif()
 
@@ -904,9 +906,10 @@ else()
         target_link_libraries(${SHORT_NAME} m)
     endif()
     if(ANDROID_BUILD)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPNG_ARM_NEON_OPT=0")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPNG_ARM_NEON_OPT=0 -D_BSD_SOURCE")
         find_library(log-lib log)
-        target_link_libraries(${SHORT_NAME} ${log-lib})
+        find_library(android-lib android)
+        target_link_libraries(${SHORT_NAME} ${log-lib} ${android-lib})
     endif()
     target_link_libraries (${SHORT_NAME} ${SDL2_LIBRARY} ${SDL2_MIXER_LIBRARY})
     if(NOT APPLE AND NOT ANDROID_BUILD)

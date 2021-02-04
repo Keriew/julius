@@ -115,6 +115,7 @@ public class FileManager {
         }
         FileInfo lookupDir = FileInfo.base;
         if (!dir.equals(".")) {
+            dir += "/.";
             lookupDir = getDirectoryFromPath(activity, dir.split("[\\\\/]"));
             if (lookupDir == null) {
                 return new String[0];
