@@ -174,10 +174,9 @@ static void draw_background(void)
 
 static void draw_foreground(void)
 {
-    if (!data.open_sub_menu) {
-        return;
+    if (data.open_sub_menu) {
+        menu_draw(&menu[data.open_sub_menu - 1], data.focus_sub_menu_id);
     }
-    menu_draw(&menu[data.open_sub_menu -1], data.focus_sub_menu_id);
 }
 
 static void handle_input(const mouse *m, const hotkeys *h)
@@ -200,7 +199,7 @@ static void top_menu_window_show(void)
 static void refresh_background(void)
 {
     int block_width = 24;
-    int image_base = image_group(GROUP_TOP_MENU_SIDEBAR);
+    int image_base = image_group(GROUP_TOP_MENU);
     int s_width = screen_width();
     for (int i = 0; i * block_width < s_width; i++) {
         image_draw(image_base + i % 8, i * block_width, 0);
@@ -227,15 +226,16 @@ void widget_top_menu_draw(int force)
         return;
     }
 
+    int s_width = screen_width();
+
     refresh_background();
-    menu_bar_draw(menu, 4);
+    menu_bar_draw(menu, 4, s_width < 1024 ? 338 : 493);
 
     color_t treasure_color = COLOR_WHITE;
     int treasury = city_finance_treasury();
     if (treasury < 0) {
         treasure_color = COLOR_FONT_RED;
     }
-    int s_width = screen_width();
     if (s_width < 800) {
         data.offset_funds = 338;
         data.offset_population = 453;
@@ -259,7 +259,8 @@ void widget_top_menu_draw(int force)
         width = lang_text_draw_colored(6, 1, 470, 5, FONT_NORMAL_PLAIN, COLOR_WHITE);
         text_draw_number_colored(city_population(), '@', " ", 466 + width, 5, FONT_NORMAL_PLAIN, COLOR_WHITE);
 
-        lang_text_draw_month_year_max_width(game_time_month(), game_time_year(), 655, 5, 110, FONT_NORMAL_PLAIN, COLOR_FONT_YELLOW);
+        lang_text_draw_month_year_max_width(game_time_month(), game_time_year(),
+            655, 5, 110, FONT_NORMAL_PLAIN, COLOR_FONT_YELLOW);
     } else {
         data.offset_funds = 493;
         data.offset_population = 637;
@@ -271,7 +272,8 @@ void widget_top_menu_draw(int force)
         width = lang_text_draw_colored(6, 1, 645, 5, FONT_NORMAL_PLAIN, COLOR_WHITE);
         text_draw_number_colored(city_population(), '@', " ", 651 + width, 5, FONT_NORMAL_PLAIN, COLOR_WHITE);
 
-        lang_text_draw_month_year_max_width(game_time_month(), game_time_year(), 850, 5, 110, FONT_NORMAL_PLAIN, COLOR_FONT_YELLOW);
+        lang_text_draw_month_year_max_width(game_time_month(), game_time_year(),
+            850, 5, 110, FONT_NORMAL_PLAIN, COLOR_FONT_YELLOW);
     }
     drawn.treasury = treasury;
     drawn.population = city_population();
@@ -287,7 +289,7 @@ static int handle_input_submenu(const mouse *m, const hotkeys *h)
     }
     int menu_id = menu_bar_handle_mouse(m, menu, 4, &data.focus_menu_id);
     if (menu_id && menu_id != data.open_sub_menu) {
-        window_invalidate();
+        window_request_refresh();
         data.open_sub_menu = menu_id;
     }
     if (!menu_handle_mouse(m, &menu[data.open_sub_menu - 1], &data.focus_sub_menu_id)) {
@@ -405,21 +407,21 @@ static void menu_file_load_game(int param)
 {
     clear_state();
     building_construction_clear_type();
-    window_city_show();
+    window_go_back();
     window_file_dialog_show(FILE_TYPE_SAVED_GAME, FILE_DIALOG_LOAD);
 }
 
 static void menu_file_save_game(int param)
 {
     clear_state();
-    window_city_show();
+    window_go_back();
     window_file_dialog_show(FILE_TYPE_SAVED_GAME, FILE_DIALOG_SAVE);
 }
 
 static void menu_file_delete_game(int param)
 {
     clear_state();
-    window_city_show();
+    window_go_back();
     window_file_dialog_show(FILE_TYPE_SAVED_GAME, FILE_DIALOG_DELETE);
 }
 
@@ -428,7 +430,7 @@ static void menu_file_confirm_exit(int accepted)
     if (accepted) {
         system_exit();
     } else {
-        window_city_show();
+        window_city_return();
     }
 }
 
@@ -441,25 +443,25 @@ static void menu_file_exit_game(int param)
 static void menu_options_display(int param)
 {
     clear_state();
-    window_display_options_show(window_city_show);
+    window_display_options_show(window_city_return);
 }
 
 static void menu_options_sound(int param)
 {
     clear_state();
-    window_sound_options_show(window_city_show);
+    window_sound_options_show(window_city_return);
 }
 
 static void menu_options_speed(int param)
 {
     clear_state();
-    window_speed_options_show(window_city_show);
+    window_speed_options_show(window_city_return);
 }
 
 static void menu_options_difficulty(int param)
 {
     clear_state();
-    window_difficulty_options_show(window_city_show);
+    window_difficulty_options_show(window_city_return);
 }
 
 static void menu_options_autosave(int param)

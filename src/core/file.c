@@ -11,6 +11,11 @@ FILE *file_open(const char *filename, const char *mode)
     return platform_file_manager_open_file(filename, mode);
 }
 
+FILE *file_open_asset(const char *asset, const char *mode)
+{
+    return platform_file_manager_open_asset(asset, mode);
+}
+
 int file_close(FILE *stream)
 {
     return fclose(stream);
@@ -29,7 +34,7 @@ int file_has_extension(const char *filename, const char *extension)
     if (!c) {
         filename--;
     }
-    return string_compare_case_insensitive(filename, extension) == 0;
+    return platform_file_manager_compare_filename(filename, extension) == 0;
 }
 
 void file_change_extension(char *filename, const char *new_extension)
@@ -62,7 +67,7 @@ void file_append_extension(char *filename, const char *extension)
     filename[4] = 0;
 }
 
-void file_remove_extension(uint8_t *filename)
+void file_remove_extension(char *filename)
 {
     uint8_t c;
     do {

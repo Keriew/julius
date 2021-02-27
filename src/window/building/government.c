@@ -5,6 +5,8 @@
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
 #include "graphics/panel.h"
+#include "graphics/text.h"
+#include "translation/translation.h"
 #include "window/building/figures.h"
 
 void window_building_draw_forum(building_info_context *c)
@@ -17,7 +19,8 @@ void window_building_draw_forum(building_info_context *c)
 
     building *b = building_get(c->building_id);
     int width = lang_text_draw(106, 2, c->x_offset + 44, c->y_offset + 43, FONT_NORMAL_BLACK);
-    lang_text_draw_amount(8, 0, b->tax_income_or_storage, c->x_offset + 44 + width, c->y_offset + 43, FONT_NORMAL_BLACK);
+    lang_text_draw_amount(8, 0, b->tax_income_or_storage,
+        c->x_offset + 44 + width, c->y_offset + 43, FONT_NORMAL_BLACK);
 
     if (!c->has_road_access) {
         window_building_draw_description(c, 69, 25);
@@ -50,7 +53,8 @@ void window_building_draw_senate(building_info_context *c)
 
     building *b = building_get(c->building_id);
     int width = lang_text_draw(105, 2, c->x_offset + 44, c->y_offset + 43, FONT_NORMAL_BLACK);
-    lang_text_draw_amount(8, 0, b->tax_income_or_storage, c->x_offset + 44 + width, c->y_offset + 43, FONT_NORMAL_BLACK);
+    lang_text_draw_amount(8, 0, b->tax_income_or_storage,
+        c->x_offset + 44 + width, c->y_offset + 43, FONT_NORMAL_BLACK);
 
     if (!c->has_road_access) {
         window_building_draw_description(c, 69, 25);
@@ -112,11 +116,31 @@ void window_building_draw_statue(building_info_context *c)
     window_building_draw_description_at(c, 16 * c->height_blocks - 158, 80, 1);
 }
 
-void window_building_draw_triumphal_arch(building_info_context *c)
+void window_building_draw_triumphal_arch(building_info_context* c)
 {
     c->help_id = 79;
     window_building_play_sound(c, "wavs/statue.wav");
     outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
     lang_text_draw_centered(80, 2, c->x_offset, c->y_offset + 10, 16 * c->width_blocks, FONT_LARGE_BLACK);
     window_building_draw_description_at(c, 16 * c->height_blocks - 158, 80, 3);
+}
+
+void window_building_draw_pond(building_info_context * c)
+{
+    c->help_id = 80;
+    window_building_play_sound(c, "wavs/fountain.wav");
+    outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
+    
+    text_draw_centered(translation_for(TR_BUILDING_WINDOW_POND), c->x_offset, c->y_offset + 25, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
+    window_building_draw_description_from_tr_string(c, TR_BUILDING_POND_DESC);
+}
+
+void window_building_draw_obelisk(building_info_context* c)
+{
+    c->help_id = 79;
+    window_building_play_sound(c, "wavs/statue.wav");
+    outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
+
+    text_draw_centered(translation_for(TR_BUILDING_OBELISK), c->x_offset, c->y_offset + 25, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
+    window_building_draw_description_from_tr_string(c, TR_BUILDING_OBELISK_DESC);
 }

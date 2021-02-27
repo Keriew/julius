@@ -13,6 +13,7 @@ res/julius.icns
 
 # Build output and data directories
 /build*/
+/release
 out/
 cmake-build-debug
 /data
@@ -20,7 +21,6 @@ ext/SDL2/*/
 *~
 *.swp
 .vscode
-/android
 # Android
 *.iml
 .gradle
@@ -30,5 +30,9 @@ local.properties
 .externalNativeBuild
 .idea
 .cxx/
-distribution/
 *.log
+/android/build/
+/android/*/build/
+/android/julius.keystore
+/android/play-publisher.json
+/android/julius/src/main/play

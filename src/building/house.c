@@ -3,6 +3,7 @@
 #include "core/config.h"
 #include "core/image.h"
 #include "game/resource.h"
+#include "game/undo.h"
 #include "map/building.h"
 #include "map/building_tiles.h"
 #include "map/grid.h"
@@ -84,6 +85,7 @@ void building_house_change_to_vacant_lot(building *house)
         map_building_tiles_remove(house->id, house->x, house->y);
         house->house_is_merged = 0;
         house->size = house->house_size = 1;
+        house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
         map_building_tiles_add(house->id, house->x, house->y, 1, image_id, TERRAIN_BUILDING);
 
         create_vacant_lot(house->x + 1, house->y, image_id);
@@ -122,6 +124,7 @@ static void merge(building *b)
     prepare_for_merge(b->id, 4);
 
     b->size = b->house_size = 2;
+    b->is_adjacent_to_water = map_terrain_is_adjacent_to_water(b->x, b->y, b->size);
     b->house_population += merge_data.population;
     for (int i = 0; i < INVENTORY_MAX; i++) {
         b->data.house.inventory[i] += merge_data.inventory[i];
@@ -164,6 +167,7 @@ void building_house_merge(building *house)
         }
     }
     if (num_house_tiles == 4) {
+        game_undo_disable();
         merge_data.x = house->x + EXPAND_DIRECTION_DELTA[0].x;
         merge_data.y = house->y + EXPAND_DIRECTION_DELTA[0].y;
         merge(house);
@@ -285,6 +289,7 @@ static void split_size2(building *house, building_type new_type)
     house->type = new_type;
     house->subtype.house_level = house->type - BUILDING_HOUSE_VACANT_LOT;
     house->size = house->house_size = 1;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_is_merged = 0;
     house->house_population = population_per_tile + population_remainder;
     for (int i = 0; i < INVENTORY_MAX; i++) {
@@ -319,6 +324,7 @@ static void split_size3(building *house)
     house->type = BUILDING_HOUSE_MEDIUM_INSULA;
     house->subtype.house_level = house->type - BUILDING_HOUSE_VACANT_LOT;
     house->size = house->house_size = 1;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_is_merged = 0;
     house->house_population = population_per_tile + population_remainder;
     for (int i = 0; i < INVENTORY_MAX; i++) {
@@ -369,6 +375,7 @@ void building_house_expand_to_large_insula(building *house)
     house->type = BUILDING_HOUSE_LARGE_INSULA;
     house->subtype.house_level = HOUSE_LARGE_INSULA;
     house->size = house->house_size = 2;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_population += merge_data.population;
     for (int i = 0; i < INVENTORY_MAX; i++) {
         house->data.house.inventory[i] += merge_data.inventory[i];
@@ -389,6 +396,7 @@ void building_house_expand_to_large_villa(building *house)
     house->type = BUILDING_HOUSE_LARGE_VILLA;
     house->subtype.house_level = HOUSE_LARGE_VILLA;
     house->size = house->house_size = 3;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_population += merge_data.population;
     for (int i = 0; i < INVENTORY_MAX; i++) {
         house->data.house.inventory[i] += merge_data.inventory[i];
@@ -409,6 +417,7 @@ void building_house_expand_to_large_palace(building *house)
     house->type = BUILDING_HOUSE_LARGE_PALACE;
     house->subtype.house_level = HOUSE_LARGE_PALACE;
     house->size = house->house_size = 4;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_population += merge_data.population;
     for (int i = 0; i < INVENTORY_MAX; i++) {
         house->data.house.inventory[i] += merge_data.inventory[i];
@@ -443,6 +452,7 @@ void building_house_devolve_from_large_villa(building *house)
     house->type = BUILDING_HOUSE_MEDIUM_VILLA;
     house->subtype.house_level = house->type - BUILDING_HOUSE_VACANT_LOT;
     house->size = house->house_size = 2;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_is_merged = 0;
     house->house_population = population_per_tile + population_remainder;
     for (int i = 0; i < INVENTORY_MAX; i++) {
@@ -456,11 +466,16 @@ void building_house_devolve_from_large_villa(building *house)
 
     // the other tiles (new buildings)
     image_id = house_image_group(HOUSE_MEDIUM_INSULA);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 2, house->y, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 2, house->y + 1, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x, house->y + 2, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 1, house->y + 2, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 2, house->y + 2, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 2, house->y, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 2, house->y + 1, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x, house->y + 2, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 1, house->y + 2, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 2, house->y + 2, image_id, population_per_tile, inventory_per_tile);
 }
 
 void building_house_devolve_from_large_palace(building *house)
@@ -480,6 +495,7 @@ void building_house_devolve_from_large_palace(building *house)
     house->type = BUILDING_HOUSE_MEDIUM_PALACE;
     house->subtype.house_level = house->type - BUILDING_HOUSE_VACANT_LOT;
     house->size = house->house_size = 3;
+    house->is_adjacent_to_water = map_terrain_is_adjacent_to_water(house->x, house->y, house->size);
     house->house_is_merged = 0;
     house->house_population = population_per_tile + population_remainder;
     for (int i = 0; i < INVENTORY_MAX; i++) {
@@ -492,13 +508,20 @@ void building_house_devolve_from_large_palace(building *house)
 
     // the other tiles (new buildings)
     image_id = house_image_group(HOUSE_MEDIUM_INSULA);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 3, house->y, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 3, house->y + 1, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 3, house->y + 2, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x, house->y + 3, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 1, house->y + 3, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 2, house->y + 3, image_id, population_per_tile, inventory_per_tile);
-    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA, house->x + 3, house->y + 3, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 3, house->y, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 3, house->y + 1, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 3, house->y + 2, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x, house->y + 3, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 1, house->y + 3, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 2, house->y + 3, image_id, population_per_tile, inventory_per_tile);
+    create_house_tile(BUILDING_HOUSE_MEDIUM_INSULA,
+        house->x + 3, house->y + 3, image_id, population_per_tile, inventory_per_tile);
 }
 
 void building_house_check_for_corruption(building *house)

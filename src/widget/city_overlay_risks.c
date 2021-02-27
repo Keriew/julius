@@ -19,7 +19,7 @@ static int is_problem_cartpusher(int figure_id)
     }
 }
 
-void overlay_problems_prepare_building(building *b)
+void city_overlay_problems_prepare_building(building *b)
 {
     if (b->house_size) {
         return;
@@ -50,7 +50,7 @@ static int show_building_fire_crime(const building *b)
 
 static int show_building_damage(const building *b)
 {
-    return b->type == BUILDING_ENGINEERS_POST;
+    return b->type == BUILDING_ENGINEERS_POST || b->type == BUILDING_ENGINEER_GUILD;
 }
 
 static int show_building_problems(const building *b)
@@ -70,7 +70,7 @@ static int show_figure_fire(const figure *f)
 
 static int show_figure_damage(const figure *f)
 {
-    return f->type == FIGURE_ENGINEER;
+    return f->type == FIGURE_ENGINEER || f->type == FIGURE_WORK_CAMP_ENGINEER;
 }
 
 static int show_figure_crime(const figure *f)
@@ -102,7 +102,7 @@ static int get_column_height_fire(const building *b)
 
 static int get_column_height_damage(const building *b)
 {
-    return b->damage_risk > 0 ? b->damage_risk / 10 : NO_COLUMN;
+    return b->damage_risk > 0 ? b->damage_risk / 20 : NO_COLUMN;
 }
 
 static int get_column_height_crime(const building *b)

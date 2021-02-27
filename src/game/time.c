@@ -1,5 +1,7 @@
 #include "time.h"
 
+#include <math.h>
+
 static struct {
     int tick; // 50 ticks in a day
     int day; // 16 days in a month
@@ -68,6 +70,14 @@ int game_time_advance_month(void)
 void game_time_advance_year(void)
 {
     ++data.year;
+}
+
+int game_time_total_months(void) {
+    return (int)floor(data.total_days / 16);
+}
+
+int game_time_total_years(void) {
+    return (int)floor(game_time_total_months() / 12);
 }
 
 void game_time_save_state(buffer *buf)

@@ -1,5 +1,6 @@
 #include "building_state.h"
 
+#include "building/monument.h"
 #include "game/resource.h"
 
 static int is_industry_type(const building *b)
@@ -40,7 +41,7 @@ static void write_type_data(buffer *buf, const building *b)
         buffer_write_u8(buf, b->data.house.num_gods);
         buffer_write_u8(buf, b->data.house.devolve_delay);
         buffer_write_u8(buf, b->data.house.evolve_text_id);
-    } else if (b->type == BUILDING_MARKET) {
+    } else if (b->type == BUILDING_MARKET || b->type == BUILDING_MESS_HALL || b->type == BUILDING_SMALL_TEMPLE_CERES || b->type == BUILDING_LARGE_TEMPLE_CERES || b->type == BUILDING_SMALL_TEMPLE_VENUS || b->type == BUILDING_LARGE_TEMPLE_VENUS) {
         buffer_write_i16(buf, 0);
         for (int i = 0; i < INVENTORY_MAX; i++) {
             buffer_write_i16(buf, b->data.market.inventory[i]);
@@ -53,7 +54,8 @@ static void write_type_data(buffer *buf, const building *b)
             buffer_write_i16(buf, 0);
         }
         buffer_write_u8(buf, b->data.market.fetch_inventory_id);
-        for (int i = 0; i < 9; i++) {
+        buffer_write_u8(buf, b->data.market.is_mess_hall);
+        for (int i = 0; i < 8; i++) {
             buffer_write_u8(buf, 0);
         }
     } else if (b->type == BUILDING_GRANARY) {
@@ -63,10 +65,19 @@ static void write_type_data(buffer *buf, const building *b)
         }
         buffer_write_i32(buf, 0);
         buffer_write_i32(buf, 0);
+    } else if (building_monument_is_monument(b)) {
+        for (int i = 0; i < RESOURCE_MAX; i++) {
+            buffer_write_i16(buf, b->data.monument.resources_needed[i]);
+        }
+        buffer_write_i32(buf, b->data.monument.upgrades);
+        buffer_write_i16(buf, b->data.monument.progress);
+        buffer_write_i32(buf, 0);
     } else if (b->type == BUILDING_DOCK) {
         buffer_write_i16(buf, b->data.dock.queued_docker_id);
-        for (int i = 0; i < 25; i++) {
-            buffer_write_u8(buf, 0);
+        buffer_write_u8(buf, b->data.dock.has_accepted_route_ids);
+        buffer_write_i32(buf, b->data.dock.accepted_route_ids);
+        for (int i = 0; i < 20; i++) {
+          buffer_write_u8(buf, 0);
         }
         buffer_write_u8(buf, b->data.dock.num_ships);
         buffer_write_u8(buf, 0);
@@ -125,7 +136,7 @@ void building_state_save_to_buffer(buffer *buf, const building *b)
     buffer_write_i16(buf, b->type);
     buffer_write_i16(buf, b->subtype.house_level); // which union field we use does not matter
     buffer_write_u8(buf, b->road_network_id);
-    buffer_write_u8(buf, 0);
+    buffer_write_u8(buf, b->monthly_levy);
     buffer_write_u16(buf, b->created_sequence);
     buffer_write_i16(buf, b->houses_covered);
     buffer_write_i16(buf, b->percentage_houses_covered);
@@ -141,7 +152,7 @@ void building_state_save_to_buffer(buffer *buf, const building *b)
     buffer_write_i16(buf, b->immigrant_figure_id);
     buffer_write_i16(buf, b->figure_id4);
     buffer_write_u8(buf, b->figure_spawn_delay);
-    buffer_write_u8(buf, 0);
+    buffer_write_u8(buf, b->days_since_offering);
     buffer_write_u8(buf, b->figure_roam_direction);
     buffer_write_u8(buf, b->has_water_access);
     buffer_write_u8(buf, 0);
@@ -162,7 +173,7 @@ void building_state_save_to_buffer(buffer *buf, const building *b)
     buffer_write_u8(buf, b->fire_proof);
     buffer_write_u8(buf, b->house_figure_generation_delay);
     buffer_write_u8(buf, b->house_tax_coverage);
-    buffer_write_u8(buf, 0);
+    buffer_write_u8(buf, b->house_pantheon_access);
     buffer_write_i16(buf, b->formation_id);
     write_type_data(buf, b);
     buffer_write_i32(buf, b->tax_income_or_storage);
@@ -208,7 +219,7 @@ static void read_type_data(buffer *buf, building *b)
         b->data.house.num_gods = buffer_read_u8(buf);
         b->data.house.devolve_delay = buffer_read_u8(buf);
         b->data.house.evolve_text_id = buffer_read_u8(buf);
-    } else if (b->type == BUILDING_MARKET) {
+    } else if (b->type == BUILDING_MARKET || b->type == BUILDING_MESS_HALL || b->type == BUILDING_SMALL_TEMPLE_CERES || b->type == BUILDING_LARGE_TEMPLE_CERES || b->type == BUILDING_SMALL_TEMPLE_VENUS || b->type == BUILDING_LARGE_TEMPLE_VENUS) {
         buffer_skip(buf, 2);
         for (int i = 0; i < INVENTORY_MAX; i++) {
             b->data.market.inventory[i] = buffer_read_i16(buf);
@@ -219,16 +230,26 @@ static void read_type_data(buffer *buf, building *b)
         b->data.market.wine_demand = buffer_read_i16(buf);
         buffer_skip(buf, 6);
         b->data.market.fetch_inventory_id = buffer_read_u8(buf);
-        buffer_skip(buf, 9);
+        b->data.market.is_mess_hall = buffer_read_u8(buf);
+        buffer_skip(buf, 8);
     } else if (b->type == BUILDING_GRANARY) {
         buffer_skip(buf, 2);
         for (int i = 0; i < RESOURCE_MAX; i++) {
             b->data.granary.resource_stored[i] = buffer_read_i16(buf);
         }
         buffer_skip(buf, 8);
+    } else if (building_monument_is_monument(b)) {
+        for (int i = 0; i < RESOURCE_MAX; i++) {
+            b->data.monument.resources_needed[i] = buffer_read_i16(buf);
+        }
+        b->data.monument.upgrades = buffer_read_i32(buf);
+        b->data.monument.progress = buffer_read_i16(buf);
+        buffer_skip(buf, 4);
     } else if (b->type == BUILDING_DOCK) {
         b->data.dock.queued_docker_id = buffer_read_i16(buf);
-        buffer_skip(buf, 25);
+        b->data.dock.has_accepted_route_ids = buffer_read_u8(buf);
+        b->data.dock.accepted_route_ids = buffer_read_i32(buf);
+        buffer_skip(buf, 20);
         b->data.dock.num_ships = buffer_read_u8(buf);
         buffer_skip(buf, 2);
         b->data.dock.orientation = buffer_read_i8(buf);
@@ -273,7 +294,7 @@ void building_state_load_from_buffer(buffer *buf, building *b)
     b->type = buffer_read_i16(buf);
     b->subtype.house_level = buffer_read_i16(buf); // which union field we use does not matter
     b->road_network_id = buffer_read_u8(buf);
-    buffer_skip(buf, 1);
+    b->monthly_levy = buffer_read_u8(buf);
     b->created_sequence = buffer_read_u16(buf);
     b->houses_covered = buffer_read_i16(buf);
     b->percentage_houses_covered = buffer_read_i16(buf);
@@ -289,7 +310,7 @@ void building_state_load_from_buffer(buffer *buf, building *b)
     b->immigrant_figure_id = buffer_read_i16(buf);
     b->figure_id4 = buffer_read_i16(buf);
     b->figure_spawn_delay = buffer_read_u8(buf);
-    buffer_skip(buf, 1);
+    b->days_since_offering = buffer_read_u8(buf);
     b->figure_roam_direction = buffer_read_u8(buf);
     b->has_water_access = buffer_read_u8(buf);
     buffer_skip(buf, 1);
@@ -310,7 +331,7 @@ void building_state_load_from_buffer(buffer *buf, building *b)
     b->fire_proof = buffer_read_u8(buf);
     b->house_figure_generation_delay = buffer_read_u8(buf);
     b->house_tax_coverage = buffer_read_u8(buf);
-    buffer_skip(buf, 1);
+    b->house_pantheon_access = buffer_read_u8(buf);
     b->formation_id = buffer_read_i16(buf);
     read_type_data(buf, b);
     b->tax_income_or_storage = buffer_read_i32(buf);

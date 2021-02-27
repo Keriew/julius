@@ -1,12 +1,22 @@
 #include "festival.h"
 
 #include "building/warehouse.h"
+#include "building/monument.h"
 #include "city/constants.h"
 #include "city/data_private.h"
 #include "city/finance.h"
 #include "city/message.h"
 #include "city/sentiment.h"
 #include "core/config.h"
+#include "game/time.h"
+
+auto_festival autofestivals[5] = {
+    {0, 3}, //ceres, april
+    {1, 6}, //neptune, july
+    {2, 4}, //mercury, may
+    {3, 2}, //mars, march
+    {4, 3}, //venus, april
+};
 
 int city_festival_is_planned(void)
 {
@@ -86,38 +96,56 @@ void city_festival_schedule(void)
     city_finance_process_sundry(cost);
 
     if (city_data.festival.selected.size == FESTIVAL_GRAND) {
-        building_warehouses_remove_resource(RESOURCE_WINE, city_data.festival.grand_wine);
+        int wine_needed = city_data.festival.grand_wine;
+        if (building_monument_gt_module_is_active(VENUS_MODULE_1_DISTRIBUTE_WINE)) {
+            building* venus_gt = building_get(building_monument_get_venus_gt());
+            if (wine_needed <= venus_gt->loads_stored) {
+                venus_gt->loads_stored -= wine_needed;
+                wine_needed = 0;
+            }
+            else {
+                wine_needed -= venus_gt->loads_stored;
+                venus_gt->loads_stored = 0;
+            }
+        }
+        building_warehouses_remove_resource(RESOURCE_WINE, wine_needed);
     }
+}
+
+void festival_sentiment_and_deity(int size, int god_id)
+{
+    if (city_data.festival.first_festival_effect_months <= 0) {
+        city_data.festival.first_festival_effect_months = 12;
+        switch (size) {
+        case FESTIVAL_SMALL: city_sentiment_change_happiness(7); break;
+        case FESTIVAL_LARGE: city_sentiment_change_happiness(9); break;
+        case FESTIVAL_GRAND: city_sentiment_change_happiness(12); break;
+        }
+    }
+    else if (city_data.festival.second_festival_effect_months <= 0) {
+        city_data.festival.second_festival_effect_months = 12;
+        switch (size) {
+        case FESTIVAL_SMALL: city_sentiment_change_happiness(2); break;
+        case FESTIVAL_LARGE: city_sentiment_change_happiness(3); break;
+        case FESTIVAL_GRAND: city_sentiment_change_happiness(5); break;
+        }
+    }
+    city_data.festival.months_since_festival = 1;
+    city_data.religion.gods[god_id].months_since_festival = 0;
+}
+
+static void throw_auto_festival(int god_id) {
+    festival_sentiment_and_deity(1, god_id);
+    city_message_post(0, MESSAGE_AUTO_FESTIVAL_CERES + god_id, 0, 0);
 }
 
 static void throw_party(void)
 {
-    if (city_data.festival.first_festival_effect_months <= 0) {
-        city_data.festival.first_festival_effect_months = 12;
-        switch (city_data.festival.planned.size) {
-            case FESTIVAL_SMALL: city_sentiment_change_happiness(7); break;
-            case FESTIVAL_LARGE: city_sentiment_change_happiness(9); break;
-            case FESTIVAL_GRAND: city_sentiment_change_happiness(12); break;
-        }
-    } else if (city_data.festival.second_festival_effect_months <= 0) {
-        city_data.festival.second_festival_effect_months = 12;
-        switch (city_data.festival.planned.size) {
-            case FESTIVAL_SMALL: city_sentiment_change_happiness(2); break;
-            case FESTIVAL_LARGE: city_sentiment_change_happiness(3); break;
-            case FESTIVAL_GRAND: city_sentiment_change_happiness(5); break;
-        }
-    }
-    city_data.festival.months_since_festival = 1;
-    city_data.religion.gods[city_data.festival.planned.god].months_since_festival = 0;
+    festival_sentiment_and_deity(city_data.festival.planned.size, city_data.festival.planned.god);
     switch (city_data.festival.planned.size) {
-        case FESTIVAL_SMALL: city_message_post(1, MESSAGE_SMALL_FESTIVAL, 0, 0); break;
-        case FESTIVAL_LARGE: city_message_post(1, MESSAGE_LARGE_FESTIVAL, 0, 0); break;
-        case FESTIVAL_GRAND: 
-            city_message_post(1, MESSAGE_GRAND_FESTIVAL, 0, 0); 
-	        if (config_get(CONFIG_GP_CH_GRANDFESTIVAL)) {
-                city_data.religion.gods[city_data.festival.planned.god].blessing_done = 0;
-	        }
-            break;
+    case FESTIVAL_SMALL: city_message_post(1, MESSAGE_SMALL_FESTIVAL, 0, 0); break;
+    case FESTIVAL_LARGE: city_message_post(1, MESSAGE_LARGE_FESTIVAL, 0, 0); break;
+    case FESTIVAL_GRAND: city_message_post(1, MESSAGE_GRAND_FESTIVAL, 0, 0); break;
     }
     city_data.festival.planned.size = FESTIVAL_NONE;
     city_data.festival.planned.months_to_go = 0;
@@ -138,16 +166,30 @@ void city_festival_update(void)
             throw_party();
         }
     }
+
+    if (building_monument_working(BUILDING_PANTHEON)) {
+        for (int god = 0; god <= 4; ++god) {
+            if (game_time_total_years() % 5 == god && game_time_month() == autofestivals[god].month) {
+                throw_auto_festival(god);
+            }
+        }
+    }
 }
 
 void city_festival_calculate_costs(void)
 {
+    int wine_available = city_data.resource.stored_in_warehouses[RESOURCE_WINE];
+    if (building_monument_gt_module_is_active(VENUS_MODULE_1_DISTRIBUTE_WINE)) {
+        building* venus_gt = building_get(building_monument_get_venus_gt());
+        wine_available += venus_gt->loads_stored;
+    }
+
     city_data.festival.small_cost = city_data.population.population / 20 + 10;
     city_data.festival.large_cost = city_data.population.population / 10 + 20;
     city_data.festival.grand_cost = city_data.population.population / 5 + 40;
     city_data.festival.grand_wine = city_data.population.population / 500 + 1;
     city_data.festival.not_enough_wine = 0;
-    if (city_data.resource.stored_in_warehouses[RESOURCE_WINE] < city_data.festival.grand_wine) {
+    if (wine_available < city_data.festival.grand_wine) {
         city_data.festival.not_enough_wine = 1;
         if (city_data.festival.selected.size == FESTIVAL_GRAND) {
             city_data.festival.selected.size = FESTIVAL_LARGE;

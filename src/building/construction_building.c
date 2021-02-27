@@ -1,11 +1,13 @@
 #include "construction_building.h"
 
+#include "assets/assets.h"
 #include "building/building.h"
 #include "building/construction.h"
 #include "building/construction_warning.h"
 #include "building/count.h"
 #include "building/dock.h"
 #include "building/menu.h"
+#include "building/monument.h"
 #include "building/properties.h"
 #include "building/rotation.h"
 #include "building/storage.h"
@@ -14,8 +16,8 @@
 #include "city/warning.h"
 #include "core/config.h"
 #include "core/image.h"
-#include "core/mods.h"
 #include "core/random.h"
+#include "empire/city.h"
 #include "figure/formation_legion.h"
 #include "game/undo.h"
 #include "map/building_tiles.h"
@@ -26,6 +28,7 @@
 #include "map/terrain.h"
 #include "map/tiles.h"
 #include "map/water.h"
+#include "scenario/property.h"
 
 static void add_fort(int type, building *fort)
 {
@@ -266,6 +269,46 @@ static void add_to_map(int type, building *b, int size,
         case BUILDING_LARGE_STATUE:
             add_building(b, image_group(GROUP_BUILDING_STATUE) + 2);
             break;
+        case BUILDING_SMALL_POND:
+            if (scenario_property_climate() == CLIMATE_DESERT) {
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "s pond south off"));
+            }
+            else {
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "s pond north off"));
+            }
+            break;
+        case BUILDING_LARGE_POND:
+            if (scenario_property_climate() == CLIMATE_DESERT) {
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "l pond south off"));
+            } 
+            else {
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "l pond north off"));
+            }
+            break;
+        case BUILDING_PAVILION_BLUE:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "pavilion blue"));
+            break;
+        case BUILDING_PAVILION_RED:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "pavilion red"));
+            break;
+        case BUILDING_PAVILION_ORANGE:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "pavilion orange"));
+            break;
+        case BUILDING_PAVILION_YELLOW:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "pavilion yellow"));
+            break;
+        case BUILDING_PAVILION_GREEN:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "pavilion green"));
+            break;
+        case BUILDING_SMALL_STATUE_ALT:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "sml statue 2"));
+            break;
+        case BUILDING_SMALL_STATUE_ALT_B:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "sml statue 3"));
+            break;
+        case BUILDING_OBELISK:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Aesthetics"), "obelisk"));
+            break;
         // health
         case BUILDING_DOCTOR:
             add_building(b, image_group(GROUP_BUILDING_DOCTOR));
@@ -415,7 +458,7 @@ static void add_to_map(int type, building *b, int size,
             add_building(b, image_group(GROUP_BUILDING_ORACLE));
             break;
         case BUILDING_ROADBLOCK:
-            add_building(b, mods_get_group_id("Keriew", "Roadblocks"));
+            add_building(b, assets_get_group_id("Areldir", "Roadblocks"));
             map_terrain_add_roadblock_road(b->x, b->y, orientation);	    
             map_tiles_update_area_roads(b->x, b->y, 5);
             map_tiles_update_all_plazas();
@@ -423,11 +466,13 @@ static void add_to_map(int type, building *b, int size,
         // ships
         case BUILDING_SHIPYARD:
             b->data.industry.orientation = waterside_orientation_abs;
-            map_water_add_building(b->id, b->x, b->y, 2, image_group(GROUP_BUILDING_SHIPYARD) + waterside_orientation_rel);
+            map_water_add_building(b->id, b->x, b->y, 2,
+                image_group(GROUP_BUILDING_SHIPYARD) + waterside_orientation_rel);
             break;
         case BUILDING_WHARF:
             b->data.industry.orientation = waterside_orientation_abs;
-            map_water_add_building(b->id, b->x, b->y, 2, image_group(GROUP_BUILDING_WHARF) + waterside_orientation_rel);
+            map_water_add_building(b->id, b->x, b->y, 2,
+                image_group(GROUP_BUILDING_WHARF) + waterside_orientation_rel);
             break;
         case BUILDING_DOCK:
             city_buildings_add_dock();
@@ -504,9 +549,87 @@ static void add_to_map(int type, building *b, int size,
         case BUILDING_DISTRIBUTION_CENTER_UNUSED:
             city_buildings_add_distribution_center(b);
             break;
+        case BUILDING_GRAND_TEMPLE_CERES:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Ceres_Temple"), "Ceres Complex Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_GRAND_TEMPLE_NEPTUNE:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Neptune_Temple"), "Neptune Complex Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_GRAND_TEMPLE_MERCURY:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Mercury_Temple"), "Mercury Complex Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_GRAND_TEMPLE_MARS:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Mars_Temple"), "Mars Complex Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_GRAND_TEMPLE_VENUS:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Venus_Temple"), "Venus Complex Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_PANTHEON:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Pantheon"), "Pantheon Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 9);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_LIGHTHOUSE:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Lighthouses"), "Lighthouse Const 01"));
+            b->subtype.monument_phase = MONUMENT_START;
+            map_tiles_update_area_roads(b->x, b->y, 5);
+            building_monument_initialize(b);
+            break;
+        case BUILDING_WORKCAMP:
+            switch (scenario_property_climate())
+            {
+            case CLIMATE_NORTHERN:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Workcamps"), "Workcamp North"));
+                break;
+            case CLIMATE_DESERT:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Workcamps"), "Workcamp South"));
+                break;
+            default:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Workcamps"), "Workcamp Central"));
+                break;
+            }
+            break;
+        case BUILDING_ENGINEER_GUILD:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Engineer"), "Eng Guild ON"));
+            break;
+        case BUILDING_MESS_HALL:
+            b->data.market.is_mess_hall = 1;
+            city_buildings_add_mess_hall(b);
+            switch (scenario_property_climate())
+            {
+            case CLIMATE_NORTHERN:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Mess_Hall"), "Mess ON North"));
+                break;
+            case CLIMATE_DESERT:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Mess_Hall"), "Mess ON South"));
+                break;
+            default:
+                add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Mess_Hall"), "Mess ON Central"));
+                break;
+            }
+            break;
     }
     map_routing_update_land();
     map_routing_update_walls();
+    if (building_monument_is_monument(b)) {
+        building_monument_recalculate_monuments();
+    }
 }
 
 int building_construction_place_building(building_type type, int x, int y)
@@ -606,6 +729,29 @@ int building_construction_place_building(building_type type, int x, int y)
             city_warning_show(WARNING_MAX_LEGIONS_REACHED);
             return 0;
         }
+        if (!city_buildings_has_mess_hall()) {
+            city_warning_show(WARNING_NO_MESS_HALL);
+            return 0;
+        }
+    }
+
+    if (building_monument_type_is_monument(type)) {
+        if (!empire_has_access_to_resource(RESOURCE_CLAY) ||
+            !empire_has_access_to_resource(RESOURCE_TIMBER) ||
+            !empire_has_access_to_resource(RESOURCE_MARBLE)) {
+            city_warning_show(WARNING_RESOURCES_NOT_AVAILABLE);
+            return 0;
+        }        
+    }
+
+    if (building_monument_has_monument(type)) {
+        city_warning_show(WARNING_ONE_BUILDING_OF_TYPE);
+        return 0;
+    }
+
+    if (building_monument_is_grand_temple(type) && building_monument_count_grand_temples() >= 2) {
+        city_warning_show(WARNING_MAX_GRAND_TEMPLES);
+        return 0;
     }
     if (type == BUILDING_HIPPODROME) {
         if (city_buildings_has_hippodrome()) {
@@ -627,6 +773,10 @@ int building_construction_place_building(building_type type, int x, int y)
         return 0;
     }
     if (type == BUILDING_BARRACKS && city_buildings_has_barracks() && !config_get(CONFIG_GP_CH_MULTIPLE_BARRACKS)) {
+        city_warning_show(WARNING_ONE_BUILDING_OF_TYPE);
+        return 0;
+    }
+    if (type == BUILDING_MESS_HALL && city_buildings_has_mess_hall()) {
         city_warning_show(WARNING_ONE_BUILDING_OF_TYPE);
         return 0;
     }

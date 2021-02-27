@@ -5,6 +5,7 @@
 #include "city/finance.h"
 #include "core/calc.h"
 #include "core/config.h"
+#include "translation/translation.h"
 #include "game/resource.h"
 #include "game/state.h"
 #include "graphics/image.h"
@@ -23,7 +24,11 @@ static int show_building_religion(const building *b)
         b->type == BUILDING_SMALL_TEMPLE_MARS || b->type == BUILDING_SMALL_TEMPLE_VENUS ||
         b->type == BUILDING_LARGE_TEMPLE_CERES || b->type == BUILDING_LARGE_TEMPLE_NEPTUNE ||
         b->type == BUILDING_LARGE_TEMPLE_MERCURY || b->type == BUILDING_LARGE_TEMPLE_MARS ||
-        b->type == BUILDING_LARGE_TEMPLE_VENUS;
+        b->type == BUILDING_LARGE_TEMPLE_VENUS || b->type == BUILDING_GRAND_TEMPLE_CERES ||
+        b->type == BUILDING_GRAND_TEMPLE_NEPTUNE || b->type == BUILDING_GRAND_TEMPLE_MERCURY ||
+        b->type == BUILDING_GRAND_TEMPLE_MARS || b->type == BUILDING_GRAND_TEMPLE_VENUS ||
+        b->type == BUILDING_PANTHEON;
+        ;
 }
 
 static int show_building_food_stocks(const building *b)
@@ -46,9 +51,20 @@ static int show_building_desirability(const building *b)
     return 0;
 }
 
+static int show_building_roads(const building* b)
+{
+    return b->type == BUILDING_ROADBLOCK;
+}
+
+static int show_building_none(const building* b)
+{
+    return 0;
+}
+
+
 static int show_figure_religion(const figure *f)
 {
-    return f->type == FIGURE_PRIEST;
+    return f->type == FIGURE_PRIEST || f->type == FIGURE_PRIEST_BUYER;
 }
 
 static int show_figure_food_stocks(const figure *f)
@@ -97,6 +113,13 @@ static int get_column_height_food_stocks(const building *b)
     return NO_COLUMN;
 }
 
+static int get_column_height_levy(const building* b)
+{
+    int height = calc_percentage(building_get_levy(b), PANTHEON_LEVY_MONTHLY)/10;
+    height = calc_bound(height,1,10);
+    return b->monthly_levy ? height : NO_COLUMN;
+}
+
 static int get_column_height_tax_income(const building *b)
 {
     if (b->house_size) {
@@ -115,14 +138,19 @@ static int get_column_height_none(const building *b)
 
 static void add_god(tooltip_context *c, int god_id)
 {
-    int index = c->num_extra_values;
-    c->extra_value_text_groups[index] = 59;
-    c->extra_value_text_ids[index] = 11 + god_id;
-    c->num_extra_values++;
+    int index = c->num_extra_texts;
+    c->extra_text_groups[index] = 59;
+    c->extra_text_ids[index] = 11 + god_id;
+    c->num_extra_texts++;
 }
 
 static int get_tooltip_religion(tooltip_context *c, const building *b)
 {
+    if (b->house_pantheon_access) {
+        c->translation_key = TR_TOOLTIP_OVERLAY_PANTHEON_ACCESS;
+        return 0;
+    }
+    
     if (b->data.house.num_gods < 5) {
         if (b->data.house.temple_ceres) {
             add_god(c, GOD_CERES);
@@ -212,7 +240,14 @@ static int get_tooltip_water(tooltip_context *c, int grid_offset)
 
 static int get_tooltip_desirability(tooltip_context *c, int grid_offset)
 {
-    int desirability = map_desirability_get(grid_offset);
+    int desirability;
+    if (map_terrain_is(grid_offset,TERRAIN_BUILDING)) {
+        int building_id = map_building_at(grid_offset);
+        building* b = building_get(building_id);
+        desirability = b->desirability;
+    } else {
+        desirability = map_desirability_get(grid_offset);
+    }
     if (desirability < 0) {
         return 91;
     } else if (desirability == 0) {
@@ -220,6 +255,22 @@ static int get_tooltip_desirability(tooltip_context *c, int grid_offset)
     } else {
         return 93;
     }
+}
+
+static int get_tooltip_roads(tooltip_context* c, int grid_offset)
+{
+    return 0;
+}
+
+static int get_tooltip_levy(tooltip_context* c, const building* b)
+{
+    if (b->monthly_levy > 0) {
+        c->has_numeric_prefix = 1;
+        c->numeric_prefix = building_get_levy(b);
+        c->translation_key = TR_TOOLTIP_OVERLAY_LEVY;
+        return 1;
+    }
+    return 0;
 }
 
 const city_overlay *city_overlay_for_religion(void)
@@ -272,9 +323,6 @@ const city_overlay *city_overlay_for_tax_income(void)
 
 static int has_deleted_building(int grid_offset)
 {
-    if (!config_get(CONFIG_UI_VISUAL_FEEDBACK_ON_DELETE)) {
-        return 0;
-    }
     building *b = building_get(map_building_at(grid_offset));
     b = building_main(b);
     return b->id && (b->is_deleted || map_property_is_deleted(b->grid_offset));
@@ -415,7 +463,8 @@ static int get_desirability_image_offset(int desirability)
 static void draw_footprint_desirability(int x, int y, int grid_offset)
 {
     color_t color_mask = map_property_is_deleted(grid_offset) ? COLOR_MASK_RED : 0;
-    if (map_terrain_is(grid_offset, terrain_on_desirability_overlay()) && !map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
+    if (map_terrain_is(grid_offset, terrain_on_desirability_overlay())
+        && !map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
         // display normal tile
         if (map_property_is_draw_tile(grid_offset)) {
             image_draw_isometric_footprint_from_draw_tile(map_image_at(grid_offset), x, y, color_mask);
@@ -424,12 +473,18 @@ static void draw_footprint_desirability(int x, int y, int grid_offset)
         // display empty land/grass
         int image_id = image_group(GROUP_TERRAIN_GRASS_1) + (map_random_get(grid_offset) & 7);
         image_draw_isometric_footprint_from_draw_tile(image_id, x, y, color_mask);
-    } else if (map_terrain_is(grid_offset, TERRAIN_BUILDING) || map_desirability_get(grid_offset)) {
+    } else if (map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
         if (has_deleted_building(grid_offset)) {
             color_mask = COLOR_MASK_RED;
         }
-        int offset = get_desirability_image_offset(map_desirability_get(grid_offset));
+        int building_id = map_building_at(grid_offset);
+        building* b = building_get(building_id);
+        int offset = get_desirability_image_offset(b->desirability);
         image_draw_isometric_footprint_from_draw_tile(image_group(GROUP_TERRAIN_DESIRABILITY) + offset, x, y, color_mask);
+    } else if (map_desirability_get(grid_offset)) {
+        int offset = get_desirability_image_offset(map_desirability_get(grid_offset));
+        image_draw_isometric_footprint_from_draw_tile(
+            image_group(GROUP_TERRAIN_DESIRABILITY) + offset, x, y, color_mask);
     } else {
         image_draw_isometric_footprint_from_draw_tile(map_image_at(grid_offset), x, y, color_mask);
     }
@@ -438,17 +493,23 @@ static void draw_footprint_desirability(int x, int y, int grid_offset)
 static void draw_top_desirability(int x, int y, int grid_offset)
 {
     color_t color_mask = map_property_is_deleted(grid_offset) ? COLOR_MASK_RED : 0;
-    if (map_terrain_is(grid_offset, terrain_on_desirability_overlay()) && !map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
+    if (map_terrain_is(grid_offset, terrain_on_desirability_overlay())
+        && !map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
         // display normal tile
         if (map_property_is_draw_tile(grid_offset)) {
             image_draw_isometric_top_from_draw_tile(map_image_at(grid_offset), x, y, color_mask);
         }
     } else if (map_terrain_is(grid_offset, TERRAIN_AQUEDUCT | TERRAIN_WALL)) {
         // grass, no top needed
-    } else if (map_terrain_is(grid_offset, TERRAIN_BUILDING) || map_desirability_get(grid_offset)) {
+    } else if (map_terrain_is(grid_offset, TERRAIN_BUILDING)) {
         if (has_deleted_building(grid_offset)) {
             color_mask = COLOR_MASK_RED;
         }
+        int building_id = map_building_at(grid_offset);
+        building* b = building_get(building_id);
+        int offset = get_desirability_image_offset(b->desirability);
+        image_draw_isometric_top_from_draw_tile(image_group(GROUP_TERRAIN_DESIRABILITY) + offset, x, y, color_mask);
+    } else if (map_desirability_get(grid_offset)) {
         int offset = get_desirability_image_offset(map_desirability_get(grid_offset));
         image_draw_isometric_top_from_draw_tile(image_group(GROUP_TERRAIN_DESIRABILITY) + offset, x, y, color_mask);
     } else {
@@ -471,3 +532,36 @@ const city_overlay *city_overlay_for_desirability(void)
     };
     return &overlay;
 }
+
+const city_overlay* city_overlay_for_roads(void)
+{
+    static city_overlay overlay = {
+        OVERLAY_ROADS,
+        COLUMN_TYPE_ACCESS,
+        show_building_roads,
+        show_figure_none,
+        get_column_height_none,
+        get_tooltip_roads,
+        0,
+        0,
+        0
+    };
+    return &overlay;
+}
+
+const city_overlay* city_overlay_for_levy(void)
+{
+    static city_overlay overlay = {
+        OVERLAY_LEVY,
+        COLUMN_TYPE_ACCESS,
+        show_building_none,
+        show_figure_none,
+        get_column_height_levy,
+        0,
+        get_tooltip_levy,
+        0,
+        0
+    };
+    return &overlay;
+}
+

@@ -1,6 +1,7 @@
 #include "migrant.h"
 
 #include "building/house.h"
+#include "building/house_population.h"
 #include "building/model.h"
 #include "city/map.h"
 #include "city/population.h"
@@ -65,7 +66,8 @@ static int closest_house_with_room(int x, int y)
     int max_id = building_get_highest_id();
     for (int i = 1; i <= max_id; i++) {
         building *b = building_get(i);
-        if (b->state == BUILDING_STATE_IN_USE && b->house_size && b->distance_from_entry > 0 && b->house_population_room > 0) {
+        if (b->state == BUILDING_STATE_IN_USE && b->house_size
+            && b->distance_from_entry > 0 && b->house_population_room > 0) {
             if (!b->immigrant_figure_id) {
                 int dist = calc_maximum_distance(x, y, b->x, b->y);
                 if (dist < min_dist) {
@@ -139,10 +141,8 @@ void figure_immigrant_action(figure *f)
             f->is_ghost = 1;
             if (figure_movement_move_ticks_cross_country(f, 1) == 1) {
                 f->state = FIGURE_STATE_DEAD;
-                int max_people = model_get_house(b->subtype.house_level)->max_people;
-                if (b->house_is_merged) {
-                    max_people *= 4;
-                }
+                int max_people = house_population_get_capacity(b);
+
                 int room = max_people - b->house_population;
                 if (room < 0) {
                     room = 0;

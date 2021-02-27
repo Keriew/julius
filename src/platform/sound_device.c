@@ -119,7 +119,7 @@ void sound_device_close(void)
 static Mix_Chunk *load_chunk(const char *filename)
 {
     if (filename[0]) {
-#ifdef __vita__
+#if defined(__vita__) || defined(__ANDROID__)
         FILE *fp = file_open(filename, "rb");
         if (!fp) {
             return NULL;
@@ -185,9 +185,7 @@ static void load_music_for_vita(const char *filename)
         vita_music_data.buffer = 0;
     }
     strncpy(vita_music_data.filename, filename, FILE_NAME_MAX - 1);
-    char *resolved_filename = vita_prepend_path(filename);
-    SceUID fd = sceIoOpen(resolved_filename, SCE_O_RDONLY, 0777);
-    free(resolved_filename);
+    SceUID fd = sceIoOpen(vita_prepend_path(filename), SCE_O_RDONLY, 0777);
     if (fd < 0) {
         return;
     }
@@ -203,6 +201,9 @@ int sound_device_play_music(const char *filename, int volume_pct)
 {
     if (data.initialized) {
         sound_device_stop_music();
+        if (!filename) {
+            return 0;
+        }
 #ifdef __vita__
         load_music_for_vita(filename);
         if (!vita_music_data.buffer) {
@@ -210,15 +211,24 @@ int sound_device_play_music(const char *filename, int volume_pct)
         }
         SDL_RWops *sdl_music = SDL_RWFromMem(vita_music_data.buffer, vita_music_data.size);
         data.music = Mix_LoadMUSType_RW(sdl_music, file_has_extension(filename, "mp3") ? MUS_MP3 : MUS_WAV, SDL_TRUE);
+#elif defined(__ANDROID__)
+        FILE *fp = file_open(filename, "rb");
+        if (!fp) {
+            return 0;
+        }
+        SDL_RWops *sdl_fp = SDL_RWFromFP(fp, SDL_TRUE);
+        data.music = Mix_LoadMUSType_RW(sdl_fp, file_has_extension(filename, "mp3") ? MUS_MP3 : MUS_WAV, SDL_TRUE);
 #else
         data.music = Mix_LoadMUS(filename);
 #endif
         if (!data.music) {
-            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error opening music file '%s'. Reason: %s", filename, Mix_GetError());
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                "Error opening music file '%s'. Reason: %s", filename, Mix_GetError());
         } else {
             if (Mix_PlayMusic(data.music, -1) == -1) {
                 data.music = 0;
-                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error playing music file '%s'. Reason: %s", filename, Mix_GetError());
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "Error playing music file '%s'. Reason: %s", filename, Mix_GetError());
             } else {
                 sound_device_set_music_volume(volume_pct);
             }

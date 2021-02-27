@@ -238,9 +238,6 @@ int city_population_percent_in_workforce(void) {
         return 0;
     }
 
-    if (config_get(CONFIG_GP_CH_FIXED_WORKERS)) {
-        return 38;
-    }
     return calc_percentage(city_data.labor.workers_available, city_data.population.population);
 }
 
@@ -306,16 +303,35 @@ static void yearly_advance_ages_and_calculate_deaths(void)
         int death_percentage = DEATHS_PER_HEALTH_PER_AGE_DECENNIUM[city_data.health.value / 10][decennium];
         int deaths = calc_adjust_with_percentage(people, death_percentage);
         int removed = house_population_remove_from_city(deaths + aged100);
-        if (config_get(CONFIG_GP_FIX_100_YEAR_GHOSTS)) {
-            remove_from_census_in_age_decennium(decennium, deaths);
-        } else {
-            // Original C3 removes both deaths and aged100, which creates "ghosts".
-            // It should be deaths only; now aged100 are removed from census while
-            // they weren't *in* the census anymore
-            remove_from_census_in_age_decennium(decennium, removed);
-        }
+        remove_from_census_in_age_decennium(decennium, deaths);
+
         city_data.population.yearly_deaths += removed;
         aged100 = 0;
+    }
+}
+
+void city_population_venus_blessing(void)
+{
+    int years_to_grant = 3;
+    int total_before = 0;
+    int total_after = 0;
+    for (int age = 0; age < 95; age++) {
+        total_before += city_data.population.at_age[age];
+    }
+    for (int age = 25; age < 25 + years_to_grant; age++) {
+        city_data.population.at_age[age] += city_data.population.at_age[age + years_to_grant];
+
+    }
+    for (int age = 25 + years_to_grant; age < 100 - years_to_grant; age++) {
+        city_data.population.at_age[age] = city_data.population.at_age[age + years_to_grant];
+    }
+
+    for (int age = 100 - years_to_grant; age < 100; age++) {
+        city_data.population.at_age[age] = 0;
+    }
+
+    for (int age = 0; age < 100; age++) {
+        total_after += city_data.population.at_age[age];
     }
 }
 

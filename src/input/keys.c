@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-static const char *key_names[KEY_MAX_ITEMS] = {
+static const char *key_names[KEY_TYPE_MAX_ITEMS] = {
     "", "A", "B", "C", "D", "E", "F", "G", "H", "I",
     "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
     "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3",
@@ -19,7 +19,7 @@ static const char *key_names[KEY_MAX_ITEMS] = {
     "Kp.", "Kp+", "Kp-", "Kp*", "Kp/", "NonUS"
 };
 
-static const char *key_display_names[KEY_MAX_ITEMS] = {
+static const char *key_display_names[KEY_TYPE_MAX_ITEMS] = {
     "", "A", "B", "C", "D", "E", "F", "G", "H", "I",
     "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
     "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3",
@@ -28,7 +28,8 @@ static const char *key_display_names[KEY_MAX_ITEMS] = {
     ",", ".", "/", "F1", "F2", "F3", "F4", "F5", "F6", "F7",
     "F8", "F9", "F10", "F11", "F12", "Insert", "Delete", "Home", "End", "PageUp",
     "PageDown", "Right", "Left", "Down", "Up",
-    "Keypad 1", "Keypad 2", "Keypad 3", "Keypad 4", "Keypad 5", "Keypad 6", "Keypad 7", "Keypad 8", "Keypad 9", "Keypad 0",
+    "Keypad 1", "Keypad 2", "Keypad 3", "Keypad 4", "Keypad 5",
+    "Keypad 6", "Keypad 7", "Keypad 8", "Keypad 9", "Keypad 0",
     "Keypad .", "Keypad +", "Keypad -", "Keypad *", "Keypad /", "NonUS"
 };
 
@@ -38,11 +39,11 @@ typedef struct {
 } modifier_name;
 
 static const modifier_name modifier_names[] = {
-    { KEY_MOD_CTRL, "Ctrl" },
-    { KEY_MOD_ALT, "Alt" },
-    { KEY_MOD_GUI, "Gui" },
-    { KEY_MOD_SHIFT, "Shift" },
-    { KEY_MOD_NONE }
+    {KEY_MOD_CTRL, "Ctrl"},
+    {KEY_MOD_ALT, "Alt"},
+    {KEY_MOD_GUI, "Gui"},
+    {KEY_MOD_SHIFT, "Shift"},
+    {KEY_MOD_NONE}
 };
 
 const char *key_combination_name(key_type key, key_modifier_type modifiers)
@@ -71,12 +72,12 @@ static key_modifier_type parse_modifier(const char *name)
 
 static key_type parse_key(const char *name)
 {
-    for (int i = 1; i < KEY_MAX_ITEMS; i++) {
+    for (int i = 1; i < KEY_TYPE_MAX_ITEMS; i++) {
         if (strcmp(key_names[i], name) == 0) {
             return i;
         }
     }
-    return KEY_NONE;
+    return KEY_TYPE_NONE;
 }
 
 int key_combination_from_name(const char *name, key_type *key, key_modifier_type *modifiers)
@@ -84,7 +85,7 @@ int key_combination_from_name(const char *name, key_type *key, key_modifier_type
     char editable_name[100] = {0};
     strncpy(editable_name, name, 99);
 
-    *key = KEY_NONE;
+    *key = KEY_TYPE_NONE;
     *modifiers = KEY_MOD_NONE;
 
     char *token = strtok(editable_name, " ");
@@ -95,14 +96,14 @@ int key_combination_from_name(const char *name, key_type *key, key_modifier_type
                 *modifiers |= mod;
             } else {
                 *key = parse_key(token);
-                if (*key == KEY_NONE) {
+                if (*key == KEY_TYPE_NONE) {
                     return 0;
                 }
             }
         }
         token = strtok(0, " ");
     }
-    if (*key == KEY_NONE) {
+    if (*key == KEY_TYPE_NONE) {
         return 0;
     }
     return 1;

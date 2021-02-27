@@ -29,6 +29,7 @@ typedef struct {
         short market_goods;
         short roadblock_exceptions;
         short barracks_priority;
+        short monument_phase;
     } subtype;
     unsigned char road_network_id;
     unsigned short created_sequence;
@@ -46,6 +47,7 @@ typedef struct {
     short immigrant_figure_id;
     short figure_id4; // tower ballista or burning ruin prefect
     unsigned char figure_spawn_delay;
+    unsigned char days_since_offering;
     unsigned char figure_roam_direction;
     unsigned char has_water_access;
     short prev_part_building_id;
@@ -63,7 +65,9 @@ typedef struct {
     unsigned char fire_proof; // cannot catch fire or collapse
     unsigned char house_figure_generation_delay;
     unsigned char house_tax_coverage;
+    unsigned char house_pantheon_access;
     short formation_id;
+    unsigned char monthly_levy;
     union {
         struct {
             short queued_docker_id;
@@ -71,6 +75,8 @@ typedef struct {
             signed char orientation;
             short docker_ids[3];
             short trade_ship_id;
+            unsigned char has_accepted_route_ids;
+            int accepted_route_ids;
         } dock;
         struct {
             short inventory[8];
@@ -79,6 +85,7 @@ typedef struct {
             short oil_demand;
             short wine_demand;
             unsigned char fetch_inventory_id;
+            unsigned char is_mess_hall;
         } market;
         struct {
             short resource_stored[16];
@@ -127,6 +134,12 @@ typedef struct {
             unsigned char devolve_delay;
             unsigned char evolve_text_id;
         } house;
+        struct {
+            short resources_needed[16];
+            int upgrades;
+            int progress;
+        } monument;
+
     } data;
     int tax_income_or_storage;
     unsigned char house_days_without_food;
@@ -160,6 +173,18 @@ void building_update_desirability(void);
 
 int building_is_house(building_type type);
 
+int building_is_ceres_temple(building_type type);
+
+int building_is_neptune_temple(building_type type);
+
+int building_is_mercury_temple(building_type type);
+
+int building_is_mars_temple(building_type type);
+
+int building_is_venus_temple(building_type type);
+
+int building_is_statue_garden_temple(building_type type);
+
 int building_is_fort(building_type type);
 
 int building_get_highest_id(void);
@@ -169,6 +194,8 @@ void building_update_highest_id(void);
 int building_mothball_toggle(building* b);
 
 int building_mothball_set(building* b, int value);
+
+int building_get_levy(const building* b);
 
 void building_totals_add_corrupted_house(int unfixable);
 

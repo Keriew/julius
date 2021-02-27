@@ -1,11 +1,14 @@
 #include "construction.h"
 
+#include "assets/assets.h"
+#include "building/building.h"
 #include "building/construction_building.h"
 #include "building/construction_clear.h"
 #include "building/construction_routed.h"
 #include "building/construction_warning.h"
 #include "building/count.h"
 #include "building/model.h"
+#include "building/monument.h"
 #include "building/properties.h"
 #include "building/rotation.h"
 #include "building/warehouse.h"
@@ -53,13 +56,14 @@ static struct {
     int in_progress;
     map_tile start;
     map_tile end;
-    int cost;
+    int cost_preview;
     struct {
         int meadow;
         int rock;
         int tree;
         int water;
         int wall;
+        int distant_water;
     } required_terrain;
     int draw_as_constructing;
     int start_offset_x_view;
@@ -167,6 +171,52 @@ static int place_garden(int x_start, int y_start, int x_end, int y_end)
     return items_placed;
 }
 
+static int plot_draggable_building(int x_start, int y_start, int x_end, int y_end, int building_type, int image_id)
+{
+    int x_min, y_min, x_max, y_max;
+    map_grid_start_end_to_area(x_start, y_start, x_end, y_end, &x_min, &y_min, &x_max, &y_max);
+    map_image_restore();
+    map_image_backup();
+
+    int items_placed = 0;
+    for (int y = y_min; y <= y_max; y++) {
+        for (int x = x_min; x <= x_max; x++) {
+            int grid_offset = map_grid_offset(x, y);
+            if (!map_terrain_is(grid_offset, TERRAIN_NOT_CLEAR)) {
+                items_placed++;
+                map_image_set(grid_offset, image_id);
+            }
+        }
+    }
+
+    return items_placed;
+}
+
+static int place_draggable_building(int x_start, int y_start, int x_end, int y_end, int building_type, int image_id, int rotation)
+{
+    int x_min, y_min, x_max, y_max;
+    map_grid_start_end_to_area(x_start, y_start, x_end, y_end, &x_min, &y_min, &x_max, &y_max);
+    map_image_restore();
+
+    int items_placed = 0;
+    for (int y = y_min; y <= y_max; y++) {
+        for (int x = x_min; x <= x_max; x++) {
+            int grid_offset = map_grid_offset(x, y);
+            if (!map_terrain_is(grid_offset, TERRAIN_NOT_CLEAR)) {
+                items_placed++;
+                building* b = building_create(building_type, x, y);
+                b->subtype.orientation = rotation;
+                game_undo_add_building(b);
+                map_building_tiles_add(b->id, b->x, b->y, b->size, image_id, TERRAIN_BUILDING);
+            }
+        }
+    }
+
+    map_routing_update_land();
+    return items_placed;
+}
+
+
 static int place_reservoir_and_aqueducts(int measure_only, int x_start, int y_start, int x_end, int y_end, struct reservoir_info *info)
 {
     info->cost = 0;
@@ -195,10 +245,12 @@ static int place_reservoir_and_aqueducts(int measure_only, int x_start, int y_st
     } else {
         info->place_reservoir_at_end = PLACE_RESERVOIR_BLOCKED;
     }
-    if (info->place_reservoir_at_start == PLACE_RESERVOIR_BLOCKED || info->place_reservoir_at_end == PLACE_RESERVOIR_BLOCKED) {
+    if (info->place_reservoir_at_start == PLACE_RESERVOIR_BLOCKED
+        || info->place_reservoir_at_end == PLACE_RESERVOIR_BLOCKED) {
         return 0;
     }
-    if (info->place_reservoir_at_start == PLACE_RESERVOIR_YES && info->place_reservoir_at_end == PLACE_RESERVOIR_YES && distance < 3) {
+    if (info->place_reservoir_at_start == PLACE_RESERVOIR_YES
+        && info->place_reservoir_at_end == PLACE_RESERVOIR_YES && distance < 3) {
         return 0;
     }
     if (!distance) {
@@ -261,6 +313,11 @@ static int place_reservoir_and_aqueducts(int measure_only, int x_start, int y_st
     return 1;
 }
 
+void building_construction_set_cost(int cost)
+{
+    data.cost_preview = cost;
+}
+
 void building_construction_set_type(building_type type)
 {
     data.type = type;
@@ -270,6 +327,7 @@ void building_construction_set_type(building_type type)
     data.start.y = 0;
     data.end.x = 0;
     data.end.y = 0;
+    data.cost_preview = 0;
 
     if (type != BUILDING_NONE) {
         data.required_terrain.wall = 0;
@@ -277,6 +335,7 @@ void building_construction_set_type(building_type type)
         data.required_terrain.tree = 0;
         data.required_terrain.rock = 0;
         data.required_terrain.meadow = 0;
+        data.required_terrain.distant_water = 0;
         data.start.grid_offset = 0;
 
         switch (type) {
@@ -307,6 +366,8 @@ void building_construction_set_type(building_type type)
             case BUILDING_MENU_LARGE_TEMPLES:
                 data.sub_type = BUILDING_LARGE_TEMPLE_CERES;
                 break;
+            case BUILDING_LIGHTHOUSE:
+                data.required_terrain.distant_water = 1;
             default:
                 break;
         }
@@ -315,7 +376,7 @@ void building_construction_set_type(building_type type)
 
 void building_construction_clear_type(void)
 {
-    data.cost = 0;
+    data.cost_preview = 0;
     data.sub_type = BUILDING_NONE;
     data.type = BUILDING_NONE;
 }
@@ -327,14 +388,14 @@ building_type building_construction_type(void)
 
 int building_construction_cost(void)
 {
-    return data.cost;
+    return data.cost_preview;
 }
 
 int building_construction_size(int *x, int *y)
 {
     if (!config_get(CONFIG_UI_SHOW_CONSTRUCTION_SIZE) ||
-        !building_construction_is_updatable() ||
-        (data.type != BUILDING_CLEAR_LAND && !data.cost)) {
+        !building_construction_is_updatable() || !data.in_progress ||
+        (data.type != BUILDING_CLEAR_LAND && !data.cost_preview)) {
         return 0;
     }
     int size_x = data.end.x - data.start.x;
@@ -368,14 +429,17 @@ void building_construction_start(int x, int y, int grid_offset)
         int can_start = 1;
         switch (data.type) {
             case BUILDING_ROAD:
-                can_start = map_routing_calculate_distances_for_building(ROUTED_BUILDING_ROAD, data.start.x, data.start.y);
+                can_start = map_routing_calculate_distances_for_building(
+                    ROUTED_BUILDING_ROAD, data.start.x, data.start.y);
                 break;
             case BUILDING_AQUEDUCT:
             case BUILDING_DRAGGABLE_RESERVOIR:
-                can_start = map_routing_calculate_distances_for_building(ROUTED_BUILDING_AQUEDUCT, data.start.x, data.start.y);
+                can_start = map_routing_calculate_distances_for_building(
+                    ROUTED_BUILDING_AQUEDUCT, data.start.x, data.start.y);
                 break;
             case BUILDING_WALL:
-                can_start = map_routing_calculate_distances_for_building(ROUTED_BUILDING_WALL, data.start.x, data.start.y);
+                can_start = map_routing_calculate_distances_for_building(
+                    ROUTED_BUILDING_WALL, data.start.x, data.start.y);
                 break;
             default:
                 break;
@@ -393,6 +457,22 @@ int building_construction_is_updatable(void)
         case BUILDING_ROAD:
         case BUILDING_AQUEDUCT:
         case BUILDING_DRAGGABLE_RESERVOIR:
+        case BUILDING_PINE_TREE:
+        case BUILDING_FIR_TREE:
+        case BUILDING_OAK_TREE:
+        case BUILDING_ELM_TREE:
+        case BUILDING_FIG_TREE:
+        case BUILDING_PLUM_TREE:
+        case BUILDING_PALM_TREE:
+        case BUILDING_DATE_TREE:
+        case BUILDING_PINE_PATH:
+        case BUILDING_FIR_PATH:
+        case BUILDING_OAK_PATH:
+        case BUILDING_ELM_PATH:
+        case BUILDING_FIG_PATH:
+        case BUILDING_PLUM_PATH:
+        case BUILDING_PALM_PATH:
+        case BUILDING_DATE_PATH:
         case BUILDING_WALL:
         case BUILDING_PLAZA:
         case BUILDING_GARDENS:
@@ -407,12 +487,11 @@ void building_construction_cancel(void)
 {
     map_property_clear_constructing_and_deleted();
     if (data.in_progress && building_construction_is_updatable()) {
-        if (building_construction_is_updatable()) {
-            game_undo_restore_map(1);
-        }
+        game_undo_restore_map(1);
         data.in_progress = 0;
+        data.cost_preview = 0;
     } else {
-        building_construction_set_type(BUILDING_NONE);
+        building_construction_clear_type();
     }
     building_rotation_reset_rotation();
 }
@@ -430,7 +509,7 @@ void building_construction_update(int x, int y, int grid_offset)
         grid_offset = data.end.grid_offset;
     }
     if (!type || city_finance_out_of_money()) {
-        data.cost = 0;
+        data.cost_preview = 0;
         return;
     }
     map_property_clear_constructing_and_deleted();
@@ -450,6 +529,17 @@ void building_construction_update(int x, int y, int grid_offset)
         if (items_placed >= 0) current_cost *= items_placed;
     } else if (type == BUILDING_GARDENS) {
         int items_placed = place_garden(data.start.x, data.start.y, x, y);
+        if (items_placed >= 0) current_cost *= items_placed;
+    }
+    else if (type >= BUILDING_PINE_TREE && type <= BUILDING_DATE_TREE) {
+        int image_id = assets_get_group_id("Areldir", "Aesthetics") + (type - BUILDING_PINE_TREE);
+        int items_placed = plot_draggable_building(data.start.x, data.start.y, x, y, type, image_id);
+        if (items_placed >= 0) current_cost *= items_placed;
+    }
+    else if (type >= BUILDING_PINE_PATH && type <= BUILDING_DATE_PATH) {
+        int rotation = building_rotation_get_rotation();
+        int image_id = assets_get_group_id("Areldir", "Aesthetics") + (type - BUILDING_PINE_TREE) + (rotation % 2 * PATH_ROTATE_OFFSET);
+        int items_placed = plot_draggable_building(data.start.x, data.start.y, x, y, type, image_id); 
         if (items_placed >= 0) current_cost *= items_placed;
     } else if (type == BUILDING_LOW_BRIDGE || type == BUILDING_SHIP_BRIDGE) {
         int length = map_bridge_building_length();
@@ -475,9 +565,10 @@ void building_construction_update(int x, int y, int grid_offset)
     } else if (type == BUILDING_WAREHOUSE) {
         mark_construction(x, y, 3, TERRAIN_ALL, 0);
     } else if (building_is_fort(type)) {
-        if (formation_get_num_legions_cached() < 6) {
+        if (formation_get_num_legions_cached() < formation_get_max_legions()) {
             if (map_building_tiles_are_clear(x, y, 3, TERRAIN_ALL) &&
-                map_building_tiles_are_clear(x + FORT_X_OFFSET[building_rotation_get_rotation()][city_view_orientation()/2], y + FORT_Y_OFFSET[building_rotation_get_rotation()][city_view_orientation()/2], 4, TERRAIN_ALL)) {
+                map_building_tiles_are_clear(x + FORT_X_OFFSET[building_rotation_get_rotation()][city_view_orientation()/2], y + FORT_Y_OFFSET[building_rotation_get_rotation()][city_view_orientation()/2], 4, TERRAIN_ALL) &&
+                city_buildings_has_mess_hall()) {
                 mark_construction(x, y, 3, TERRAIN_ALL, 0);
             }
         }
@@ -488,7 +579,8 @@ void building_construction_update(int x, int y, int grid_offset)
         building_rotation_get_offset_with_rotation(10, building_rotation_get_rotation(), &x_offset_2, &y_offset_2);
         if (map_building_tiles_are_clear(x, y, 5, TERRAIN_ALL) &&
             map_building_tiles_are_clear(x + x_offset_1, y + y_offset_1, 5, TERRAIN_ALL) &&
-            map_building_tiles_are_clear(x + x_offset_2, y + y_offset_2, 5, TERRAIN_ALL)) {
+            map_building_tiles_are_clear(x + x_offset_2, y + y_offset_2, 5, TERRAIN_ALL) &&
+            !city_buildings_has_hippodrome()) {
                 mark_construction(x, y, 5, TERRAIN_ALL, 0);
         }
     } else if (type == BUILDING_SHIPYARD || type == BUILDING_WHARF) {
@@ -500,17 +592,20 @@ void building_construction_update(int x, int y, int grid_offset)
             data.draw_as_constructing = 1;
         }
     } else if (data.required_terrain.meadow || data.required_terrain.rock || data.required_terrain.tree ||
-            data.required_terrain.water || data.required_terrain.wall) {
+            data.required_terrain.water || data.required_terrain.wall || data.required_terrain.distant_water) {
         // never mark as constructing
     } else {
         if (!(type == BUILDING_SENATE_UPGRADED && city_buildings_has_senate()) &&
             !(type == BUILDING_BARRACKS && city_buildings_has_barracks() && !config_get(CONFIG_GP_CH_MULTIPLE_BARRACKS)) &&
-            !(type == BUILDING_DISTRIBUTION_CENTER_UNUSED && city_buildings_has_distribution_center())) {
+            !(type == BUILDING_DISTRIBUTION_CENTER_UNUSED && city_buildings_has_distribution_center()) &&
+            !(type == BUILDING_MESS_HALL && city_buildings_has_mess_hall()) &&
+            !building_monument_has_monument(type) &&
+            !(building_monument_is_grand_temple(type) && building_monument_count_grand_temples() >= 2)) {
             int size = building_properties_for_type(type)->size;
             mark_construction(x, y, size, TERRAIN_ALL, 0);
         }
     }
-    data.cost = current_cost;
+    data.cost_preview = current_cost;
 }
 
 static int has_nearby_enemy(int x_start, int y_start, int x_end, int y_end)
@@ -540,6 +635,7 @@ static int has_nearby_enemy(int x_start, int y_start, int x_end, int y_end)
 
 void building_construction_place(void)
 {
+    data.cost_preview = 0;
     data.in_progress = 0;
     int x_start = data.start.x;
     int y_start = data.start.y;
@@ -555,7 +651,8 @@ void building_construction_place(void)
         city_warning_show(WARNING_OUT_OF_MONEY);
         return;
     }
-    if (type >= BUILDING_LARGE_TEMPLE_CERES && type <= BUILDING_LARGE_TEMPLE_VENUS && city_resource_count(RESOURCE_MARBLE) < 2) {
+    if (type >= BUILDING_LARGE_TEMPLE_CERES && type <= BUILDING_LARGE_TEMPLE_VENUS
+        && city_resource_count(RESOURCE_MARBLE) < 2) {
         map_property_clear_constructing_and_deleted();
         city_warning_show(WARNING_MARBLE_NEEDED_LARGE_TEMPLE);
         return;
@@ -633,21 +730,33 @@ void building_construction_place(void)
         if (info.place_reservoir_at_start == PLACE_RESERVOIR_YES) {
             building *reservoir = building_create(BUILDING_RESERVOIR, x_start - 1, y_start - 1);
             game_undo_add_building(reservoir);
-            map_building_tiles_add(reservoir->id, x_start-1, y_start-1, 3, image_group(GROUP_BUILDING_RESERVOIR), TERRAIN_BUILDING);
+            map_building_tiles_add(reservoir->id, x_start-1, y_start-1, 3,
+                image_group(GROUP_BUILDING_RESERVOIR), TERRAIN_BUILDING);
             map_aqueduct_set(map_grid_offset(x_start-1, y_start-1), 0);
         }
         if (info.place_reservoir_at_end == PLACE_RESERVOIR_YES) {
             building *reservoir = building_create(BUILDING_RESERVOIR, x_end - 1, y_end - 1);
             game_undo_add_building(reservoir);
-            map_building_tiles_add(reservoir->id, x_end-1, y_end-1, 3, image_group(GROUP_BUILDING_RESERVOIR), TERRAIN_BUILDING);
+            map_building_tiles_add(reservoir->id, x_end-1, y_end-1, 3,
+                image_group(GROUP_BUILDING_RESERVOIR), TERRAIN_BUILDING);
             map_aqueduct_set(map_grid_offset(x_end-1, y_end-1), 0);
-            if (!map_terrain_exists_tile_in_area_with_type(x_start - 2, y_start - 2, 5, TERRAIN_WATER) && info.place_reservoir_at_start == PLACE_RESERVOIR_NO) {
+            if (!map_terrain_exists_tile_in_area_with_type(x_start - 2, y_start - 2, 5, TERRAIN_WATER)
+                && info.place_reservoir_at_start == PLACE_RESERVOIR_NO) {
                 building_construction_warning_check_reservoir(BUILDING_RESERVOIR);
             }
         }
         placement_cost = info.cost;
         map_tiles_update_all_aqueducts(0);
         map_routing_update_land();
+    }
+    else if (type >= BUILDING_PINE_TREE && type <= BUILDING_DATE_TREE) {
+        int image_id = assets_get_group_id("Areldir", "Aesthetics") + (type - BUILDING_PINE_TREE);
+        placement_cost *= place_draggable_building(x_start, y_start, x_end, y_end, type, image_id, 0);
+    }
+    else if (type >= BUILDING_PINE_PATH && type <= BUILDING_DATE_PATH) {
+        int rotation = building_rotation_get_rotation();
+        int image_id = assets_get_group_id("Areldir", "Aesthetics") + (type - BUILDING_PINE_TREE) + (rotation % 2 * PATH_ROTATE_OFFSET);
+        placement_cost *= place_draggable_building(x_start, y_start, x_end, y_end, type, image_id, rotation % 2);
     } else if (type == BUILDING_HOUSE_VACANT_LOT) {
         placement_cost *= place_houses(0, x_start, y_start, x_end, y_end);
     } else if (!building_construction_place_building(type, x_end, y_end)) {
@@ -705,6 +814,11 @@ int building_construction_can_place_on_terrain(int x, int y, int *warning_id)
     } else if (data.required_terrain.wall) {
         if (!map_terrain_all_tiles_in_radius_are(x, y, 2, 0, TERRAIN_WALL)) {
             set_warning(warning_id, WARNING_WALL_NEEDED);
+            return 0;
+        }
+    } else if (data.required_terrain.distant_water) {
+        if (!map_terrain_exists_tile_in_radius_with_type(x, y, 3, 9, TERRAIN_WATER)) {
+            set_warning(warning_id, WARNING_WATER_NEEDED_FOR_LIGHTHOUSE);
             return 0;
         }
     }

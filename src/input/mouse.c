@@ -58,6 +58,11 @@ void mouse_set_from_touch(const touch *first, const touch *last)
     clear_mouse_button(&data.middle);
 }
 
+void mouse_remove_touch(void)
+{
+    data.is_touch = 0;
+}
+
 void mouse_set_position(int x, int y)
 {
     if (x != data.x || y != data.y) {
@@ -76,7 +81,8 @@ void mouse_set_left_down(int down)
     data.is_inside_window = 1;
     if (!down) {
         time_millis now = time_get_millis();
-        data.left.system_change |= ((last_click < now) && ((now - last_click) <= DOUBLE_CLICK_TIME)) ? SYSTEM_DOUBLE_CLICK : SYSTEM_NONE;
+        int is_double_click = (last_click < now) && ((now - last_click) <= DOUBLE_CLICK_TIME);
+        data.left.system_change |= is_double_click ? SYSTEM_DOUBLE_CLICK : SYSTEM_NONE;
         last_click = now;
     }
 }

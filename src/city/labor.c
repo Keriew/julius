@@ -2,6 +2,7 @@
 
 #include "building/building.h"
 #include "building/model.h"
+#include "building/monument.h"
 #include "core/config.h"
 #include "city/data_private.h"
 #include "city/message.h"
@@ -37,8 +38,11 @@ static int CATEGORY_FOR_BUILDING_TYPE[] = {
     7, 2, -1, -1, 8, 8, 8, 8, -1, -1, // 80
     -1, 3, -1, -1, 5, 5, -1, -1, 8, -1, // 90
     1, 1, 1, 0, 0, 1, 0, 0, 0, 0, // 100
-    0, 0, 0, 0, 0, -1, -1, -1, -1, -1, // 110
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 //120
+    0, 0, 0, 0, 0, -1, 2, 8, 8, 8, // 110
+    8, 8, -1, -1, -1, -1, -1, -1, -1, -1, //120
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 130
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 140
+    0, 0, 8, 2, 5, 0, 0, 0, 0, 0, // 150
 };
 
 static struct {
@@ -125,10 +129,14 @@ const labor_category_data *city_labor_category(int category)
 
 void city_labor_calculate_workers(int num_plebs, int num_patricians)
 {
+    int venus_blessing_modifier = 0;
     city_data.population.percentage_plebs = calc_percentage(num_plebs, num_plebs + num_patricians);
 
     if (config_get(CONFIG_GP_CH_FIXED_WORKERS)) {    
-        city_data.population.working_age = calc_adjust_with_percentage(num_plebs, 38);
+        if (city_data.religion.venus_blessing_months_left > 0) {
+            venus_blessing_modifier = ((city_data.religion.venus_blessing_months_left / 12) + 1);
+        }
+        city_data.population.working_age = calc_adjust_with_percentage(num_plebs, 38 + venus_blessing_modifier);
         city_data.labor.workers_available = city_data.population.working_age;
     } else {
         city_data.population.working_age = calc_adjust_with_percentage(city_population_people_of_working_age(), 60);
@@ -191,7 +199,15 @@ static void calculate_workers_needed_per_category(void)
         if (!should_have_workers(b, category, 1)) {
             continue;
         }
-        city_data.labor.categories[category].workers_needed += model_get_building(b->type)->laborers;
+
+        if (category == LABOR_CATEGORY_WATER && building_monument_working(BUILDING_GRAND_TEMPLE_NEPTUNE)) {
+            //Neptune Gt base bonus
+            city_data.labor.categories[category].workers_needed += (model_get_building(b->type)->laborers) / 2;
+        }
+        else {
+            city_data.labor.categories[category].workers_needed += model_get_building(b->type)->laborers;
+        }
+        
         city_data.labor.categories[category].total_houses_covered += b->houses_covered;
         city_data.labor.categories[category].buildings++;
     }
@@ -237,7 +253,8 @@ static void allocate_workers_to_categories(void)
             for (int p = 0; p < 9; p++) {
                 int cat = DEFAULT_PRIORITY[p].category;
                 if (!city_data.labor.categories[cat].priority) {
-                    int needed = city_data.labor.categories[cat].workers_needed - city_data.labor.categories[cat].workers_allocated;
+                    int needed = city_data.labor.categories[cat].workers_needed
+                        - city_data.labor.categories[cat].workers_allocated;
                     if (needed > 0) {
                         int to_allocate = DEFAULT_PRIORITY[p].workers;
                         if (to_allocate > available) {
@@ -407,7 +424,8 @@ static void allocate_workers_to_non_water_buildings(void)
                 category_workers_needed[i] = 0;
                 category_workers_allocated[i] = 0;
             } else {
-                category_workers_needed[i] = city_data.labor.categories[i].workers_allocated - category_workers_allocated[i];
+                category_workers_needed[i] =
+                    city_data.labor.categories[i].workers_allocated - category_workers_allocated[i];
             }
         }
     }

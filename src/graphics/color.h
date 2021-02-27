@@ -28,12 +28,16 @@ typedef uint32_t color_t;
 #define COLOR_MASK_RED 0xffff0818
 #define COLOR_MASK_GREEN 0xff18ff18
 #define COLOR_MASK_BLUE 0x663377ff
+#define COLOR_MASK_GREY 0x66aaaaaa
 #define COLOR_MASK_LEGION_HIGHLIGHT 0x66ff3300
+#define COLOR_MASK_BUILDING_GHOST 0xa7ffffff
+#define COLOR_MASK_BUILDING_GHOST_RED 0xa7ff0818
 
 #define COLOR_MINIMAP_VIEWPORT 0xffe7e75a
 #define COLOR_MINIMAP_DARK 0xff424242
 #define COLOR_MINIMAP_LIGHT 0xffc6c6c6
 #define COLOR_MINIMAP_SOLDIER 0xfff70000
+#define COLOR_MINIMAP_SELECTED_SOLDIER 0xffffffff
 #define COLOR_MINIMAP_ENEMY_CENTRAL 0xff7b0000
 #define COLOR_MINIMAP_ENEMY_NORTHERN 0xff1800ff
 #define COLOR_MINIMAP_ENEMY_DESERT 0xff08007b
@@ -54,8 +58,11 @@ typedef uint32_t color_t;
 #define COLOR_CHANNEL_RED 0x00ff0000
 #define COLOR_CHANNEL_GREEN 0x0000ff00
 #define COLOR_CHANNEL_BLUE 0x000000ff
+#define COLOR_CHANNEL_RB (COLOR_CHANNEL_RED | COLOR_CHANNEL_BLUE)
 
 #define COLOR_COMPONENT(c, shift) ((c >> shift) & 0xff)
+
+// Note: for the blending functions to work properly, variables must be of type color_t
 
 #define COLOR_MIX_ALPHA(alpha_src, alpha_dst) ((alpha_src) + (((alpha_dst) * (0xff - (alpha_src))) >> 8))
 #define COLOR_BLEND_CHANNEL_TO_OPAQUE(src, dst, alpha, channel) \

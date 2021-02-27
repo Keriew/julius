@@ -145,7 +145,8 @@ void widget_sidebar_editor_draw_background(void)
 void widget_sidebar_editor_draw_foreground(void)
 {
     draw_buttons();
-    widget_minimap_draw(sidebar_common_get_x_offset_expanded() + 8, MINIMAP_Y_OFFSET, MINIMAP_WIDTH, MINIMAP_HEIGHT, 0);
+    widget_minimap_draw(sidebar_common_get_x_offset_expanded() + 8,
+        MINIMAP_Y_OFFSET, MINIMAP_WIDTH, MINIMAP_HEIGHT, 0);
 }
 
 int widget_sidebar_editor_handle_mouse(const mouse *m)
@@ -168,6 +169,7 @@ int widget_sidebar_editor_handle_mouse_attributes(const mouse *m)
 
 static void button_attributes(int show, int param2)
 {
+    window_editor_build_menu_hide();
     if (show) {
         if (!window_is(WINDOW_EDITOR_ATTRIBUTES)) {
             window_editor_attributes_show();
@@ -181,6 +183,7 @@ static void button_attributes(int show, int param2)
 
 static void button_build_tool(int tool, int param2)
 {
+    window_editor_build_menu_hide();
     widget_map_editor_clear_current_tile();
     editor_tool_set_type(tool);
     if (window_is(WINDOW_EDITOR_BUILD_MENU)) {

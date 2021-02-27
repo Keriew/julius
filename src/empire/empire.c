@@ -46,7 +46,8 @@ void empire_load(int is_custom_scenario, int empire_id)
 
     // read data section with objects
     int offset = EMPIRE_HEADER_SIZE + EMPIRE_DATA_SIZE * empire_id;
-    if (io_read_file_part_into_buffer(filename, NOT_LOCALIZED, raw_data, EMPIRE_DATA_SIZE, offset) != EMPIRE_DATA_SIZE) {
+    int read_size = io_read_file_part_into_buffer(filename, NOT_LOCALIZED, raw_data, EMPIRE_DATA_SIZE, offset);
+    if (read_size != EMPIRE_DATA_SIZE) {
         // load empty empire when loading fails
         log_error("Unable to load empire data from file", filename, 0);
         memset(raw_data, 0, EMPIRE_DATA_SIZE);
@@ -100,23 +101,10 @@ void empire_set_viewport(int width, int height)
     check_scroll_boundaries();
 }
 
-void empire_get_scroll(int *x_scroll, int *y_scroll)
-{
-    *x_scroll = data.scroll_x;
-    *y_scroll = data.scroll_y;
-}
-
 void empire_adjust_scroll(int *x_offset, int *y_offset)
 {
     *x_offset = *x_offset - data.scroll_x;
     *y_offset = *y_offset - data.scroll_y;
-}
-
-void empire_set_scroll(int x, int y)
-{
-    data.scroll_x = x;
-    data.scroll_y = y;
-    check_scroll_boundaries();
 }
 
 void empire_scroll_map(int x, int y)
@@ -162,7 +150,7 @@ int empire_can_export_resource_to_city(int city_id, int resource)
     }
 }
 
-static int get_max_stock_for_population(void)
+/**static int get_max_stock_for_population(void)
 {
     int population = city_population();
     if (population < 2000) {
@@ -174,7 +162,7 @@ static int get_max_stock_for_population(void)
     } else {
         return 40;
     }
-}
+}**/
 
 int empire_can_import_resource_from_city(int city_id, int resource)
 {
@@ -191,8 +179,10 @@ int empire_can_import_resource_from_city(int city_id, int resource)
 
     int in_stock = city_resource_count(resource);
     int max_in_stock = 0;
-    int finished_good = RESOURCE_NONE;
-    /*switch (resource) {
+    /* NOTE: don't forget to uncomment function get_max_stock_for_population
+    
+    int finished_good = RESOURCE_NONE; 
+    switch (resource) {
         // food and finished materials
         case RESOURCE_WHEAT:
         case RESOURCE_VEGETABLES:
@@ -230,7 +220,7 @@ int empire_can_import_resource_from_city(int city_id, int resource)
         max_in_stock = 2 + 2 * building_count_industry_active(finished_good);
     }*/
     max_in_stock = city_resource_export_over(resource);
-    return in_stock < max_in_stock ? 1 : 0;
+    return (max_in_stock == 0 || in_stock < max_in_stock) ? 1 : 0;
 }
 
 void empire_save_state(buffer *buf)

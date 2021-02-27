@@ -4,13 +4,11 @@
 #include "core/config.h"
 #include "graphics/color.h"
 #include "graphics/menu.h"
+#include "game/system.h"
 #include "graphics/screen.h"
 
 #include <stdlib.h>
 #include <string.h>
-#ifdef __vita__
-#include <vita2d.h>
-#endif
 
 static struct {
     color_t *pixels;
@@ -30,33 +28,28 @@ static struct {
     int y;
 } translation;
 
+static struct {
+    struct {
+        int x_start;
+        int x_end;
+        int y_start;
+        int y_end;
+    } clip_rectangle;
+    canvas_type type;
+} original_canvas;
+
 static clip_info clip;
 static canvas_type active_canvas;
 
-#ifdef __vita__
-extern vita2d_texture *tex_buffer_ui;
-extern vita2d_texture * tex_buffer_city;
-#endif
-
 void graphics_init_canvas(int width, int height)
 {
-#ifdef __vita__
-    canvas[CANVAS_UI].pixels = vita2d_texture_get_datap(tex_buffer_ui);
+    canvas[CANVAS_UI].pixels = system_create_ui_framebuffer(width, height);
     if (config_get(CONFIG_UI_ZOOM)) {
-        canvas[CANVAS_CITY].pixels = vita2d_texture_get_datap(tex_buffer_city);
+        canvas[CANVAS_CITY].pixels = system_create_city_framebuffer(width, height);
     } else {
+        system_release_city_framebuffer();
         canvas[CANVAS_CITY].pixels = 0;
     }
-#else
-    free(canvas[CANVAS_UI].pixels);
-    free(canvas[CANVAS_CITY].pixels);
-    canvas[CANVAS_UI].pixels = (color_t *) malloc((size_t) width * height * sizeof(color_t));
-    if (config_get(CONFIG_UI_ZOOM)) {
-        canvas[CANVAS_CITY].pixels = (color_t *) malloc((size_t) width * height * 4 * sizeof(color_t));
-    } else {
-        canvas[CANVAS_CITY].pixels = 0;
-    }
-#endif
     canvas[CANVAS_UI].width = width;
     canvas[CANVAS_UI].height = height;
     canvas[CANVAS_CITY].width = width * 2;
@@ -85,7 +78,29 @@ void graphics_set_custom_canvas(color_t *pixels, int width, int height)
     canvas[CANVAS_CUSTOM].pixels = pixels;
     canvas[CANVAS_CUSTOM].width = width;
     canvas[CANVAS_CUSTOM].height = height;
+    if (active_canvas != CANVAS_CUSTOM) {
+        original_canvas.type = active_canvas;
+        original_canvas.clip_rectangle.x_start = clip_rectangle.x_start;
+        original_canvas.clip_rectangle.x_end = clip_rectangle.x_end;
+        original_canvas.clip_rectangle.y_start = clip_rectangle.y_start;
+        original_canvas.clip_rectangle.y_end = clip_rectangle.y_end;
+    }
     graphics_set_active_canvas(CANVAS_CUSTOM);
+}
+
+void graphics_restore_original_canvas(void)
+{
+    if (active_canvas != CANVAS_CUSTOM) {
+        return;
+    }
+    canvas[CANVAS_CUSTOM].pixels = 0;
+    canvas[CANVAS_CUSTOM].width = 0;
+    canvas[CANVAS_CUSTOM].height = 0;
+    active_canvas = original_canvas.type;
+    clip_rectangle.x_start = original_canvas.clip_rectangle.x_start;
+    clip_rectangle.x_end = original_canvas.clip_rectangle.x_end;
+    clip_rectangle.y_start = original_canvas.clip_rectangle.y_start;
+    clip_rectangle.y_end = original_canvas.clip_rectangle.y_end;
 }
 
 canvas_type graphics_get_canvas_type(void)
@@ -229,7 +244,8 @@ void graphics_save_to_buffer(int x, int y, int width, int height, color_t *buffe
     int min_dy = current_clip->clipped_pixels_top;
     int max_dy = height - current_clip->clipped_pixels_bottom;
     for (int dy = min_dy; dy < max_dy; dy++) {
-        memcpy(&buffer[dy * width], graphics_get_pixel(min_x, y + dy), sizeof(color_t) * current_clip->visible_pixels_x);
+        memcpy(&buffer[dy * width], graphics_get_pixel(min_x, y + dy),
+            sizeof(color_t) * current_clip->visible_pixels_x);
     }
 }
 
@@ -243,7 +259,8 @@ void graphics_draw_from_buffer(int x, int y, int width, int height, const color_
     int min_dy = current_clip->clipped_pixels_top;
     int max_dy = height - current_clip->clipped_pixels_bottom;
     for (int dy = min_dy; dy < max_dy; dy++) {
-        memcpy(graphics_get_pixel(min_x, y + dy), &buffer[dy * width], sizeof(color_t) * current_clip->visible_pixels_x);
+        memcpy(graphics_get_pixel(min_x, y + dy), &buffer[dy * width],
+            sizeof(color_t) * current_clip->visible_pixels_x);
     }
 }
 

@@ -1,6 +1,7 @@
 #include "house_service.h"
 
 #include "building/building.h"
+#include "building/monument.h"
 #include "city/culture.h"
 
 static void decay(unsigned char *value)
@@ -37,6 +38,10 @@ void house_service_decay_culture(void)
         decay(&b->data.house.temple_mercury);
         decay(&b->data.house.temple_mars);
         decay(&b->data.house.temple_venus);
+        decay(&b->house_pantheon_access);
+        if (b->days_since_offering < 125) {
+            ++b->days_since_offering;
+        }
     }
 }
 
@@ -67,6 +72,7 @@ void house_service_decay_houses_covered(void)
 void house_service_calculate_culture_aggregates(void)
 {
     int base_entertainment = city_culture_coverage_average_entertainment() / 5;
+    int venus_module2 = building_monument_gt_module_is_active(VENUS_MODULE_2_DESIRABILITY_ENTERTAINMENT);
     for (int i = 1; i < MAX_BUILDINGS; i++) {
         building *b = building_get(i);
         if (b->state != BUILDING_STATE_IN_USE || !b->house_size) {
@@ -94,6 +100,11 @@ void house_service_calculate_culture_aggregates(void)
         }
         if (b->data.house.hippodrome) {
             b->data.house.entertainment += 30;
+        }
+
+        // Venus Module 2 Entertainment Bonus
+        if (venus_module2 && b->data.house.temple_venus) {
+            b->data.house.entertainment += 10;
         }
 
         // education

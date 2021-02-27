@@ -7,6 +7,7 @@
 #include "city/data_private.h"
 #include "city/health.h"
 #include "city/message.h"
+#include "city/population.h"
 #include "city/sentiment.h"
 #include "city/trade.h"
 #include "core/calc.h"
@@ -21,6 +22,12 @@
 
 #define TIE 10
 
+#define FLAT_CHANCE_FOR_BLESSING 1
+#define HAPPINESS_BLESSING_FACTOR 20
+#define FESTIVAL_BLESSING_FACTOR 6
+#define FESTIVAL_BLESSING_LENGTH 24
+#define BLESSING_BOLTS_NEEDED_FOR_BLESSING 5
+
 void city_gods_reset(void)
 {
     for (int i = 0; i < MAX_GODS; i++) {
@@ -30,7 +37,7 @@ void city_gods_reset(void)
         god->wrath_bolts = 0;
         god->blessing_done = 0;
         god->small_curse_done = 0;
-        god->unused1 = 0;
+        god->happy_bolts = 0;
         god->unused2 = 0;
         god->unused3 = 0;
         god->months_since_festival = 0;
@@ -43,6 +50,17 @@ void city_gods_reset_neptune_blessing(void)
     city_data.religion.neptune_double_trade_active = 0;
 }
 
+void city_gods_update_blessings(void)
+{   
+    if (city_data.religion.neptune_double_trade_active > 0) {
+        city_data.religion.neptune_double_trade_active--;
+    }
+
+    if (city_data.religion.venus_blessing_months_left > 0) {
+        city_data.religion.venus_blessing_months_left--;
+    }
+}
+
 static void perform_blessing(god_type god)
 {
     switch (god) {
@@ -51,20 +69,22 @@ static void perform_blessing(god_type god)
             building_bless_farms();
             break;
         case GOD_NEPTUNE:
-            city_message_post(1, MESSAGE_BLESSING_FROM_NEPTUNE, 0, 0);
-            city_data.religion.neptune_double_trade_active = 1;
+            city_message_post(1, MESSAGE_BLESSING_FROM_NEPTUNE_ALTERNATE, 0, 0);
+            city_data.religion.neptune_double_trade_active = NEPTUNE_BLESSING_MONTHS;
             break;
         case GOD_MERCURY:
-            city_message_post(1, MESSAGE_BLESSING_FROM_MERCURY, 0, 0);
-            building_granary_bless();
+            city_message_post(1, MESSAGE_BLESSING_FROM_MERCURY_ALTERNATE, 0, 0);
+            building_bless_industry();
             break;
         case GOD_MARS:
             city_message_post(1, MESSAGE_BLESSING_FROM_MARS, 0, 0);
             city_data.religion.mars_spirit_power = 10;
             break;
         case GOD_VENUS:
-            city_message_post(1, MESSAGE_BLESSING_FROM_VENUS, 0, 0);
+            city_message_post(1, MESSAGE_BLESSING_FROM_VENUS_ALTERNATE, 0, 0);
             city_sentiment_change_happiness(25);
+            city_population_venus_blessing();
+            city_data.religion.venus_blessing_months_left = VENUS_BLESSING_MONTHS;
             break;
     }
 }
@@ -178,6 +198,7 @@ static void update_god_moods(void)
         if (god->happiness >= 50) {
             god->wrath_bolts = 0;
         } else if (god->happiness < 40) {
+            god->happy_bolts = 0;
             if (god->happiness >= 20) {
                 god->wrath_bolts += 1;
             } else if (god->happiness >= 10) {
@@ -188,6 +209,20 @@ static void update_god_moods(void)
         }
         if (god->wrath_bolts > 50) {
             god->wrath_bolts = 50;
+        }
+        if (god->happiness >= 50) {
+            int chance_for_happy_bolt = (god->happiness - 50) / HAPPINESS_BLESSING_FACTOR + FLAT_CHANCE_FOR_BLESSING;
+            if (god->months_since_festival <= FESTIVAL_BLESSING_LENGTH) {
+                chance_for_happy_bolt += (FESTIVAL_BLESSING_LENGTH - god->months_since_festival) / FESTIVAL_BLESSING_FACTOR + FLAT_CHANCE_FOR_BLESSING;
+            }
+            random_generate_next();
+            int roll = random_short_alt() % 100;
+            if (roll < chance_for_happy_bolt) {
+                god->happy_bolts++;
+            }
+            if (god->happy_bolts > 5) {
+                god->happy_bolts = 5;
+            }
         }
     }
     if (game_time_day() != 0) {
@@ -206,10 +241,13 @@ static void update_god_moods(void)
     if (!setting_gods_enabled()) {
         return;
     }
+
+
     if (god_id < MAX_GODS) {
         god_status *god = &city_data.religion.gods[god_id];
-        if (god->happiness >= 100 && !god->blessing_done) {
+        if (god->happiness >= 50 && god->happy_bolts >= 5) {
             god->blessing_done = 1;
+            god->happy_bolts = 0;
             perform_blessing(god_id);
         } else if (god->wrath_bolts >= 20 && !god->small_curse_done && god->months_since_festival > 3) {
             god->small_curse_done = 1;
@@ -263,19 +301,19 @@ void city_gods_calculate_moods(int update_moods)
         int num_temples = 0;
         switch (i) {
             case GOD_CERES:
-                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_CERES) + building_count_total(BUILDING_LARGE_TEMPLE_CERES);
+                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_CERES) + building_count_total(BUILDING_LARGE_TEMPLE_CERES) + building_count_total(BUILDING_GRAND_TEMPLE_CERES);
                 break;
             case GOD_NEPTUNE:
-                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_NEPTUNE) + building_count_total(BUILDING_LARGE_TEMPLE_NEPTUNE);
+                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_NEPTUNE) + building_count_total(BUILDING_LARGE_TEMPLE_NEPTUNE) + building_count_total(BUILDING_GRAND_TEMPLE_NEPTUNE);
                 break;
             case GOD_MERCURY:
-                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_MERCURY) + building_count_total(BUILDING_LARGE_TEMPLE_MERCURY);
+                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_MERCURY) + building_count_total(BUILDING_LARGE_TEMPLE_MERCURY) + building_count_total(BUILDING_GRAND_TEMPLE_MERCURY);
                 break;
             case GOD_MARS:
-                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_MARS) + building_count_total(BUILDING_LARGE_TEMPLE_MARS);
+                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_MARS) + building_count_total(BUILDING_LARGE_TEMPLE_MARS) + building_count_total(BUILDING_GRAND_TEMPLE_MARS);
                 break;
             case GOD_VENUS:
-                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_VENUS) + building_count_total(BUILDING_LARGE_TEMPLE_VENUS);
+                num_temples = building_count_total(BUILDING_SMALL_TEMPLE_VENUS) + building_count_total(BUILDING_LARGE_TEMPLE_VENUS) + building_count_total(BUILDING_GRAND_TEMPLE_VENUS);
                 break;
         }
         if (num_temples == max_temples) {
@@ -327,7 +365,8 @@ void city_gods_calculate_moods(int update_moods)
         min_happiness = 0;
     }
     for (int i = 0; i < MAX_GODS; i++) {
-        city_data.religion.gods[i].target_happiness = calc_bound(city_data.religion.gods[i].target_happiness, min_happiness, 100);
+        city_data.religion.gods[i].target_happiness =
+            calc_bound(city_data.religion.gods[i].target_happiness, min_happiness, 100);
     }
     if (update_moods) {
         update_god_moods();
@@ -367,6 +406,11 @@ int city_god_happiness(int god_id)
 int city_god_wrath_bolts(int god_id)
 {
     return city_data.religion.gods[god_id].wrath_bolts;
+}
+
+int city_god_happy_bolts(int god_id)
+{
+    return city_data.religion.gods[god_id].happy_bolts;
 }
 
 int city_god_months_since_festival(int god_id)

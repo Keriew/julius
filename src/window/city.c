@@ -1,6 +1,8 @@
 #include "city.h"
 
+#include "building/clone.h"
 #include "building/construction.h"
+#include "building/menu.h"
 #include "building/rotation.h"
 #include "city/message.h"
 #include "city/victory.h"
@@ -8,6 +10,7 @@
 #include "city/warning.h"
 #include "core/config.h"
 #include "figure/formation.h"
+#include "figure/formation_legion.h"
 #include "game/orientation.h"
 #include "game/settings.h"
 #include "game/state.h"
@@ -16,16 +19,21 @@
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
 #include "graphics/panel.h"
+#include "graphics/screen.h"
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "map/bookmark.h"
+#include "map/building.h"
 #include "map/grid.h"
+#include "map/property.h"
+#include "map/terrain.h"
 #include "scenario/building.h"
 #include "scenario/criteria.h"
 #include "widget/city.h"
 #include "widget/city_with_overlay.h"
 #include "widget/top_menu.h"
 #include "widget/sidebar/city.h"
+#include "widget/sidebar/military.h"
 #include "window/advisors.h"
 #include "window/file_dialog.h"
 
@@ -44,6 +52,17 @@ static void draw_background(void)
 {
     clear_city_view(1);
     widget_sidebar_city_draw_background();
+    widget_top_menu_draw(1);
+}
+
+static void draw_background_military(void)
+{
+    clear_city_view(1);
+    if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR)) {
+        widget_sidebar_military_draw_background();
+    } else {
+        widget_sidebar_city_draw_background();
+    }
     widget_top_menu_draw(1);
 }
 
@@ -121,9 +140,14 @@ static void draw_foreground(void)
 
 static void draw_foreground_military(void)
 {
+    clear_city_view(0);
     widget_top_menu_draw(0);
     window_city_draw();
-    widget_sidebar_city_draw_foreground_military();
+    if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR)) {
+        widget_sidebar_military_draw_foreground();
+    } else {
+        widget_sidebar_city_draw_foreground();
+    }
     draw_paused_and_time_left();
 }
 
@@ -146,10 +170,208 @@ static void show_overlay(int overlay)
     window_invalidate();
 }
 
+// this is mix of get_clone_type_from_grid_offset & get_clone_type_from_building functions with reduced code for overlay purpose
+static int get_building_type_from_grid_offset(int grid_offset)
+{
+    int terrain = map_terrain_get(grid_offset);
+
+    if (terrain & TERRAIN_BUILDING) {
+        int building_id = map_building_at(grid_offset);
+        if (building_id) {
+            building *building = building_main(building_get(building_id));
+            return building->type;
+        }
+    } else if (terrain & TERRAIN_AQUEDUCT) {
+        return BUILDING_AQUEDUCT;
+    } else if (terrain & TERRAIN_GARDEN) {
+        return BUILDING_GARDENS;
+    } else if (terrain & TERRAIN_ROAD) {
+        if (map_property_is_plaza_or_earthquake(grid_offset)) {
+            return BUILDING_PLAZA;
+        }
+        return BUILDING_ROAD;
+    }
+
+    return BUILDING_NONE;
+}
+
+static void show_overlay_from_grid_offset(int grid_offset)
+{
+    int overlay = OVERLAY_NONE;
+    int clone_type = get_building_type_from_grid_offset(grid_offset);
+    switch (clone_type) {
+        case BUILDING_PLAZA:
+        case BUILDING_ROAD:
+        case BUILDING_ROADBLOCK:
+            overlay = OVERLAY_ROADS;
+            break;
+        case BUILDING_AQUEDUCT:
+        case BUILDING_RESERVOIR:
+        case BUILDING_FOUNTAIN:
+        case BUILDING_WELL:
+            overlay = OVERLAY_WATER;
+            break;
+        case BUILDING_ORACLE:
+        case BUILDING_SMALL_TEMPLE_CERES:
+        case BUILDING_SMALL_TEMPLE_NEPTUNE:
+        case BUILDING_SMALL_TEMPLE_MERCURY:
+        case BUILDING_SMALL_TEMPLE_MARS:
+        case BUILDING_SMALL_TEMPLE_VENUS:
+        case BUILDING_LARGE_TEMPLE_CERES:
+        case BUILDING_LARGE_TEMPLE_NEPTUNE:
+        case BUILDING_LARGE_TEMPLE_MERCURY:
+        case BUILDING_LARGE_TEMPLE_MARS:
+        case BUILDING_LARGE_TEMPLE_VENUS:
+        case BUILDING_GRAND_TEMPLE_CERES:
+        case BUILDING_GRAND_TEMPLE_NEPTUNE:
+        case BUILDING_GRAND_TEMPLE_MERCURY:
+        case BUILDING_GRAND_TEMPLE_MARS:
+        case BUILDING_GRAND_TEMPLE_VENUS:
+        case BUILDING_PANTHEON:
+            overlay = OVERLAY_RELIGION;
+            break;
+        case BUILDING_PREFECTURE:
+        case BUILDING_BURNING_RUIN:
+            overlay = OVERLAY_FIRE;
+            break;
+        case BUILDING_ENGINEERS_POST:
+        case BUILDING_ENGINEER_GUILD:
+            overlay = OVERLAY_DAMAGE;
+            break;
+        case BUILDING_THEATER:
+        case BUILDING_ACTOR_COLONY:
+            overlay = OVERLAY_THEATER;
+            break;
+        case BUILDING_AMPHITHEATER:
+        case BUILDING_GLADIATOR_SCHOOL:
+            overlay = OVERLAY_AMPHITHEATER;
+            break;
+        case BUILDING_COLOSSEUM:
+        case BUILDING_LION_HOUSE:
+            overlay = OVERLAY_COLOSSEUM;
+            break;
+        case BUILDING_HIPPODROME:
+        case BUILDING_CHARIOT_MAKER:
+            overlay = OVERLAY_HIPPODROME;
+            break;
+        case BUILDING_SCHOOL:
+            overlay = OVERLAY_SCHOOL;
+            break;
+        case BUILDING_LIBRARY:
+            overlay = OVERLAY_LIBRARY;
+            break;
+        case BUILDING_ACADEMY:
+            overlay = OVERLAY_ACADEMY;
+            break;
+        case BUILDING_BARBER:
+            overlay = OVERLAY_BARBER;
+            break;
+        case BUILDING_BATHHOUSE:
+            overlay = OVERLAY_BATHHOUSE;
+            break;
+        case BUILDING_DOCTOR:
+            overlay = OVERLAY_CLINIC;
+            break;
+        case BUILDING_HOSPITAL:
+            overlay = OVERLAY_HOSPITAL;
+            break;
+        case BUILDING_FORUM:
+        case BUILDING_FORUM_UPGRADED:
+        case BUILDING_SENATE:
+        case BUILDING_SENATE_UPGRADED:
+            overlay = OVERLAY_TAX_INCOME;
+            break;
+        case BUILDING_MARKET:
+        case BUILDING_GRANARY:
+        case BUILDING_FRUIT_FARM:
+        case BUILDING_OLIVE_FARM:
+        case BUILDING_PIG_FARM:
+        case BUILDING_VEGETABLE_FARM:
+        case BUILDING_VINES_FARM:
+        case BUILDING_WHEAT_FARM:
+        case BUILDING_OIL_WORKSHOP:
+        case BUILDING_WINE_WORKSHOP:
+        case BUILDING_WHARF:
+            overlay = OVERLAY_FOOD_STOCKS;
+            break;
+        case BUILDING_GARDENS:
+        case BUILDING_GOVERNORS_HOUSE:
+        case BUILDING_GOVERNORS_VILLA:
+        case BUILDING_GOVERNORS_PALACE:
+        case BUILDING_HOUSE_SMALL_TENT:
+        case BUILDING_HOUSE_LARGE_TENT:
+        case BUILDING_HOUSE_SMALL_SHACK:
+        case BUILDING_HOUSE_LARGE_SHACK:
+        case BUILDING_HOUSE_SMALL_HOVEL:
+        case BUILDING_HOUSE_LARGE_HOVEL:
+        case BUILDING_HOUSE_SMALL_CASA:
+        case BUILDING_HOUSE_LARGE_CASA:
+        case BUILDING_HOUSE_SMALL_INSULA:
+        case BUILDING_HOUSE_MEDIUM_INSULA:
+        case BUILDING_HOUSE_LARGE_INSULA:
+        case BUILDING_HOUSE_GRAND_INSULA:
+        case BUILDING_HOUSE_SMALL_VILLA:
+        case BUILDING_HOUSE_MEDIUM_VILLA:
+        case BUILDING_HOUSE_LARGE_VILLA:
+        case BUILDING_HOUSE_GRAND_VILLA:
+        case BUILDING_HOUSE_SMALL_PALACE:
+        case BUILDING_HOUSE_MEDIUM_PALACE:
+        case BUILDING_HOUSE_LARGE_PALACE:
+        case BUILDING_HOUSE_LUXURY_PALACE:
+        case BUILDING_SMALL_STATUE:
+        case BUILDING_MEDIUM_STATUE:
+        case BUILDING_LARGE_STATUE:
+        case BUILDING_TRIUMPHAL_ARCH:
+        case BUILDING_SMALL_POND:
+        case BUILDING_LARGE_POND:
+        case BUILDING_PINE_TREE:
+        case BUILDING_FIR_TREE:
+        case BUILDING_OAK_TREE:
+        case BUILDING_ELM_TREE:
+        case BUILDING_FIG_TREE:
+        case BUILDING_PLUM_TREE:
+        case BUILDING_PALM_TREE:
+        case BUILDING_DATE_TREE:
+        case BUILDING_PINE_PATH:
+        case BUILDING_FIR_PATH:
+        case BUILDING_OAK_PATH:
+        case BUILDING_ELM_PATH:
+        case BUILDING_FIG_PATH:
+        case BUILDING_PLUM_PATH:
+        case BUILDING_PALM_PATH:
+        case BUILDING_DATE_PATH:
+        case BUILDING_PAVILION_BLUE:
+        case BUILDING_PAVILION_RED:
+        case BUILDING_PAVILION_ORANGE:
+        case BUILDING_PAVILION_YELLOW:
+        case BUILDING_PAVILION_GREEN:
+        case BUILDING_SMALL_STATUE_ALT:
+        case BUILDING_SMALL_STATUE_ALT_B:
+        case BUILDING_OBELISK:
+            overlay = OVERLAY_DESIRABILITY;
+            break;
+        case BUILDING_MISSION_POST:
+        case BUILDING_NATIVE_HUT:
+        case BUILDING_NATIVE_MEETING:
+            overlay = OVERLAY_NATIVE;
+            break;
+        case BUILDING_NONE:
+            if (map_terrain_get(grid_offset) & TERRAIN_RUBBLE) {
+                overlay = OVERLAY_DAMAGE;
+            }
+            break;
+        default:
+            break;
+    }
+    if (!(game_state_overlay() == OVERLAY_NONE && overlay == OVERLAY_NONE)) {
+        show_overlay(overlay);
+    }
+}
+
 static void cycle_legion(void)
 {
     static int current_legion_id = 1;
-    if (window_is(WINDOW_CITY)) {
+    if (window_is(WINDOW_CITY) || window_is(WINDOW_CITY_MILITARY)) {
         int legion_id = current_legion_id;
         current_legion_id = 0;
         for (int i = 1; i < MAX_FORMATIONS; i++) {
@@ -168,7 +390,11 @@ static void cycle_legion(void)
         if (current_legion_id > 0) {
             const formation *m = formation_get(current_legion_id);
             city_view_go_to_grid_offset(map_grid_offset(m->x_home, m->y_home));
-            window_invalidate();
+            if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) && window_is(WINDOW_CITY_MILITARY)) {
+                window_city_military_show(current_legion_id);
+            } else {
+                window_invalidate();
+            }
         }
     }
 }
@@ -231,10 +457,16 @@ static void handle_hotkeys(const hotkeys *h)
         building_rotation_rotate_by_hotkey();
     }
     if (h->building) {
-        if (scenario_building_allowed(h->building)) {
+        if (scenario_building_allowed(h->building) && building_menu_is_enabled(h->building)) {
             building_construction_cancel();
             building_construction_set_type(h->building);
         }
+    }
+    if (h->clone_building) {
+        building_clone_from_grid_offset(widget_city_current_grid_offset());
+    }
+    if (h->show_overlay_relative) {
+        show_overlay_from_grid_offset(widget_city_current_grid_offset());
     }
 }
 
@@ -255,14 +487,24 @@ static void handle_input(const mouse *m, const hotkeys *h)
 static void handle_input_military(const mouse *m, const hotkeys *h)
 {
     handle_hotkeys(h);
-    widget_city_handle_input_military(m, h, selected_legion_formation_id);
+    if (widget_top_menu_handle_input(m, h)) {
+        return;
+    }
+    if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) && widget_sidebar_military_handle_input(m)) {
+        return;
+    }
+    widget_city_handle_input_military(m, h, formation_get_selected());
 }
 
 static void get_tooltip(tooltip_context *c)
 {
     int text_id = widget_top_menu_get_tooltip_text(c);
     if (!text_id) {
-        text_id = widget_sidebar_city_get_tooltip_text();
+        if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) && formation_get_selected()) {
+            text_id = widget_sidebar_military_get_tooltip_text(c);
+        } else {
+            text_id = widget_sidebar_city_get_tooltip_text();
+        }
     }
     if (text_id) {
         c->type = TOOLTIP_BUTTON;
@@ -272,15 +514,35 @@ static void get_tooltip(tooltip_context *c)
     widget_city_get_tooltip(c);
 }
 
+int window_city_military_is_cursor_in_menu(void)
+{
+    if (!config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) || !window_is(WINDOW_CITY_MILITARY)) {
+        return 0;
+    }
+    const mouse *m = mouse_get();
+    int x, y, width, height;
+    city_view_get_scaled_viewport(&x, &y, &width, &height);
+    return m->x < x || m->x >= width || m->y < y || m->y >= height;
+}
+
 void window_city_draw_all(void)
 {
-    draw_background();
-    draw_foreground();
+    if (formation_get_selected() && config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR)) {
+        draw_background_military();
+        draw_foreground_military();
+    } else {
+        draw_background();
+        draw_foreground();
+    }
 }
 
 void window_city_draw_panels(void)
 {
-    draw_background();
+    if (formation_get_selected() && config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR)) {
+        draw_background_military();
+    } else {
+        draw_background();
+    }
 }
 
 void window_city_draw(void)
@@ -290,6 +552,12 @@ void window_city_draw(void)
 
 void window_city_show(void)
 {
+    if (formation_get_selected()) {
+        formation_set_selected(0);
+        if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) && widget_sidebar_military_exit()) {
+            return;
+        }
+    }
     window_type window = {
         WINDOW_CITY,
         draw_background,
@@ -302,13 +570,26 @@ void window_city_show(void)
 
 void window_city_military_show(int legion_formation_id)
 {
-    selected_legion_formation_id = legion_formation_id;
+    formation_set_selected(legion_formation_id);
+    if (config_get(CONFIG_UI_SHOW_MILITARY_SIDEBAR) && widget_sidebar_military_enter(legion_formation_id)) {
+        return;
+    }
     window_type window = {
         WINDOW_CITY_MILITARY,
-        draw_background,
+        draw_background_military,
         draw_foreground_military,
         handle_input_military,
         get_tooltip
     };
     window_show(&window);
+}
+
+void window_city_return(void)
+{
+    int formation_id = formation_get_selected();
+    if (formation_id) {
+        window_city_military_show(formation_id);
+    } else {
+        window_city_show();
+    }
 }

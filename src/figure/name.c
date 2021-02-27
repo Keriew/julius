@@ -74,6 +74,7 @@ int figure_name_get(figure_type type, enemy_type enemy)
         return get_next_name(&data.tax_collector, 132, 32);
 
     case FIGURE_ENGINEER:
+    case FIGURE_WORK_CAMP_ENGINEER:
         return get_next_name(&data.engineer, 165, 32);
 
     case FIGURE_PREFECT:
@@ -109,16 +110,19 @@ int figure_name_get(figure_type type, enemy_type enemy)
     case FIGURE_DELIVERY_BOY:
     case FIGURE_BARBER:
     case FIGURE_WORKER:
+    case FIGURE_MESS_HALL_COLLECTOR:
     default:
         return get_next_name(&data.citizen_male, 1, 64);
 
     case FIGURE_PRIEST:
+    case FIGURE_PRIEST_BUYER:
     case FIGURE_TEACHER:
     case FIGURE_MISSIONARY:
     case FIGURE_LIBRARIAN:
     case FIGURE_DOCTOR:
     case FIGURE_SURGEON:
     case FIGURE_PATRICIAN:
+    case FIGURE_WORK_CAMP_WORKER:
         return get_next_name(&data.patrician, 66, 32);
 
     case FIGURE_FORT_JAVELIN:
@@ -131,10 +135,12 @@ int figure_name_get(figure_type type, enemy_type enemy)
 
     case FIGURE_FORT_LEGIONARY:
     case FIGURE_ENEMY_CAESAR_LEGIONARY:
+    case FIGURE_MESS_HALL_BUYER:
         return get_next_name(&data.legionary, 297, 32);
 
     case FIGURE_INDIGENOUS_NATIVE:
     case FIGURE_NATIVE_TRADER:
+    case FIGURE_WORK_CAMP_SLAVE:
         return get_next_name(&data.barbarian, 430, 32);
 
     case FIGURE_ENEMY43_SPEAR:

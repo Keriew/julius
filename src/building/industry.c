@@ -1,5 +1,7 @@
 #include "industry.h"
 
+#include "building/monument.h"
+#include "city/data_private.h"
 #include "city/resource.h"
 #include "core/calc.h"
 #include "core/image.h"
@@ -10,11 +12,20 @@
 
 #define MAX_PROGRESS_RAW 200
 #define MAX_PROGRESS_WORKSHOP 400
+#define MAX_STORAGE 16
 #define INFINITE 10000
+
+#define MERCURY_BLESSING_LOADS 3
+
 
 int building_is_farm(building_type type)
 {
     return type >= BUILDING_WHEAT_FARM && type <= BUILDING_PIG_FARM;
+}
+
+int building_is_raw_resource_producer(building_type type)
+{
+    return type >= BUILDING_MARBLE_QUARRY && type <= BUILDING_CLAY_PIT;
 }
 
 int building_is_workshop(building_type type)
@@ -34,10 +45,24 @@ static void update_farm_image(const building *b)
         b->data.industry.progress);
 }
 
+static void building_other_update_production(building* b) {
+    // For monuments or other non-industry subtypes that generate goods
+    if (building_monument_is_monument(b)) {
+        b->data.monument.progress += (10 + (city_data.culture.population_with_venus_access / 200));
+        if (b->data.monument.progress > MAX_PROGRESS_WORKSHOP) {
+            if (b->loads_stored < MAX_STORAGE) {
+                b->loads_stored += 1;
+            }
+            b->data.monument.progress = b->data.monument.progress - MAX_PROGRESS_WORKSHOP;
+        }
+    }
+}
+
 void building_industry_update_production(void)
 {
     for (int i = 1; i < MAX_BUILDINGS; i++) {
         building *b = building_get(i);
+       
         if (b->state != BUILDING_STATE_IN_USE || !b->output_resource_id) {
             continue;
         }
@@ -45,9 +70,16 @@ void building_industry_update_production(void)
         if (b->houses_covered <= 0 || b->num_workers <= 0) {
             continue;
         }
+
+        if (building_monument_gt_module_is_active(VENUS_MODULE_1_DISTRIBUTE_WINE) && b->type == BUILDING_GRAND_TEMPLE_VENUS) {
+            building_other_update_production(b);
+            continue;
+        }
+
         if (b->subtype.workshop_type && !b->loads_stored) {
             continue;
         }
+
         if (b->data.industry.curse_days_left) {
             b->data.industry.curse_days_left--;
         } else {
@@ -62,6 +94,7 @@ void building_industry_update_production(void)
             if (b->data.industry.blessing_days_left && building_is_farm(b->type)) {
                 b->data.industry.progress += b->num_workers;
             }
+
             int max = max_progress(b);
             if (b->data.industry.progress > max) {
                 b->data.industry.progress = max;
@@ -133,6 +166,19 @@ void building_bless_farms(void)
     }
 }
 
+void building_bless_industry(void)
+{
+    for (int i = 1; i < MAX_BUILDINGS; i++) {
+        building* b = building_get(i);
+        if (b->state == BUILDING_STATE_IN_USE && building_is_workshop(b->type) && b->loads_stored) {
+            if (b->loads_stored < MERCURY_BLESSING_LOADS) {
+                b->loads_stored = MERCURY_BLESSING_LOADS;
+            }
+            b->data.industry.progress = MAX_PROGRESS_WORKSHOP;
+        }
+    }
+}
+
 void building_curse_farms(int big_curse)
 {
     for (int i = 1; i < MAX_BUILDINGS; i++) {
@@ -153,7 +199,8 @@ void building_workshop_add_raw_material(building *b)
     }
 }
 
-int building_get_workshop_for_raw_material_with_room(int x, int y, int resource, int distance_from_entry, int road_network_id, map_point *dst)
+int building_get_workshop_for_raw_material_with_room(
+    int x, int y, int resource, int distance_from_entry, int road_network_id, map_point *dst)
 {
     if (city_resource_is_stockpiled(resource)) {
         return 0;
@@ -190,7 +237,8 @@ int building_get_workshop_for_raw_material_with_room(int x, int y, int resource,
     return 0;
 }
 
-int building_get_workshop_for_raw_material(int x, int y, int resource, int distance_from_entry, int road_network_id, map_point *dst)
+int building_get_workshop_for_raw_material(
+    int x, int y, int resource, int distance_from_entry, int road_network_id, map_point *dst)
 {
     if (city_resource_is_stockpiled(resource)) {
         return 0;

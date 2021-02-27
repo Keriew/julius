@@ -20,6 +20,7 @@
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "input/input.h"
+#include "platform/file_manager.h"
 #include "widget/input_box.h"
 #include "window/city.h"
 #include "window/editor/map.h"
@@ -54,9 +55,7 @@ static generic_button file_buttons[] = {
     {160, 304, 288, 16, button_select_file, button_none, 11, 0},
 };
 
-static scrollbar_type scrollbar = { 464, 120, 206, on_scroll };
-
-static input_box file_name_input = { 144, 80, 20, 2, FONT_NORMAL_WHITE };
+static scrollbar_type scrollbar = {464, 120, 206, on_scroll};
 
 typedef struct {
     char extension[4];
@@ -68,44 +67,92 @@ static struct {
     file_type type;
     file_dialog_type dialog_type;
     int focus_button_id;
+    int double_click;
     const dir_listing *file_list;
 
     file_type_data *file_data;
     uint8_t typed_name[FILE_NAME_MAX];
+    uint8_t previously_seen_typed_name[FILE_NAME_MAX];
     char selected_file[FILE_NAME_MAX];
 } data;
+
+static input_box file_name_input = {144, 80, 20, 2, FONT_NORMAL_WHITE, 0, data.typed_name, FILE_NAME_MAX};
 
 static file_type_data saved_game_data = {"sav"};
 static file_type_data saved_game_data_expanded = {"svx"};
 static file_type_data scenario_data = {"map"};
 
-static int double_click = 0;
+static int find_first_file_with_prefix(const char *prefix)
+{
+    int len = (int) strlen(prefix);
+    if (len == 0) {
+        return -1;
+    }
+    int left = 0;
+    int right = data.file_list->num_files;
+    while (left < right) {
+        int middle = (left + right) / 2;
+        if (platform_file_manager_compare_filename_prefix(data.file_list->files[middle], prefix, len) >= 0) {
+            right = middle;
+        } else {
+            left = middle + 1;
+        }
+    }
+    if (platform_file_manager_compare_filename_prefix(data.file_list->files[left], prefix, len) == 0) {
+        return left;
+    } else {
+        return -1;
+    }
+}
+
+static void scroll_to_typed_text(void)
+{
+    if (data.file_list->num_files <= NUM_FILES_IN_VIEW) {
+        // No need to scroll
+        return;
+    }
+    char name_utf8[FILE_NAME_MAX];
+    encoding_to_utf8(data.typed_name, name_utf8, FILE_NAME_MAX, encoding_system_uses_decomposed());
+    int index = find_first_file_with_prefix(name_utf8);
+    if (index >= 0) {
+        scrollbar_reset(&scrollbar, calc_bound(index, 0, data.file_list->num_files - NUM_FILES_IN_VIEW));
+    }
+}
 
 static void init(file_type type, file_dialog_type dialog_type)
 {
     data.type = type;
     data.file_data = type == FILE_TYPE_SCENARIO ? &scenario_data : &saved_game_data;
-    if (strlen(data.file_data->last_loaded_file) == 0) {
+    data.dialog_type = dialog_type;
+
+    data.message_not_exist_start_time = 0;
+    data.double_click = 0;
+    data.focus_button_id = 0;
+
+    if (strlen(data.file_data->last_loaded_file) > 0) {
+        encoding_from_utf8(data.file_data->last_loaded_file, data.typed_name, FILE_NAME_MAX);
+        file_remove_extension(data.typed_name);
+    } else if (dialog_type == FILE_DIALOG_SAVE) {
+        // Suggest default filename
         string_copy(lang_get_string(9, type == FILE_TYPE_SCENARIO ? 7 : 6), data.typed_name, FILE_NAME_MAX);
         if (type == FILE_TYPE_SAVED_GAME) {
-            file_append_extension(data.typed_name, saved_game_data_expanded.extension);
+            file_append_extension((char *)data.typed_name, saved_game_data_expanded.extension);
         }
         encoding_to_utf8(data.typed_name, data.file_data->last_loaded_file, FILE_NAME_MAX, 0);
     } else {
-        encoding_from_utf8(data.file_data->last_loaded_file, data.typed_name, FILE_NAME_MAX);
+        // Use empty string
+        data.typed_name[0] = 0;
     }
-    data.dialog_type = dialog_type;
-    data.message_not_exist_start_time = 0;
+    string_copy(data.typed_name, data.previously_seen_typed_name, FILE_NAME_MAX);
 
     if (data.dialog_type != FILE_DIALOG_SAVE) {
         if (type == FILE_TYPE_SCENARIO) {
             data.file_list = dir_find_files_with_extension(".", scenario_data.extension);
-        }  else {
+        } else {
             data.file_list = dir_find_files_with_extension(".", data.file_data->extension);
             data.file_list = dir_append_files_with_extension(saved_game_data_expanded.extension);
         }
-    }
-    else {
+    } else {
         if (type == FILE_TYPE_SCENARIO) {
             data.file_list = dir_find_files_with_extension(".", scenario_data.extension);
         } else {
@@ -113,8 +160,10 @@ static void init(file_type type, file_dialog_type dialog_type)
         }
     }
     scrollbar_init(&scrollbar, 0, data.file_list->num_files - NUM_FILES_IN_VIEW);
+    scroll_to_typed_text();
+
     strncpy(data.selected_file, data.file_data->last_loaded_file, FILE_NAME_MAX);
-    input_box_start(&file_name_input, data.typed_name, FILE_NAME_MAX, 0);
+    input_box_start(&file_name_input);
 }
 
 static void draw_foreground(void)
@@ -127,7 +176,8 @@ static void draw_foreground(void)
     inner_panel_draw(144, 120, 20, 13);
 
     // title
-    if (data.message_not_exist_start_time && time_get_millis() - data.message_not_exist_start_time < NOT_EXIST_MESSAGE_TIMEOUT) {
+    if (data.message_not_exist_start_time
+        && time_get_millis() - data.message_not_exist_start_time < NOT_EXIST_MESSAGE_TIMEOUT) {
         lang_text_draw_centered(43, 2, 160, 50, 304, FONT_LARGE_BLACK);
     } else if (data.dialog_type == FILE_DIALOG_DELETE) {
         lang_text_draw_centered(43, 6, 160, 50, 304, FONT_LARGE_BLACK);
@@ -154,9 +204,23 @@ static void draw_foreground(void)
     graphics_reset_dialog();
 }
 
+static int should_scroll_to_typed_text(void)
+{
+    if (string_equals(data.previously_seen_typed_name, data.typed_name)) {
+        return 0;
+    }
+    int scroll = 0;
+    // Only scroll when adding characters to the typed name
+    if (string_length(data.typed_name) > string_length(data.previously_seen_typed_name)) {
+        scroll = 1;
+    }
+    string_copy(data.typed_name, data.previously_seen_typed_name, FILE_NAME_MAX);
+    return scroll;
+}
+
 static void handle_input(const mouse *m, const hotkeys *h)
 {
-    double_click = m->left.double_click;
+    data.double_click = m->left.double_click;
 
     if (input_box_is_accepted(&file_name_input)) {
         button_ok_cancel(1, 0);
@@ -174,16 +238,20 @@ static void handle_input(const mouse *m, const hotkeys *h)
         input_box_stop(&file_name_input);
         window_go_back();
     }
+
+    if (should_scroll_to_typed_text()) {
+        scroll_to_typed_text();
+    }
 }
 
-static const char *get_chosen_filename(void)
+static char *get_chosen_filename(void)
 {
     // Check if we should work with the selected file
     uint8_t selected_name[FILE_NAME_MAX];
     encoding_from_utf8(data.selected_file, selected_name, FILE_NAME_MAX);
 
     if (string_equals(selected_name, data.typed_name)) {
-        // user has not modified the string after selecting it: use filename
+        // User has not modified the string after selecting it: use filename
         return data.selected_file;
     }
 
@@ -201,7 +269,7 @@ static void button_ok_cancel(int is_ok, int param2)
         return;
     }
 
-    const char *filename = get_chosen_filename();
+    char *filename = get_chosen_filename();
 
     if (data.dialog_type != FILE_DIALOG_SAVE && !file_exists(filename, NOT_LOCALIZED)) {
         data.message_not_exist_start_time = time_get_millis();
@@ -268,11 +336,12 @@ static void button_select_file(int index, int param2)
     if (index < data.file_list->num_files) {
         strncpy(data.selected_file, data.file_list->files[scrollbar.scroll_position + index], FILE_NAME_MAX - 1);
         encoding_from_utf8(data.selected_file, data.typed_name, FILE_NAME_MAX);
+        string_copy(data.typed_name, data.previously_seen_typed_name, FILE_NAME_MAX);
         input_box_refresh_text(&file_name_input);
         data.message_not_exist_start_time = 0;
     }
-    if (data.dialog_type != FILE_DIALOG_DELETE && double_click) {
-        double_click = 0;
+    if (data.dialog_type != FILE_DIALOG_DELETE && data.double_click) {
+        data.double_click = 0;
         button_ok_cancel(1, 0);
     }
 }

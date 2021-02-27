@@ -27,6 +27,14 @@
 FILE *file_open(const char *filename, const char *mode);
 
 /**
+ * Wrapper for fopen converting filename to path in asset directory
+ * @param filename Asset filename
+ * @param mode Mode to open the asset file (e.g. "wb").
+ * @return FILE
+ */
+FILE *file_open_asset(const char *asset, const char *mode);
+
+/**
  * Wrapper to fclose
  * @return See fclose (If the stream is successfully closed, a zero value is returned.
  *         On failure, EOF is returned.)
@@ -60,7 +68,7 @@ void file_append_extension(char *filename, const char *extension);
  * Removes the extension from the file
  * @param[in,out] filename Filename to change
  */
-void file_remove_extension(uint8_t *filename);
+void file_remove_extension(char *filename);
 
 /**
  * Check if file exists

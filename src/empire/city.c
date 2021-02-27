@@ -5,6 +5,7 @@
 #include "city/map.h"
 #include "city/message.h"
 #include "city/trade.h"
+#include "city/resource.h"
 #include "empire/object.h"
 #include "empire/trade_route.h"
 #include "empire/type.h"
@@ -61,6 +62,18 @@ int empire_can_import_resource_potentially(int resource)
     return 0;
 }
 
+int empire_has_access_to_resource(int resource)
+{
+    for (int i = 0; i < MAX_CITIES; i++) {
+        if (cities[i].in_use &&
+            (cities[i].type == EMPIRE_CITY_OURS || cities[i].type == EMPIRE_CITY_TRADE) &&
+            cities[i].sells_resource[resource] == 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int empire_can_export_resource(int resource)
 {
     for (int i = 0; i < MAX_CITIES; i++) {
@@ -74,7 +87,7 @@ int empire_can_export_resource(int resource)
     return 0;
 }
 
-static int can_produce_resource(int resource)
+int can_produce_resource(int resource)
 {
     for (int i = 0; i < MAX_CITIES; i++) {
         if (cities[i].in_use &&
@@ -208,6 +221,18 @@ void empire_city_expand_empire(void)
     }
 }
 
+// Override hardcoded empire data to allow new trade
+void empire_city_force_sell(int route, int resource)
+{
+    for (int i = 0; i < MAX_CITIES; i++) {
+        if (cities[i].route_id == route) {
+            cities[i].sells_resource[resource] = 1;
+            empire_object_city_force_sell_resource(cities[i].empire_object_id, resource);
+            break;
+        }        
+    }
+}
+
 static int generate_trader(int city_id, empire_city *city)
 {
     int max_traders = 0;
@@ -268,7 +293,8 @@ static int generate_trader(int city_id, empire_city *city)
 
     if (city->is_sea_trade) {
         // generate ship
-        if (city_buildings_has_working_dock() && scenario_map_has_river_entry() && !city_trade_has_sea_trade_problems()) {
+        if (city_buildings_has_working_dock() && scenario_map_has_river_entry()
+            && !city_trade_has_sea_trade_problems()) {
             map_point river_entry = scenario_map_river_entry();
             city->trader_figure_ids[index] = figure_create_trade_ship(river_entry.x, river_entry.y, city_id);
             return 1;
@@ -336,6 +362,19 @@ void empire_city_set_foreign(int city_id)
     cities[city_id].type = EMPIRE_CITY_DISTANT_FOREIGN;
 }
 
+int empire_unlock_all_resources(void)
+{
+	for (int i = 0; i < MAX_CITIES; i++) {
+        if (cities[i].in_use && (cities[i].type == EMPIRE_CITY_OURS)) {
+            for (int resource = RESOURCE_MIN; resource < RESOURCE_MAX; resource++) {
+                cities[i].sells_resource[resource] = 1;
+            }
+            return 1;
+        }
+	}
+	return 0;
+}
+
 void empire_city_save_state(buffer *buf)
 {
     for (int i = 0; i < MAX_CITIES; i++) {
@@ -397,4 +436,3 @@ void empire_city_load_state(buffer *buf)
         buffer_skip(buf, 10);
     }
 }
-

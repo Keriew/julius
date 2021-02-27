@@ -8,9 +8,11 @@
 
 struct map_data_t map_data;
 
-static const int DIRECTION_DELTA[] = {-OFFSET(0,1), OFFSET(1,-1), 1, OFFSET(1,1), OFFSET(0,1), OFFSET(-1,1), -1, -OFFSET(1,1)};
+static const int DIRECTION_DELTA[] = {
+    -OFFSET(0,1), OFFSET(1,-1), 1, OFFSET(1,1), OFFSET(0,1), OFFSET(-1,1), -1, -OFFSET(1,1)
+};
 
-static const int ADJACENT_OFFSETS[][21] = {
+static const int ADJACENT_OFFSETS[][29] = {
     {0},
     {OFFSET(0,-1), OFFSET(1,0), OFFSET(0,1), OFFSET(-1,0), 0},
     {OFFSET(0,-1), OFFSET(1,-1), OFFSET(2,0), OFFSET(2,1), OFFSET(1,2), OFFSET(0,2), OFFSET(-1,1), OFFSET(-1,0), 0},
@@ -32,6 +34,13 @@ static const int ADJACENT_OFFSETS[][21] = {
         OFFSET(4,5), OFFSET(3,5), OFFSET(2,5), OFFSET(1,5), OFFSET(0,5),
         OFFSET(-1,4), OFFSET(-1,3), OFFSET(-1,2), OFFSET(-1,1), OFFSET(-1,0), 0
     },
+    { 0
+    },
+    {   OFFSET(0,-1), OFFSET(1,-1), OFFSET(2,-1), OFFSET(3,-1), OFFSET(4,-1), OFFSET(5,-1), OFFSET(6,-1),
+        OFFSET(7,0), OFFSET(7,1), OFFSET(7,2), OFFSET(7,3), OFFSET(7,4), OFFSET(7,5), OFFSET(7,6),
+        OFFSET(6,7), OFFSET(5,7), OFFSET(4,7), OFFSET(3,7), OFFSET(2,7), OFFSET(1,7), OFFSET(0,7),
+        OFFSET(-1,6), OFFSET(-1,5), OFFSET(-1,4), OFFSET(-1,3), OFFSET(-1,2), OFFSET(-1,1), OFFSET(-1,0), 0
+    }
 };
 
 void map_grid_init(int width, int height, int start_offset, int border_size)
@@ -145,7 +154,8 @@ void map_grid_get_area(int x, int y, int size, int radius,
     map_grid_bound_area(x_min, y_min, x_max, y_max);
 }
 
-void map_grid_start_end_to_area(int x_start, int y_start, int x_end, int y_end, int *x_min, int *y_min, int *x_max, int *y_max)
+void map_grid_start_end_to_area(
+    int x_start, int y_start, int x_end, int y_end, int *x_min, int *y_min, int *x_max, int *y_max)
 {
     if (x_start < x_end) {
         *x_min = x_start;
@@ -189,6 +199,11 @@ void map_grid_clear_u16(uint16_t *grid)
     memset(grid, 0, GRID_SIZE * GRID_SIZE * sizeof(uint16_t));
 }
 
+void map_grid_clear_u32(uint32_t *grid)
+{
+    memset(grid, 0, GRID_SIZE * GRID_SIZE * sizeof(uint32_t));
+}
+
 void map_grid_clear_i16(int16_t *grid)
 {
     memset(grid, 0, GRID_SIZE * GRID_SIZE * sizeof(int16_t));
@@ -223,6 +238,11 @@ void map_grid_copy_u16(const uint16_t *src, uint16_t *dst)
     memcpy(dst, src, GRID_SIZE * GRID_SIZE * sizeof(uint16_t));
 }
 
+void map_grid_copy_u32(const uint32_t *src, uint32_t *dst)
+{
+    memcpy(dst, src, GRID_SIZE * GRID_SIZE * sizeof(uint32_t));
+}
+
 void map_grid_save_state_u8(const uint8_t *grid, buffer *buf)
 {
     buffer_write_raw(buf, grid, GRID_SIZE * GRID_SIZE);
@@ -240,6 +260,20 @@ void map_grid_save_state_u16(const uint16_t *grid, buffer *buf)
     }
 }
 
+void map_grid_save_state_u32_to_u16(const uint32_t *grid, buffer *buf)
+{
+    for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        buffer_write_u16(buf, (uint16_t) grid[i]);
+    }
+}
+
+void map_grid_save_state_u32(const uint32_t *grid, buffer *buf)
+{
+    for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        buffer_write_u32(buf, grid[i]);
+    }
+}
+
 void map_grid_load_state_u8(uint8_t *grid, buffer *buf)
 {
     buffer_read_raw(buf, grid, GRID_SIZE * GRID_SIZE);
@@ -254,5 +288,19 @@ void map_grid_load_state_u16(uint16_t *grid, buffer *buf)
 {
     for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
         grid[i] = buffer_read_u16(buf);
+    }
+}
+
+void map_grid_load_state_u16_to_u32(uint32_t *grid, buffer *buf)
+{
+    for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        grid[i] = buffer_read_u16(buf);
+    }
+}
+
+void map_grid_load_state_u32(uint32_t *grid, buffer *buf)
+{
+    for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        grid[i] = buffer_read_u32(buf);
     }
 }

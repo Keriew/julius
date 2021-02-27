@@ -29,7 +29,11 @@ int empire_can_import_resource(int resource);
 
 int empire_can_import_resource_potentially(int resource);
 
+int empire_has_access_to_resource(int resource);
+
 int empire_can_export_resource(int resource);
+
+int can_produce_resource(int resource);
 
 int empire_can_produce_resource(int resource);
 
@@ -49,6 +53,8 @@ int empire_city_get_vulnerable_roman(void);
 
 void empire_city_expand_empire(void);
 
+void empire_city_force_sell(int route, int resource);
+
 void empire_city_set_vulnerable(int city_id);
 
 void empire_city_set_foreign(int city_id);
@@ -58,6 +64,8 @@ void empire_city_open_trade(int city_id);
 void empire_city_generate_trader(void);
 
 void empire_city_remove_trader(int city_id, int figure_id);
+
+int empire_unlock_all_resources(void);
 
 void empire_city_save_state(buffer *buf);
 

@@ -155,13 +155,65 @@ int model_load(void)
 }
 
 const model_building MODEL_ROADBLOCK = {40,0,0,0,0};
+const model_building MODEL_WORK_CAMP = { 150,-10,2,3,4,25 };
+const model_building MODEL_ENGINEER_GUILD = { 150,-8,1,2,4,25 };
+const model_building MODEL_GRAND_TEMPLE_CERES = { 2500,20,2,-4,5,50 };
+const model_building MODEL_GRAND_TEMPLE_NEPTUNE = { 2500,20,2,-4,5,50 };
+const model_building MODEL_GRAND_TEMPLE_MERCURY = { 2500,20,2,-4,5,50 };
+const model_building MODEL_GRAND_TEMPLE_MARS = { 2500,20,2,-4,5,50 };
+const model_building MODEL_GRAND_TEMPLE_VENUS = { 2500,20,2,-4,5,50 };
+const model_building MODEL_PANTHEON = { 3500,20,2,-4,5,50 };
+const model_building MODEL_LIGHTHOUSE = { 2000,6,1,-1,4,30 };
+const model_building MODEL_MESS_HALL = { 100,-8,1,2,4,10 };
+const model_building MODEL_NULL = { 0,0,0,0,0 };
 
 const model_building *model_get_building(building_type type)
 {
-    if(type == BUILDING_ROADBLOCK) {
-        return &MODEL_ROADBLOCK;
+    switch (type) {
+        case BUILDING_ROADBLOCK:
+            return &MODEL_ROADBLOCK;
+        case BUILDING_WORKCAMP:
+            return &MODEL_WORK_CAMP;
+        case BUILDING_ENGINEER_GUILD:
+            return &MODEL_ENGINEER_GUILD;
+        case BUILDING_GRAND_TEMPLE_CERES:
+            return &MODEL_GRAND_TEMPLE_CERES;
+        case BUILDING_GRAND_TEMPLE_NEPTUNE:
+            return &MODEL_GRAND_TEMPLE_NEPTUNE;
+        case BUILDING_GRAND_TEMPLE_MERCURY:
+            return &MODEL_GRAND_TEMPLE_MERCURY;
+        case BUILDING_GRAND_TEMPLE_MARS:
+            return &MODEL_GRAND_TEMPLE_MARS;
+        case BUILDING_GRAND_TEMPLE_VENUS:
+            return &MODEL_GRAND_TEMPLE_VENUS;
+        case BUILDING_PANTHEON:
+            return &MODEL_PANTHEON;
+        case BUILDING_MESS_HALL:
+            return &MODEL_MESS_HALL;
+        case BUILDING_LIGHTHOUSE:
+            return &MODEL_LIGHTHOUSE;
+        default:
+            break;
     }
-    return &buildings[type];
+
+    if (type >= BUILDING_PINE_TREE && type <= BUILDING_SMALL_STATUE_ALT_B) {
+        return &buildings[41];
+    }
+
+    if(type == BUILDING_SMALL_POND || type==BUILDING_OBELISK) {
+        return &buildings[42];
+    }
+
+    if(type == BUILDING_LARGE_POND) {
+        return &buildings[43];
+    }
+
+    if (type > 129) {
+        return &MODEL_NULL;
+    }
+    else {
+        return &buildings[type];
+    }
 }
 
 const model_house *model_get_house(house_level level)

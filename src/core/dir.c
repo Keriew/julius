@@ -50,7 +50,7 @@ static void expand_dir_listing(void)
 static int compare_lower(const void *va, const void *vb)
 {
     // arguments are pointers to char*
-    return string_compare_case_insensitive(*(const char**)va, *(const char**)vb);
+    return platform_file_manager_compare_filename(*(const char**)va, *(const char**)vb);
 }
 
 static int add_to_listing(const char *filename)
@@ -82,7 +82,7 @@ const dir_listing *dir_find_all_subdirectories(void)
 
 static int compare_case(const char *filename)
 {
-    if (string_compare_case_insensitive(filename, data.cased_filename) == 0) {
+    if (platform_file_manager_compare_filename(filename, data.cased_filename) == 0) {
         strcpy(data.cased_filename, filename);
         return LIST_MATCH;
     }
@@ -110,12 +110,18 @@ static const char *get_case_corrected_file(const char *dir, const char *filepath
     corrected_filename[2 * FILE_NAME_MAX - 1] = 0;
 
     size_t dir_len = 0;
-    if (dir) {
-        dir_len = strlen(dir) + 1;
-        strncpy(corrected_filename, dir, 2 * FILE_NAME_MAX - 1);
-        corrected_filename[dir_len - 1] = '/';
-    } else {
+    size_t dir_skip = 0;
+    if (!dir || !*dir) {
         dir = ".";
+        dir_skip = 2;
+    }
+    dir_len = strlen(dir);
+    strncpy(corrected_filename, dir, 2 * FILE_NAME_MAX - 1);
+    if (dir_len) {
+        if (dir[dir_len - 1] != '/') {
+            corrected_filename[dir_len] = '/';
+            dir_len++;
+        }
     }
 
     strncpy(&corrected_filename[dir_len], filepath, 2 * FILE_NAME_MAX - dir_len - 1);
@@ -123,38 +129,41 @@ static const char *get_case_corrected_file(const char *dir, const char *filepath
     FILE *fp = file_open(corrected_filename, "rb");
     if (fp) {
         file_close(fp);
-        return corrected_filename;
+        return corrected_filename + dir_skip;
     }
 
     if (!platform_file_manager_should_case_correct_file()) {
         return 0;
     }
 
-    strncpy(&corrected_filename[dir_len], filepath, 2 * FILE_NAME_MAX - dir_len - 1);
+    int path_offset = dir_len;
+    corrected_filename[path_offset - 1] = 0;
 
-    char *slash = strchr(&corrected_filename[dir_len], '/');
-    if (!slash) {
-        slash = strchr(&corrected_filename[dir_len], '\\');
-    }
-    if (slash) {
+    while(1) {
+        char *slash = strchr(&corrected_filename[path_offset], '/');
+        if (!slash) {
+            slash = strchr(&corrected_filename[path_offset], '\\');
+        }
+        if (!slash) {
+            break;
+        }
         *slash = 0;
-        if (correct_case(dir, &corrected_filename[dir_len], TYPE_DIR)) {
-            char *path = slash + 1;
-            if (*path == '\\') {
-                // double backslash: move everything to the left
-                move_left(path);
-            }
-            if (correct_case(corrected_filename, path, TYPE_FILE)) {
-                *slash = '/';
-                return corrected_filename;
-            }
+        if (!correct_case(corrected_filename, &corrected_filename[path_offset], TYPE_DIR)) {
+            return 0;
         }
-    } else {
-        if (correct_case(dir, corrected_filename, TYPE_FILE)) {
-            return corrected_filename;
+        char *path = slash + 1;
+        if (*path == '\\') {
+            // double backslash: move everything to the left
+            move_left(path);
         }
+        corrected_filename[path_offset - 1] = '/';
+        path_offset += strlen(&corrected_filename[path_offset]) + 1;
     }
-    return 0;
+    if (!correct_case(corrected_filename, &corrected_filename[path_offset], TYPE_FILE)) {
+        return 0;
+    }
+    corrected_filename[path_offset - 1] = '/';
+    return corrected_filename + dir_skip;
 }
 
 const dir_listing* dir_append_files_with_extension(const char* extension)
@@ -177,6 +186,11 @@ const char *dir_get_file(const char *filepath, int localizable)
             }
         }
     }
-
+    
     return get_case_corrected_file(0, filepath);
+}
+
+const char *dir_get_asset(const char *asset_path, const char *filepath)
+{
+    return get_case_corrected_file(asset_path, filepath);
 }

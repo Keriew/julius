@@ -18,8 +18,9 @@ void video_size(int *width, int *height);
 
 /**
  * Initializes the video subsystem, necessary just before a video is drawn for the first time
+ * @param restart_music Whether the music that was playing should restart
  */
-void video_init(void);
+void video_init(int restart_music);
 
 /**
  * Checks whether the video has finished playing
@@ -42,5 +43,10 @@ void video_shutdown(void);
  * @param y_offset Y offset
  */
 void video_draw(int x_offset, int y_offset);
+
+/**
+ * Draws a frame of the current video at fullscreen
+ */
+void video_draw_fullscreen(void);
 
 #endif // GRAPHICS_VIDEO_H

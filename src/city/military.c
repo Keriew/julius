@@ -5,6 +5,7 @@
 #include "city/data_private.h"
 #include "city/message.h"
 #include "city/ratings.h"
+#include "city/resource.h"
 #include "core/calc.h"
 #include "empire/city.h"
 #include "figure/formation.h"
@@ -36,6 +37,11 @@ int city_military_total_soldiers(void)
     return city_data.military.total_soldiers;
 }
 
+int city_military_total_soldiers_in_city(void)
+{
+    return city_data.military.soldiers_in_city;
+}
+
 int city_military_empire_service_legions(void)
 {
     return city_data.military.empire_service_legions;
@@ -50,6 +56,7 @@ void city_military_update_totals(void)
 {
     city_data.military.empire_service_legions = 0;
     city_data.military.total_soldiers = 0;
+    city_data.military.soldiers_in_city = 0;
     city_data.military.total_legions = 0;
     for (int i = 1; i < MAX_FORMATIONS; i++) {
         const formation *m = formation_get(i);
@@ -58,6 +65,10 @@ void city_military_update_totals(void)
             city_data.military.total_soldiers += m->num_figures;
             if (m->empire_service && m->num_figures > 0) {
                 city_data.military.empire_service_legions++;
+            }
+
+            if (!m->in_distant_battle) {
+                city_data.military.soldiers_in_city += m->num_figures;
             }
         }
     }
@@ -132,6 +143,37 @@ int city_military_distant_battle_roman_months_traveled(void)
     return city_data.distant_battle.roman_months_traveled;
 }
 
+int city_mess_hall_food_stress(void)
+{
+    return city_data.mess_hall.food_stress_cumulative;
+}
+
+int city_mess_hall_food_types(void)
+{
+    return city_data.mess_hall.food_types;
+}
+
+int city_mess_hall_total_food(void)
+{
+    return city_data.mess_hall.total_food;
+}
+
+int city_mess_hall_food_missing_month(void)
+{
+    return city_data.mess_hall.food_percentage_missing_this_month;
+}
+
+int city_mess_hall_months_food_stored(void)
+{
+    int food_needed = city_data.military.soldiers_in_city * FOOD_PER_SOLDIER_MONTHLY;
+    if (food_needed) {
+        return city_mess_hall_total_food() / food_needed;
+    }
+    else {
+        return 0;
+    }
+}
+
 int city_military_has_distant_battle(void)
 {
     return city_data.distant_battle.months_until_battle > 0 ||
@@ -161,7 +203,8 @@ static void update_time_traveled(void)
     int roman_travel_months = scenario_distant_battle_roman_travel_months();
     int enemy_travel_months = scenario_distant_battle_enemy_travel_months();
     if (city_data.distant_battle.months_until_battle < enemy_travel_months) {
-        city_data.distant_battle.enemy_months_traveled = enemy_travel_months - city_data.distant_battle.months_until_battle + 1;
+        city_data.distant_battle.enemy_months_traveled =
+            enemy_travel_months - city_data.distant_battle.months_until_battle + 1;
     } else {
         city_data.distant_battle.enemy_months_traveled = 1;
     }
@@ -175,7 +218,8 @@ static void update_time_traveled(void)
         if (city_data.distant_battle.roman_months_to_travel_forth <= 1) {
             city_data.distant_battle.roman_months_to_travel_forth = 1;
         }
-        city_data.distant_battle.roman_months_traveled = roman_travel_months - city_data.distant_battle.roman_months_to_travel_forth + 1;
+        city_data.distant_battle.roman_months_traveled =
+            roman_travel_months - city_data.distant_battle.roman_months_to_travel_forth + 1;
         if (city_data.distant_battle.roman_months_traveled < 1) {
             city_data.distant_battle.roman_months_traveled = 1;
         }

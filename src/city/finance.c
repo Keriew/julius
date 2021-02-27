@@ -1,6 +1,7 @@
 #include "finance.h"
 
 #include "building/building.h"
+#include "building/count.h"
 #include "building/model.h"
 #include "city/data_private.h"
 #include "core/calc.h"
@@ -8,6 +9,29 @@
 #include "game/time.h"
 
 #define MAX_HOUSE_LEVELS 20
+
+static building_levy_for_type building_levies[] = {
+    {BUILDING_FORT, FORT_LEVY_MONTHLY},
+    {BUILDING_SMALL_TEMPLE_CERES, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_SMALL_TEMPLE_NEPTUNE, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_SMALL_TEMPLE_MERCURY, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_SMALL_TEMPLE_MARS, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_SMALL_TEMPLE_VENUS, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_LARGE_TEMPLE_CERES, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_LARGE_TEMPLE_NEPTUNE, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_LARGE_TEMPLE_MERCURY, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_LARGE_TEMPLE_MARS, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_LARGE_TEMPLE_VENUS, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_ORACLE, TEMPLE_LEVY_MONTHLY },
+    {BUILDING_TOWER, TOWER_LEVY_MONTHLY },
+    {BUILDING_LIGHTHOUSE, LIGHTHOUSE_LEVY_MONTHLY },
+    {BUILDING_GRAND_TEMPLE_CERES, GRAND_TEMPLE_LEVY_MONTHLY},
+    {BUILDING_GRAND_TEMPLE_NEPTUNE, GRAND_TEMPLE_LEVY_MONTHLY},
+    {BUILDING_GRAND_TEMPLE_MERCURY, GRAND_TEMPLE_LEVY_MONTHLY},
+    {BUILDING_GRAND_TEMPLE_MARS, GRAND_TEMPLE_LEVY_MONTHLY},
+    {BUILDING_GRAND_TEMPLE_VENUS, GRAND_TEMPLE_LEVY_MONTHLY},
+    {BUILDING_PANTHEON, PANTHEON_LEVY_MONTHLY}
+};
 
 int city_finance_treasury(void)
 {
@@ -55,8 +79,8 @@ void city_finance_process_export(int price)
     city_data.finance.treasury += price;
     city_data.finance.this_year.income.exports += price;
     if (city_data.religion.neptune_double_trade_active) {
-        city_data.finance.treasury += price;
-        city_data.finance.this_year.income.exports += price;
+        city_data.finance.treasury += price/2;
+        city_data.finance.this_year.income.exports += price/2;
     }
 }
 
@@ -122,6 +146,7 @@ void city_finance_calculate_totals(void)
         this_year->expenses.interest +
         this_year->expenses.construction +
         this_year->expenses.wages +
+        this_year->expenses.levies +
         this_year->expenses.imports;
 
     finance_overview *last_year = &city_data.finance.last_year;
@@ -164,7 +189,8 @@ void city_finance_estimate_taxes(void)
         city_data.finance.tax_percentage);
     int estimated_rest_of_year = (12 - game_time_month()) * (monthly_patricians + monthly_plebs);
 
-    city_data.finance.this_year.income.taxes = city_data.taxes.yearly.collected_plebs + city_data.taxes.yearly.collected_patricians;
+    city_data.finance.this_year.income.taxes =
+        city_data.taxes.yearly.collected_plebs + city_data.taxes.yearly.collected_patricians;
     city_data.finance.estimated_tax_income = city_data.finance.this_year.income.taxes + estimated_rest_of_year;
 }
 
@@ -269,17 +295,37 @@ static void pay_monthly_salary(void)
     }
 }
 
+static void pay_monthly_building_levies(void) {
+    int levies = 0;
+    for (int i = 1; i < MAX_BUILDINGS; i++) {
+        building* b = building_get(i);
+        for (int i = 0; i < BUILDINGS_WITH_LEVIES; ++i) {
+            if (b->type == building_levies[i].type) {
+                b->monthly_levy = building_levies[i].amount;
+            }
+        }
+        if (b->state == BUILDING_STATE_IN_USE && building_get_levy(b)) {
+            levies += building_get_levy(b);
+        }
+    }
+    
+    city_data.finance.treasury -= levies;   
+    city_data.finance.this_year.expenses.levies += levies;
+}
+
 void city_finance_handle_month_change(void)
 {
     collect_monthly_taxes();
     pay_monthly_wages();
     pay_monthly_interest();
     pay_monthly_salary();
+    pay_monthly_building_levies();
 }
 
 static void reset_taxes(void)
 {
-    city_data.finance.last_year.income.taxes = city_data.taxes.yearly.collected_plebs + city_data.taxes.yearly.collected_patricians;
+    city_data.finance.last_year.income.taxes =
+        city_data.taxes.yearly.collected_plebs + city_data.taxes.yearly.collected_patricians;
     city_data.taxes.yearly.collected_plebs = 0;
     city_data.taxes.yearly.collected_patricians = 0;
     city_data.taxes.yearly.uncollected_plebs = 0;
@@ -304,6 +350,10 @@ static void copy_amounts_to_last_year(void)
     city_data.finance.wages_so_far = 0;
     city_data.finance.wage_rate_paid_last_year = city_data.finance.wage_rate_paid_this_year;
     city_data.finance.wage_rate_paid_this_year = 0;
+
+    //levies
+    last_year->expenses.levies = this_year->expenses.levies;
+    this_year->expenses.levies = 0;
 
     // import/export
     last_year->income.exports = this_year->income.exports;
@@ -347,6 +397,7 @@ static void pay_tribute(void)
         last_year->expenses.interest +
         last_year->expenses.construction +
         last_year->expenses.wages +
+        last_year->expenses.levies +
         last_year->expenses.imports;
 
     city_data.finance.tribute_not_paid_last_year = 0;
