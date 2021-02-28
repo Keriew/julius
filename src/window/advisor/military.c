@@ -190,6 +190,18 @@ static int draw_background(void)
     return ADVISOR_HEIGHT;
 }
 
+static int get_num_legions_not_at_fort(void)
+{
+    int num_legions_not_at_fort = 0;
+    for (int i = 0; i < num_legions; i++) {
+        const formation* m = formation_get(formation_for_legion(i + 1));
+        if (!m->in_distant_battle && !m->is_at_fort) {
+            num_legions_not_at_fort++;
+        }
+    }
+    return num_legions_not_at_fort;
+}
+
 static void draw_foreground(void)
 {
     scrollbar_draw(&scrollbar);
@@ -263,18 +275,6 @@ static void button_return_all_to_fort(int param1, int param2)
 static void on_scroll(void)
 {
     window_invalidate();
-}
-
-static int get_num_legions_not_at_fort(void) 
-{
-    int num_legions_not_at_fort = 0;
-    for (int i = 0; i < num_legions; i++) {
-        const formation* m = formation_get(formation_for_legion(i + 1));
-        if (!m->in_distant_battle && !m->is_at_fort) {
-            num_legions_not_at_fort++;
-        }
-    }
-    return num_legions_not_at_fort;
 }
 
 const advisor_window_type *window_advisor_military(void)
