@@ -1,6 +1,5 @@
 #include "building_info.h"
 
-#include "core/log.h"
 #include "building/barracks.h"
 #include "building/building.h"
 #include "building/house_evolution.h"
