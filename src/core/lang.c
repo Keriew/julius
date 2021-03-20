@@ -315,6 +315,15 @@ const uint8_t *lang_get_string(int group, int index)
         }
     }
 
+    if (group == 131) {
+        if (index == 1) {
+            return translation_for(TR_BUTTON_HALT_MONUMENT_CONSTRUCTION);
+        }
+        else {
+            return translation_for(TR_BUTTON_RESUME_MONUMENT_CONSTRUCTION);
+        }
+    }
+
     if (group == 67 && index == 48) {
         return translation_for(TR_EDITOR_ALLOWED_BUILDINGS_MONUMENTS);
     }
