@@ -228,10 +228,10 @@ static void draw_halt_monument_construction_button(int x, int y, int focused, bu
     int width = 16 * (context.width_blocks - 10);
     button_border_draw(x, y, width, 20, focused ? 1 : 0);
     if (monument->state != BUILDING_STATE_MOTHBALLED) {
-        lang_text_draw_centered(131, 1, x, y + 4, width, FONT_NORMAL_BLACK);
+        text_draw_centered(translation_for(TR_BUTTON_HALT_MONUMENT_CONSTRUCTION), x, y + 4, width, FONT_NORMAL_BLACK, 0);
     }
     else {
-        lang_text_draw_centered(131, 2, x, y + 4, width, FONT_NORMAL_BLACK);
+        text_draw_centered(translation_for(TR_BUTTON_RESUME_MONUMENT_CONSTRUCTION), x, y + 4, width, FONT_NORMAL_BLACK, 0);
     }
 }
 
