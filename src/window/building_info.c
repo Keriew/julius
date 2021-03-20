@@ -973,7 +973,7 @@ static void button_mothball(int mothball, int param2)
 
 static void button_monument_construction(int param1, int param2) {
     building* b = building_get(context.building_id);
-    building_mothball_toggle(b);
+    building_monument_toggle_construction_halted(b);
     window_invalidate();
 }
 
