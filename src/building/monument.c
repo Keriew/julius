@@ -1151,11 +1151,11 @@ void building_monument_delivery_load_state(buffer* list)
 	}
 }
 
-int building_monument_is_construction_halted(const building* b) {
+int building_monument_is_construction_halted(const building *b) {
 	return b->state == BUILDING_STATE_MOTHBALLED;
 }
 
-int building_monument_toggle_construction_halted(building* b) {
+int building_monument_toggle_construction_halted(building *b) {
 	if (b->state == BUILDING_STATE_MOTHBALLED) {
 		b->state = BUILDING_STATE_IN_USE;
 		return 0;
@@ -1165,6 +1165,6 @@ int building_monument_toggle_construction_halted(building* b) {
 	}
 }
 
-int building_monument_is_unfinished_monument(const building* b) {
+int building_monument_is_unfinished_monument(const building *b) {
 	return building_monument_is_monument(b) && b->data.monument.monument_phase != MONUMENT_FINISHED;
 }

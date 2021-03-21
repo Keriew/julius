@@ -772,12 +772,12 @@ static void draw_foreground(void)
         } else if ((btype >= BUILDING_GRAND_TEMPLE_CERES && btype <= BUILDING_GRAND_TEMPLE_VENUS) ||
             btype == BUILDING_PANTHEON) {
             window_building_draw_grand_temple_foreground(&context);
-        } else if (building_monument_type_is_monument(btype)) {
-            if (building_monument_is_unfinished_monument(b)) {
-                draw_halt_monument_construction_button(context.x_offset + 80, 
-                    context.y_offset + 3 + 16 * context.height_blocks - 40, 
-                    focus_monument_construction_button_id, b);
-            }
+        }
+        
+        if (building_monument_is_unfinished_monument(b)) {
+            draw_halt_monument_construction_button(context.x_offset + 80, 
+                context.y_offset + 3 + 16 * context.height_blocks - 40, 
+                focus_monument_construction_button_id, b);
         }
     } else if (context.type == BUILDING_INFO_LEGION) {
         window_building_draw_legion_info_foreground(&context);
