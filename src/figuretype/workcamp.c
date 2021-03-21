@@ -95,7 +95,7 @@ void figure_workcamp_worker_action(figure* f)
 			if (!monument_id) {
 				continue;
 			}
-			building* monument = building_get(monument_id);
+			building *monument = building_get(monument_id);
 			if (building_monument_is_construction_halted(monument)) {
 				continue;
 			}

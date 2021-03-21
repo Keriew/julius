@@ -223,7 +223,7 @@ static void draw_mothball_button(int x, int y, int focused)
         }
 }
 
-static void draw_halt_monument_construction_button(int x, int y, int focused, building* monument)
+static void draw_halt_monument_construction_button(int x, int y, int focused, building *monument)
 {
     int width = 16 * (context.width_blocks - 10);
     button_border_draw(x, y, width, 20, focused ? 1 : 0);
@@ -708,7 +708,7 @@ static void draw_background(void)
 
 static void draw_foreground(void)
 {
-    building* b = building_get(context.building_id);
+    building *b = building_get(context.building_id);
     // building-specific buttons
     if (context.type == BUILDING_INFO_BUILDING) {
         int btype = building_get(context.building_id)->type;
@@ -869,7 +869,7 @@ static void handle_input(const mouse *m, const hotkeys *h)
         handled |= image_buttons_handle_mouse(
                       m, context.x_offset, context.y_offset + 16 * context.height_blocks - 40,
                       image_buttons_help_close, 2, &focus_image_button_id);
-        building* b = building_get(context.building_id);
+        building *b = building_get(context.building_id);
         if (building_monument_is_unfinished_monument(b)) {
             handled = generic_buttons_handle_mouse(
                 m, context.x_offset, context.y_offset + 16 * context.height_blocks - 40,
@@ -897,7 +897,7 @@ static void handle_input(const mouse *m, const hotkeys *h)
 static void get_tooltip(tooltip_context *c)
 {
     int text_id = 0, group_id = 0, translation = 0;
-    building* b = building_get(context.building_id);
+    building *b = building_get(context.building_id);
     int btype = b->type;
     if (focus_image_button_id) {
         text_id = focus_image_button_id;
@@ -971,7 +971,7 @@ static void button_mothball(int mothball, int param2)
 }
 
 static void button_monument_construction(int param1, int param2) {
-    building* b = building_get(context.building_id);
+    building *b = building_get(context.building_id);
     building_monument_toggle_construction_halted(b);
     window_invalidate();
 }
