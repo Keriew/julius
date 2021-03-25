@@ -226,6 +226,9 @@ void building_clear_related_data(building *b)
     if (b->type == BUILDING_HIPPODROME) {
         city_buildings_remove_hippodrome();
     }
+    if (b->type == BUILDING_CARAVANSERAI) {
+        city_buildings_remove_caravanserai();
+    }
     if (b->type == BUILDING_TRIUMPHAL_ARCH) {
         city_buildings_remove_triumphal_arch();
         building_menu_update();

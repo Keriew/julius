@@ -4,7 +4,7 @@
 #include "core/image_group.h" 
 #include "type.h"
 
-#define AUGUSTUS_BUILDINGS 37
+#define AUGUSTUS_BUILDINGS 38
 
 augustus_building_properties_mapping augustus_building_properties[AUGUSTUS_BUILDINGS] = {
     {BUILDING_ROADBLOCK, { 1, 1, 0, 0, 0 },  "Areldir", "Roadblocks", 0},
@@ -43,7 +43,8 @@ augustus_building_properties_mapping augustus_building_properties[AUGUSTUS_BUILD
     {BUILDING_PANTHEON, { 7, 1, 0, 0, 0 }, "Areldir", "Pantheon", "Pantheon Const 01"},
     {BUILDING_ENGINEER_GUILD, { 2, 1, 0, 0, 0 }, "Areldir", "Engineer", "Eng Guild OFF"},
     {BUILDING_MESS_HALL, { 3, 0, 0, 0, 0 }, "Areldir", "Mess_Hall", "Mess OFF Central"},
-    {BUILDING_LIGHTHOUSE, { 3, 1, 0, 0, 0 }, "Areldir", "Lighthouses", "Lighthouse Const 01"}
+    {BUILDING_LIGHTHOUSE, { 3, 1, 0, 0, 0 }, "Areldir", "Lighthouses", "Lighthouse Const 01"},
+    {BUILDING_CARAVANSERAI, { 4, 0, 0, 0, 0 },  "Areldir", "Caravanserai", "Caravanserai"}
 };
 
 void init_augustus_building_properties() {

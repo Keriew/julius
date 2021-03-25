@@ -624,6 +624,10 @@ static void add_to_map(int type, building *b, int size,
                 break;
             }
             break;
+        case BUILDING_CARAVANSERAI:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai"));
+            city_buildings_add_caravanserai();
+            break;
     }
     map_routing_update_land();
     map_routing_update_walls();
@@ -769,6 +773,10 @@ int building_construction_place_building(building_type type, int x, int y)
         }
     }
     if (type == BUILDING_SENATE_UPGRADED && city_buildings_has_senate()) {
+        city_warning_show(WARNING_ONE_BUILDING_OF_TYPE);
+        return 0;
+    }
+    if (type == BUILDING_CARAVANSERAI && city_buildings_has_caravanserai()) {
         city_warning_show(WARNING_ONE_BUILDING_OF_TYPE);
         return 0;
     }

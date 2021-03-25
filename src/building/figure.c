@@ -1401,6 +1401,14 @@ static void spawn_figure_engineer_guild(building* b) {
     }
 }
 
+static void spawn_figure_caravanserai(building* b) {
+    check_labor_problem(b);
+    map_point road;
+    if (map_has_road_access(b->x, b->y, b->size, &road)) {
+        spawn_labor_seeker(b, road.x, road.y, 100);
+    }
+}
+
 static void spawn_figure_mess_hall(building* b) {
     int spawn_delay = 7;
     check_labor_problem(b);
@@ -1585,6 +1593,9 @@ void building_figure_generate(void)
                     if (b->subtype.monument_phase == MONUMENT_FINISHED) {
                         spawn_figure_lighthouse(b);
                     }
+                    break;
+                case BUILDING_CARAVANSERAI:
+                    spawn_figure_caravanserai(b);
                     break;
             }
         }

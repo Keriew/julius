@@ -136,6 +136,21 @@ void city_buildings_remove_hippodrome(void)
     city_data.building.hippodrome_placed = 0;
 }
 
+int city_buildings_has_caravanserai(void)
+{
+    return city_data.building.caravanserai_placed;
+}
+
+void city_buildings_add_caravanserai(void)
+{
+    city_data.building.caravanserai_placed = 1;
+}
+
+void city_buildings_remove_caravanserai(void)
+{
+    city_data.building.caravanserai_placed = 0;
+}
+
 int city_buildings_triumphal_arch_available(void)
 {
     return city_data.building.triumphal_arches_available > city_data.building.triumphal_arches_placed;
