@@ -3,6 +3,7 @@
 #include "building/building.h"
 #include "building/dock.h"
 #include "building/market.h"
+#include "building/monument.h"
 #include "building/storage.h"
 #include "building/warehouse.h"
 #include "city/buildings.h"
@@ -11,7 +12,6 @@
 #include "empire/city.h"
 #include "empire/object.h"
 #include "figure/figure.h"
-#include "game/resource.h"
 #include "graphics/generic_button.h"
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
@@ -20,7 +20,6 @@
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "scenario/property.h"
-#include "translation/translation.h"
 #include "window/building_info.h"
 
 #include <math.h>
@@ -457,6 +456,7 @@ static int get_allowed_inventory_for_supplier(building_type type)
     switch (type) {
         case BUILDING_MARKET:
             return INVENTORY_FLAG_ALL;
+        case BUILDING_CARAVANSERAI:
         case BUILDING_MESS_HALL:
             return INVENTORY_FLAG_ALL_FOODS;
         case BUILDING_TAVERN:
@@ -1124,3 +1124,34 @@ void window_building_draw_mess_hall(building_info_context *c)
     window_building_draw_employment(c, 308);
     window_building_supplier_draw_foreground(c);
 }
+
+static void window_building_draw_monument_caravanserai_construction_process(building_info_context *c)
+{
+    window_building_draw_monument_construction_process(c, TR_BUILDING_CARAVANSERAI_PHASE_1,
+                                                       TR_BUILDING_CARAVANSERAI_PHASE_1_TEXT, TR_BUILDING_MONUMENT_CONSTRUCTION_DESC);
+}
+
+void window_building_draw_caravanserai(building_info_context* c)
+{
+    building *b = building_get(c->building_id);
+
+    if (b->data.monument.monument_phase == MONUMENT_FINISHED) {
+        window_building_play_sound(c, "wavs/market2.wav");
+        outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
+
+        window_building_draw_stocks(c, b, 0, 1);
+
+        text_draw_multiline(translation_for(TR_BUILDING_CARAVANSERAI_DESC), c->x_offset + 32, c->y_offset + 106, 16 * (c->width_blocks - 4), FONT_NORMAL_BLACK, 0);
+
+        inner_panel_draw(c->x_offset + 16, c->y_offset + 285, c->width_blocks - 2, 4);
+
+        window_building_draw_employment(c, 285);
+        window_building_supplier_draw_foreground(c);
+    } else {
+        outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
+        window_building_draw_monument_caravanserai_construction_process(c);
+    }
+
+    text_draw_centered(translation_for(TR_BUILDING_CARAVANSERAI), c->x_offset, c->y_offset + 12, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
+}
+

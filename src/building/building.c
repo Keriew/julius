@@ -282,6 +282,9 @@ void building_clear_related_data(building *b)
     if (b->type == BUILDING_HIPPODROME) {
         city_buildings_remove_hippodrome();
     }
+    if (b->type == BUILDING_CARAVANSERAI) {
+        city_buildings_remove_caravanserai();
+    }
     if (b->type == BUILDING_TRIUMPHAL_ARCH) {
         city_buildings_remove_triumphal_arch();
         building_menu_update();
@@ -413,6 +416,7 @@ int building_is_venus_temple(building_type type)
 int building_has_supplier_inventory(building_type type) {
     return (type == BUILDING_MARKET ||
         type == BUILDING_MESS_HALL ||
+        type == BUILDING_CARAVANSERAI ||
         type == BUILDING_SMALL_TEMPLE_CERES ||
         type == BUILDING_LARGE_TEMPLE_CERES ||
         type == BUILDING_SMALL_TEMPLE_VENUS ||

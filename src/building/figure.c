@@ -2,6 +2,7 @@
 
 #include "assets/assets.h"
 #include "building/barracks.h"
+#include "building/caravanserai.h"
 #include "building/granary.h"
 #include "building/industry.h"
 #include "building/market.h"
@@ -784,6 +785,25 @@ static void spawn_figure_market(building *b)
     }
 }
 
+static void spawn_caravanserai_supplier(building *b, int x, int y)
+{
+    if (b->figure_id2) {
+        figure *f = figure_get(b->figure_id2);
+        if (f->state != FIGURE_STATE_ALIVE || (f->type != FIGURE_CARAVANSERAI_SUPPLIER && f->type != FIGURE_LABOR_SEEKER)) {
+            b->figure_id2 = 0;
+        }
+        return;
+    }
+    int dst_building_id = building_caravanserai_get_storage_destination(b);
+    if (dst_building_id == 0) {
+        return;
+    }
+    figure *f = figure_create(FIGURE_CARAVANSERAI_SUPPLIER, x, y, DIR_0_TOP);
+    f->building_id = b->id;
+    b->figure_id2 = f->id;
+    f->collecting_item_id = b->data.market.fetch_inventory_id;
+    send_supplier_to_destination(f, dst_building_id);
+}
 
 static void set_bathhouse_graphic(building *b)
 {
@@ -1092,8 +1112,8 @@ static void spawn_figure_grand_temple_mars(building* b) {
 static void spawn_figure_tavern(building* b)
 {
     check_labor_problem(b);
-    map_point road;    
-    if (map_has_road_access(b->x, b->y, b->size, &road)) {        
+    map_point road;
+    if (map_has_road_access(b->x, b->y, b->size, &road)) {
         if (b->houses_covered <= 50) {
             generate_labor_seeker(b, road.x, road.y);
         }
@@ -1109,7 +1129,7 @@ static void spawn_figure_tavern(building* b)
                 b->data.market.inventory[INVENTORY_MEAT] -= calc_bound(40, 40, b->data.market.inventory[INVENTORY_MEAT]);
                 create_roaming_figure(b, road.x, road.y, FIGURE_BARKEEP);
             }
-        }        
+        }
         spawn_tavern_supplier(b, road.x, road.y);
     }
 }
@@ -1551,6 +1571,16 @@ static void spawn_figure_mess_hall(building* b)
     }
 }
 
+static void spawn_figure_caravanserai(building *b)
+{
+    check_labor_problem(b);
+    map_point road;
+    if (map_has_road_access(b->x, b->y, b->size, &road)) {
+        spawn_labor_seeker(b, road.x, road.y, 100);
+        spawn_caravanserai_supplier(b, road.x, road.y);
+    }
+}
+
 static void spawn_figure_lighthouse(building* b)
 {
     check_labor_problem(b);
@@ -1630,7 +1660,7 @@ void building_figure_generate(void)
         if (b->type == BUILDING_WAREHOUSE_SPACE || (b->type == BUILDING_HIPPODROME && b->prev_part_building_id)) {
             continue;
         }
-        
+
         b->show_on_problem_overlay = 0;
         // range of building types
         if (b->type >= BUILDING_HOUSE_SMALL_VILLA && b->type <= BUILDING_HOUSE_LUXURY_PALACE) {
@@ -1777,6 +1807,11 @@ void building_figure_generate(void)
                     break;
                 case BUILDING_WATCHTOWER:
                     spawn_figure_watchtower(b);
+                    break;
+                case BUILDING_CARAVANSERAI:
+                    if (b->data.monument.monument_phase == MONUMENT_FINISHED) {
+                        spawn_figure_caravanserai(b);
+                    }
                     break;
             }
         }
