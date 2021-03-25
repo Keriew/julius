@@ -194,6 +194,9 @@ static int get_height_id(void)
             case BUILDING_LIGHTHOUSE:
                 return 6;
 
+            case BUILDING_CARAVANSERAI:
+                return 5;
+
             case BUILDING_MESS_HALL:
                 return 7;
 
@@ -625,8 +628,6 @@ static void draw_background(void)
             window_building_draw_work_camp(&context);
         } else if (btype == BUILDING_ARCHITECT_GUILD) {
             window_building_draw_architect_guild(&context);
-        } else if (btype == BUILDING_MESS_HALL) {
-            window_building_draw_mess_hall(&context);
         } else if (btype == BUILDING_TAVERN) {
             if (context.storage_show_special_orders) {
                 window_building_draw_supplier_orders(&context, translation_for(TR_TAVERN_SPECIAL_ORDERS_HEADER));
@@ -721,6 +722,12 @@ static void draw_background(void)
             window_building_draw_mission_post(&context);
         } else if (btype == BUILDING_WATCHTOWER) {
             window_building_draw_watchtower(&context);
+        } else if (btype == BUILDING_CARAVANSERAI) {
+            if (context.storage_show_special_orders) {
+                window_building_draw_supplier_orders(&context, translation_for(TR_CARAVANSERAI_SPECIAL_ORDERS_HEADER));
+            } else {
+                window_building_draw_caravanserai(&context);
+            }
         }
     } else if (context.type == BUILDING_INFO_LEGION) {
         window_building_draw_legion_info(&context);
@@ -793,6 +800,13 @@ static void draw_foreground(void)
         } else if ((btype >= BUILDING_GRAND_TEMPLE_CERES && btype <= BUILDING_GRAND_TEMPLE_VENUS) ||
             btype == BUILDING_PANTHEON) {
             window_building_draw_grand_temple_foreground(&context);
+        } else if (btype == BUILDING_CARAVANSERAI &&
+            !building_monument_is_unfinished_monument(b)) {
+            if (context.storage_show_special_orders) {
+                window_building_draw_supplier_orders_foreground(&context);
+            } else {
+                window_building_supplier_draw_foreground(&context);
+            }
         }
 
         if (building_monument_is_unfinished_monument(b)) {

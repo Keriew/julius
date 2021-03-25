@@ -1,3 +1,9 @@
+#include "building/caravanserai.h"
+#include "building/model.h"
+#include "building/monument.h"
+#include "city/buildings.h"
+#include "city/resource.h"
+#include "core/calc.h"
 #include "trade_prices.h"
 
 struct trade_price {
@@ -23,12 +29,49 @@ void trade_prices_reset(void)
 
 int trade_price_buy(resource_type resource)
 {
-    return prices[resource].buy;
+    return (int)(prices[resource].buy * trade_factor_buy(1));
 }
 
 int trade_price_sell(resource_type resource)
 {
-    return prices[resource].sell;
+    return (int)(prices[resource].sell * trade_factor_sell(1));
+}
+
+double trade_factor_sell(double factor)
+{
+    if(city_buildings_has_caravanserai()) {
+        factor += trade_get_caravanserai_factor();
+    }
+    return factor;
+}
+
+double trade_factor_buy(double factor)
+{
+    if(city_buildings_has_caravanserai()) {
+        factor -= trade_get_caravanserai_factor();
+    }
+    return factor;
+}
+
+double trade_get_caravanserai_factor() {
+    double caravanserai_factor = 0;
+
+    if(city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+        building *b = building_get(city_buildings_get_caravanserai());
+
+        // caravanserai has enough food for the month
+        if (building_caravanserai_enough_foods(b)) {
+            // get workers percentage
+            int pct_workers = calc_percentage(b->num_workers, model_get_building(b->type)->laborers);
+            if (pct_workers >= 100) { // full laborers
+                caravanserai_factor = 0.1; // 10% bonus on trade
+            } else if (pct_workers > 0) {
+                caravanserai_factor = 0.05; // 5% bonus on trade
+            }
+        }
+    }
+
+    return caravanserai_factor;
 }
 
 int trade_price_change(resource_type resource, int amount)

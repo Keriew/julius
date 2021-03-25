@@ -27,6 +27,26 @@ int trade_price_buy(resource_type resource);
 int trade_price_sell(resource_type resource);
 
 /**
+ * Return the factor to apply when selling resource
+ * @param factor default is 1
+ * @return 1 if not factor to apply else other value
+ */
+double trade_factor_sell(double factor);
+
+/**
+ * Return the factor to apply when buying resource
+ * @param factor default is 1
+ * @return 1 if not factor to apply else other value
+ */
+double trade_factor_buy(double factor);
+
+/**
+ * Return the factor to apply depending caravanserai food stock vs food consumption
+ * @return 0 if no factor to apply else 0.01 to 0.1 if caravanserai is active depending workers in it
+ */
+double trade_get_caravanserai_factor();
+
+/**
  * Change the trade price for resource by amount
  * @param resource Resource to change
  * @param amount Amount to change, can be positive or negative

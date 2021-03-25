@@ -46,4 +46,5 @@ void window_building_granary_get_tooltip_distribution_permissions(int* translati
 void window_building_warehouse_get_tooltip_distribution_permissions(int* translation);
 void window_building_get_tooltip_warehouse_orders(int *group_id, int *text_id, int *translation);
 
+void window_building_draw_caravanserai(building_info_context* c);
 #endif // WINDOW_BUILDING_DISTRIBUTION_H

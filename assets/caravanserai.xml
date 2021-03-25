@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE assetlist>
+
+<assetlist author="Areldir" name="Caravanserai">
+
+    <!-- Note: Caravanserai Construction -->
+    <image id="Caravanserai Cons" src="Caravanserai_Construction" />
+
+    <!-- Note: Caravanserai Variants for Central, North and South Climates Respectively -->
+    <image id="Caravanserai Central" src="Caravanserai_Central" />
+    <image id="Caravanserai North" src="Caravanserai_North" />
+    <image id="Caravanserai South" src="Caravanserai_South" />
+</assetlist>
