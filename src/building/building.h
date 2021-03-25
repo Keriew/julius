@@ -16,7 +16,7 @@ typedef struct {
     unsigned char x;
     unsigned char y;
     short grid_offset;
-    short type;
+    building_type type;
     union {
         short house_level;
         short warehouse_resource_id;
@@ -94,6 +94,7 @@ typedef struct {
             unsigned char curse_days_left;
             unsigned char has_raw_materials;
             unsigned char has_fish;
+            unsigned char is_stockpiling;
             unsigned char orientation;
             short fishing_boat_id;
         } industry;
@@ -208,6 +209,8 @@ void building_update_highest_id(void);
 int building_mothball_toggle(building* b);
 
 int building_mothball_set(building* b, int value);
+
+unsigned char building_stockpiling_toggle(building *b);
 
 int building_get_tourism(const building* b);
 

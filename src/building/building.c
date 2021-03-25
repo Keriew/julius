@@ -11,12 +11,10 @@
 #include "city/warning.h"
 #include "figure/formation_legion.h"
 #include "game/difficulty.h"
-#include "game/resource.h"
 #include "game/undo.h"
 #include "map/building_tiles.h"
 #include "map/desirability.h"
 #include "map/elevation.h"
-#include "map/grid.h"
 #include "map/random.h"
 #include "map/routing_terrain.h"
 #include "map/terrain.h"
@@ -236,6 +234,7 @@ building *building_create(building_type type, int x, int y)
     b->figure_roam_direction = b->house_figure_generation_delay & 6;
     b->fire_proof = props->fire_proof;
     b->is_adjacent_to_water = map_terrain_is_adjacent_to_water(x, y, b->size);
+    b->data.industry.is_stockpiling = 0;
 
     // init expanded data
     b->house_tavern_wine_access = 0;
@@ -468,6 +467,12 @@ int building_mothball_set(building *b, int mothball)
     }
     return b->state;
 
+}
+
+unsigned char building_stockpiling_toggle(building *b)
+{
+    b->data.industry.is_stockpiling = !b->data.industry.is_stockpiling;
+    return b->data.industry.is_stockpiling;
 }
 
 int building_get_levy(const building* b)
