@@ -265,7 +265,6 @@ static void save_main_data(buffer *main)
         buffer_write_i32(main, city_data.unused.unknown_4294[i]);
     }
     buffer_write_i32(main, city_data.building.hippodrome_placed);
-    buffer_write_i32(main, city_data.building.caravanserai_placed);
     buffer_write_i32(main, city_data.houses.missing.clinic);
     buffer_write_i32(main, city_data.houses.missing.hospital);
     buffer_write_i32(main, city_data.houses.requiring.barber);
@@ -751,7 +750,6 @@ static void load_main_data(buffer *main)
         city_data.unused.unknown_4294[i] = buffer_read_i32(main);
     }
     city_data.building.hippodrome_placed = buffer_read_i32(main);
-    city_data.building.caravanserai_placed = buffer_read_i32(main);
     city_data.houses.missing.clinic = buffer_read_i32(main);
     city_data.houses.missing.hospital = buffer_read_i32(main);
     city_data.houses.requiring.barber = buffer_read_i32(main);

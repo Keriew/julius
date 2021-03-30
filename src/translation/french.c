@@ -334,8 +334,6 @@ static translation_string all_strings[] = {
     {TR_TOOLTIP_BUTTON_ACCEPT_TRADE_SHIPS, "Permettre aux navires de commerce de commercer ici"},
     {TR_CONFIG_HEADER_CITY_MANAGEMENT_CHANGES, "Gestion de la ville"},
     {TR_BUILDING_LIGHTHOUSE, "Phare"},
-    {TR_BUILDING_CARAVANSERAI, "Caravansérail"},
-    {TR_BUILDING_CARAVANSERAI_DESC, "Les caravanes marchandes profitent de ce lieu de repos. Les marchandises sont achetées 10% plus cher et vendus 10% moins cher dans votre cité"},
     {TR_BUILDING_LIGHTHOUSE_PHASE_1, "(Fondation)"},
     {TR_BUILDING_LIGHTHOUSE_PHASE_2, "(Piédestal)"},
     {TR_BUILDING_LIGHTHOUSE_PHASE_3, "(Tour)"},

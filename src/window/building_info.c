@@ -152,7 +152,6 @@ static int get_height_id(void)
             case BUILDING_WORKCAMP:
             case BUILDING_ENGINEER_GUILD:
             case BUILDING_OBELISK:
-            case BUILDING_CARAVANSERAI:
                 return 1;
 
             case BUILDING_THEATER:
@@ -581,8 +580,6 @@ static void draw_background(void)
             window_building_draw_pantheon(&context);
         } else if (btype == BUILDING_LIGHTHOUSE) {
             window_building_draw_lighthouse(&context);
-        } else if (btype == BUILDING_CARAVANSERAI) {
-            window_building_draw_caravanserai(&context);
         } else if (btype == BUILDING_GOVERNORS_HOUSE || btype == BUILDING_GOVERNORS_VILLA || btype == BUILDING_GOVERNORS_PALACE) {
             window_building_draw_governor_home(&context);
         } else if (btype == BUILDING_FORUM || btype == BUILDING_FORUM_UPGRADED) {

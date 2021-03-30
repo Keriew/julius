@@ -27,30 +27,6 @@ int trade_price_buy(resource_type resource);
 int trade_price_sell(resource_type resource);
 
 /**
- * Return the factor to apply when selling resource
- * @param factor default is 1
- * @return 1 if not factor to apply else other value
- */
-double trade_factor_sell(double factor);
-
-/**
- * Return the factor to apply when buying resource
- * @param factor default is 1
- * @return 1 if not factor to apply else other value
- */
-double trade_factor_buy(double factor);
-
-/**
- * Return the factor to apply depending caravanserai labor worker
- * Exemple
- * if laborworker is 100%, then applying 10% bonus
- * if laborworker is 50%, then applying 5% bonus
- * etc.
- * @return 1 if not factor to apply else other value
- */
-double trade_sub_factor();
-
-/**
  * Change the trade price for resource by amount
  * @param resource Resource to change
  * @param amount Amount to change, can be positive or negative

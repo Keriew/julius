@@ -30,7 +30,6 @@ extern struct city_data_t {
         int16_t senate_grid_offset;
         int32_t senate_building_id;
         int32_t hippodrome_placed;
-        int32_t caravanserai_placed;
         int8_t barracks_x;
         int8_t barracks_y;
         int16_t barracks_grid_offset;
