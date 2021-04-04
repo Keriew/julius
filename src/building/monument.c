@@ -185,7 +185,7 @@ int building_monument_access_point(building *b, map_point *dst)
 			return 1;
 		case BUILDING_ORACLE:
 		case BUILDING_SMALL_MAUSOLEUM:
-        case BUILDING_CARAVANSERAI: // TODO should be building entrance
+        case BUILDING_CARAVANSERAI:
 			dst->x = b->x;
 			dst->y = b->y;
 			return 1;
@@ -201,7 +201,7 @@ int building_monument_add_module(building *b, int module_type)
 {
 	if (!building_monument_is_monument(b) ||
 		b->data.monument.monument_phase != MONUMENT_FINISHED ||
-		b->data.monument.upgrades) {
+        (b->data.monument.upgrades && b->type != BUILDING_CARAVANSERAI)) {
 		return 0;
 	}
 
@@ -753,19 +753,14 @@ void building_monument_initialize(building *b)
                 case 2:
                     switch (scenario_property_climate())
                     {
-                        case CLIMATE_NORTHERN:
-                            map_building_tiles_add(b->id, b->x, b->y, b->size,
-                                                   assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai North"),
-                                                   TERRAIN_BUILDING);
-                            break;
                         case CLIMATE_DESERT:
                             map_building_tiles_add(b->id, b->x, b->y, b->size,
-                                                   assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai South"),
+                                                   assets_get_image_id(assets_get_group_id("Areldir", "Econ_Logistics"), "Caravanserai S ON"),
                                                    TERRAIN_BUILDING);
                             break;
                         default:
                             map_building_tiles_add(b->id, b->x, b->y, b->size,
-                                                   assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai Central"),
+                                                   assets_get_image_id(assets_get_group_id("Areldir", "Econ_Logistics"), "Caravanserai N ON"),
                                                    TERRAIN_BUILDING);
                             break;
                     }

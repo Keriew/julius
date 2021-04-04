@@ -5,7 +5,6 @@
 #include "city/resource.h"
 
 #define INFINITE 10000
-#define MAX_FOOD 1200
 
 static int get_needed_food(building *caravanserai)
 {

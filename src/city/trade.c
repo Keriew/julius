@@ -125,7 +125,7 @@ int trade_caravan_count(void)
     int count = 0;
     for (int i = 1; i < figure_count(); i++) {
         figure *f = figure_get(i);
-        if (f->type == FIGURE_TRADE_CARAVAN || f->type == FIGURE_TRADE_CARAVAN_DONKEY) {
+        if (f->type == FIGURE_TRADE_CARAVAN || f->type == FIGURE_TRADE_CARAVAN_DONKEY || f->type == FIGURE_NATIVE_TRADER) {
             count++;
         }
     }

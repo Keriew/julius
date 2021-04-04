@@ -628,6 +628,8 @@ static void draw_background(void)
             window_building_draw_work_camp(&context);
         } else if (btype == BUILDING_ARCHITECT_GUILD) {
             window_building_draw_architect_guild(&context);
+        } else if (btype == BUILDING_MESS_HALL) {
+            window_building_draw_mess_hall(&context);
         } else if (btype == BUILDING_TAVERN) {
             if (context.storage_show_special_orders) {
                 window_building_draw_supplier_orders(&context, translation_for(TR_TAVERN_SPECIAL_ORDERS_HEADER));
@@ -806,6 +808,7 @@ static void draw_foreground(void)
                 window_building_draw_supplier_orders_foreground(&context);
             } else {
                 window_building_supplier_draw_foreground(&context);
+                window_building_draw_caravanserai_foreground(&context);
             }
         }
 
@@ -844,13 +847,18 @@ static int handle_specific_building_info_mouse(const mouse *m)
     if (context.type == BUILDING_INFO_NONE) {
         return 0;
     }
+
     if (context.type == BUILDING_INFO_LEGION) {
         return window_building_handle_mouse_legion_info(m, &context);
     } else if (context.figure.drawn) {
         return window_building_handle_mouse_figure_list(m, &context);
     } else if (context.type == BUILDING_INFO_BUILDING) {
         int btype = building_get(context.building_id)->type;
+
         if (building_has_supplier_inventory(btype)) {
+            if (btype == BUILDING_CARAVANSERAI) {
+                window_building_handle_mouse_caravanserai(m, &context);
+            }
             if (context.storage_show_special_orders) {
                 window_building_handle_mouse_supplier_orders(m, &context);
             } else {

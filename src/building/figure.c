@@ -1568,7 +1568,15 @@ static void spawn_figure_caravanserai(building *b)
     map_point road;
     if (map_has_road_access(b->x, b->y, b->size, &road)) {
         spawn_labor_seeker(b, road.x, road.y, 100);
-        spawn_caravanserai_supplier(b, road.x, road.y);
+        int spawn_delay = default_spawn_delay(b);
+        if (!spawn_delay) {
+            return;
+        }
+        b->figure_spawn_delay++;
+        if (b->figure_spawn_delay > spawn_delay) {
+            b->figure_spawn_delay = 0;
+            spawn_caravanserai_supplier(b, road.x, road.y);
+        }
     }
 }
 

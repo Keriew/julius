@@ -713,7 +713,7 @@ static void add_to_map(int type, building *b, int size,
             break;
         case BUILDING_CARAVANSERAI:
             city_buildings_add_caravanserai(b);
-            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai Cons"));
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Econ_Logistics"), "Caravanserai Cons"));
             b->data.monument.monument_phase = MONUMENT_START;
             map_tiles_update_area_roads(b->x, b->y, 4);
             building_monument_initialize(b);

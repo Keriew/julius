@@ -37,7 +37,7 @@ static struct {
     int building_id;
 } data;
 
-option_menu_item temple_module_options[12] = {
+static const option_menu_item temple_module_options[12] = {
     {
         0, TR_BUILDING_GRAND_TEMPLE_CERES_DESC_MODULE_1, TR_BUILDING_GRAND_TEMPLE_CERES_MODULE_1_DESC,
         0, "Areldir", "UI_Elements", "Ceres M Icon", 0

@@ -6,8 +6,8 @@
 #include "building/monument.h"
 #include "city/labor.h"
 #include "city/population.h"
-#include "city/view.h"
 #include "city/resource.h"
+#include "city/view.h"
 #include "graphics/image.h"
 #include "graphics/lang_text.h"
 #include "graphics/screen.h"
@@ -182,30 +182,36 @@ void window_building_play_sound(building_info_context *c, const char *sound_file
     }
 }
 
-void window_building_draw_monument_resources_needed(building_info_context *c)
+static void window_building_draw_monument_resources_needed(building_info_context *c)
 {
     building *b = building_get(c->building_id);
-    for (int r = RESOURCE_TIMBER; r <= RESOURCE_MARBLE; r++) {
-        int total_resources_needed = building_monument_resources_needed_for_monument_type(b->type, r,
-                                                                                          b->data.monument.monument_phase);
-        int resources_delivered = total_resources_needed - b->data.monument.resources_needed[r];
-        int image_id = image_group(GROUP_RESOURCE_ICONS);
-        image_draw(image_id + r, c->x_offset + 22, c->y_offset - 105 + r * 20);
-        int width = text_draw_number(resources_delivered, '@', "/",
-                                     c->x_offset + 54, c->y_offset + 10 + r * 20 - 106, FONT_NORMAL_BLACK);
-        text_draw_number(total_resources_needed, '@', " ",
-                         c->x_offset + 44 + width, c->y_offset + 10 + r * 20 - 106, FONT_NORMAL_BLACK);
+    if (building_monument_needs_resources(b)) {
+        for (int r = RESOURCE_TIMBER; r <= RESOURCE_MARBLE; r++) {
+            int total_resources_needed = building_monument_resources_needed_for_monument_type(b->type, r,
+                                                                                              b->data.monument.monument_phase);
+            int resources_delivered = total_resources_needed - b->data.monument.resources_needed[r];
+            int image_id = image_group(GROUP_RESOURCE_ICONS);
+            image_draw(image_id + r, c->x_offset + 22, c->y_offset - 105 + r * 20);
+            int width = text_draw_number(resources_delivered, '@', "/",
+                                         c->x_offset + 54, c->y_offset + 10 + r * 20 - 106, FONT_NORMAL_BLACK);
+            text_draw_number(total_resources_needed, '@', " ",
+                             c->x_offset + 44 + width, c->y_offset + 10 + r * 20 - 106, FONT_NORMAL_BLACK);
+        }
+    } else {
+        text_draw_multiline(translation_for(TR_BUILDING_MONUMENT_CONSTRUCTION_ARCHITECT_NEEDED), c->x_offset + 22, c->y_offset + 95,
+                            16 * (c->width_blocks - 4), FONT_NORMAL_BLACK, 0);
     }
 }
-
 
 void window_building_draw_monument_construction_process(building_info_context *c,
                                                                int tr_phase_name, int tr_phase_name_text, int tr_construction_desc)
 {
     building *b = building_get(c->building_id);
+
     if (b->data.monument.monument_phase != MONUMENT_FINISHED) {
         if (!c->has_road_access) {
-            window_building_draw_description_from_tr_string(c, TR_WINDOW_BUILDING_INFO_WARNING_NO_MONUMENT_ROAD_ACCESS);
+            window_building_draw_description_from_tr_string(c,
+                                                            TR_WINDOW_BUILDING_INFO_WARNING_NO_MONUMENT_ROAD_ACCESS);
             text_draw_multiline(translation_for(tr_construction_desc),
                                 c->x_offset + 22, c->y_offset + 180, 16 * (c->width_blocks - 4), FONT_NORMAL_BLACK, 0);
             return;

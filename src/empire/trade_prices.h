@@ -17,34 +17,16 @@ void trade_prices_reset(void);
 /**
  * Get the buy price for the resource
  * @param resource Resource
+ * @param int land_trader 1 if land_trader 0 else sea_trader
  */
-int trade_price_buy(resource_type resource);
+int trade_price_buy(resource_type resource, int land_trader);
 
 /**
  * Get the sell price for the resource
  * @param resource Resource
+ * @param int land_trader 1 if land_trader 0 else sea_trader
  */
-int trade_price_sell(resource_type resource);
-
-/**
- * Return the factor to apply when selling resource
- * @param factor default is 1
- * @return 1 if not factor to apply else other value
- */
-double trade_factor_sell(double factor);
-
-/**
- * Return the factor to apply when buying resource
- * @param factor default is 1
- * @return 1 if not factor to apply else other value
- */
-double trade_factor_buy(double factor);
-
-/**
- * Return the factor to apply depending caravanserai food stock vs food consumption
- * @return 0 if no factor to apply else 0.01 to 0.1 if caravanserai is active depending workers in it
- */
-double trade_get_caravanserai_factor();
+int trade_price_sell(resource_type resource, int land_trader);
 
 /**
  * Change the trade price for resource by amount

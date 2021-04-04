@@ -307,16 +307,11 @@ static int get_new_building_image_id(int map_x, int map_y, int grid_offset,
             }
         } else if (type == BUILDING_CARAVANSERAI) {
             switch (scenario_property_climate()) {
-                case CLIMATE_CENTRAL:
-                    image_id = assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai Central");
-                    break;
                 case CLIMATE_DESERT:
-                    image_id = assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai South");
-                    break;
-                case CLIMATE_NORTHERN:
-                    image_id = assets_get_image_id(assets_get_group_id("Areldir", "Caravanserai"), "Caravanserai North");
+                    image_id = assets_get_image_id(assets_get_group_id("Areldir", "Econ_Logistics"), "Caravanserai S ON");
                     break;
                 default:
+                    image_id = assets_get_image_id(assets_get_group_id("Areldir", "Econ_Logistics"), "Caravanserai N ON");
                     break;
             }
         }
