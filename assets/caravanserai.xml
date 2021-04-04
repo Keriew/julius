@@ -10,4 +10,19 @@
     <image id="Caravanserai Central" src="Caravanserai_Central" />
     <image id="Caravanserai North" src="Caravanserai_North" />
     <image id="Caravanserai South" src="Caravanserai_South" />
+
+    <!-- Note: Caravanserai Trade Policy -->
+    <image id="Trade Policy" src="Trade_Policy_Icon" />
+    <image id="Trade Policy 1" src="Trade_Policy_1" />
+    <image id="Trade Policy 2" src="Trade_Policy_2" />
+    <image id="Trade Policy 3" src="Trade_Policy_3" />
+
+    <image src="Policy_Selection_Border_Top_UnHover" id="Policy Selection Borders" />
+    <image src="Policy_Selection_Border_Top_Hover" />
+    <image src="Policy_Selection_Border_Right_UnHover" />
+    <image src="Policy_Selection_Border_Right_Hover" />
+    <image src="Policy_Selection_Border_Bottom_UnHover" />
+    <image src="Policy_Selection_Border_Bottom_Hover" />
+    <image src="Policy_Selection_Border_Left_UnHover" />
+    <image src="Policy_Selection_Border_Left_Hover" />
 </assetlist>

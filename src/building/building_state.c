@@ -60,6 +60,15 @@ static void write_type_data(buffer *buf, const building *b)
         for (int i = 0; i < 8; i++) {
             buffer_write_u8(buf, 0);
         }
+        if(b->type == BUILDING_CARAVANSERAI) {
+            for (int i = 0; i < RESOURCE_MAX; i++) {
+                buffer_write_i16(buf, b->data.monument.resources_needed[i]);
+            }
+            buffer_write_i32(buf, b->data.monument.upgrades);
+            buffer_write_i16(buf, b->data.monument.progress);
+            buffer_write_i16(buf, b->data.monument.monument_phase);
+            buffer_write_i16(buf, 0);
+        }
     } else if (b->type == BUILDING_GRANARY) {
         buffer_write_i16(buf, 0);
         for (int i = 0; i < RESOURCE_MAX; i++) {
@@ -256,6 +265,15 @@ static void read_type_data(buffer *buf, building *b)
         b->data.market.fetch_inventory_id = buffer_read_u8(buf);
         b->data.market.is_mess_hall = buffer_read_u8(buf);
         buffer_skip(buf, 8);
+        if(b->type == BUILDING_CARAVANSERAI) {
+            for (int i = 0; i < RESOURCE_MAX; i++) {
+                b->data.monument.resources_needed[i] = buffer_read_i16(buf);
+            }
+            b->data.monument.upgrades = buffer_read_i32(buf);
+            b->data.monument.progress = buffer_read_i16(buf);
+            b->data.monument.monument_phase = buffer_read_i16(buf);
+            buffer_skip(buf, 2);
+        }
     } else if (b->type == BUILDING_GRANARY) {
         buffer_skip(buf, 2);
         for (int i = 0; i < RESOURCE_MAX; i++) {

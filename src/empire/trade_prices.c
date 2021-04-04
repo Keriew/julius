@@ -27,36 +27,43 @@ void trade_prices_reset(void)
     }
 }
 
-int trade_price_buy(resource_type resource)
+int trade_price_buy(resource_type resource, int land_trader)
 {
-    return (int)(prices[resource].buy * trade_factor_buy(1));
+    return (int)(prices[resource].buy * trade_factor_buy(1, land_trader));
 }
 
-int trade_price_sell(resource_type resource)
+int trade_price_sell(resource_type resource, int land_trader)
 {
-    return (int)(prices[resource].sell * trade_factor_sell(1));
+    return (int)(prices[resource].sell * trade_factor_sell(1, land_trader));
 }
 
-double trade_factor_sell(double factor)
+double trade_factor_sell(double factor, int land_trader)
 {
-    if(city_buildings_has_caravanserai()) {
-        factor += trade_get_caravanserai_factor();
+    if (land_trader) {
+        int policy = building_monument_module_type(BUILDING_CARAVANSERAI);
+        if (city_buildings_has_caravanserai() && policy == TRADE_POLICY_2) {
+            factor += trade_get_caravanserai_factor();
+        }
     }
     return factor;
 }
 
-double trade_factor_buy(double factor)
+double trade_factor_buy(double factor, int land_trader)
 {
-    if(city_buildings_has_caravanserai()) {
-        factor -= trade_get_caravanserai_factor();
+    if (land_trader) {
+        int policy = building_monument_module_type(BUILDING_CARAVANSERAI);
+        if(city_buildings_has_caravanserai() && policy == TRADE_POLICY_1) {
+            factor -= trade_get_caravanserai_factor();
+        }
     }
+
     return factor;
 }
 
 double trade_get_caravanserai_factor() {
     double caravanserai_factor = 0;
 
-    if(city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+    if (city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
         building *b = building_get(city_buildings_get_caravanserai());
 
         // caravanserai has enough food for the month
@@ -64,9 +71,9 @@ double trade_get_caravanserai_factor() {
             // get workers percentage
             int pct_workers = calc_percentage(b->num_workers, model_get_building(b->type)->laborers);
             if (pct_workers >= 100) { // full laborers
-                caravanserai_factor = 0.1; // 10% bonus on trade
+                caravanserai_factor = 0.2; // 20% bonus on trade
             } else if (pct_workers > 0) {
-                caravanserai_factor = 0.05; // 5% bonus on trade
+                caravanserai_factor = 0.1; // 10% bonus on trade
             }
         }
     }

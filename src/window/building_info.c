@@ -843,48 +843,52 @@ static int handle_specific_building_info_mouse(const mouse *m)
     if (context.type == BUILDING_INFO_NONE) {
         return 0;
     }
+
     if (context.type == BUILDING_INFO_LEGION) {
         return window_building_handle_mouse_legion_info(m, &context);
     } else if (context.figure.drawn) {
         return window_building_handle_mouse_figure_list(m, &context);
     } else if (context.type == BUILDING_INFO_BUILDING) {
         int btype = building_get(context.building_id)->type;
+
         if (building_has_supplier_inventory(btype)) {
+            if (btype == BUILDING_CARAVANSERAI) {
+                window_building_handle_mouse_caravanserai(m, &context);
+            }
             if (context.storage_show_special_orders) {
                 window_building_handle_mouse_supplier_orders(m, &context);
             } else {
                 window_building_handle_mouse_supplier(m, &context);
             }
-	} else if (btype == BUILDING_ROADBLOCK) {
-            if (context.storage_show_special_orders) {
-                return window_building_handle_mouse_roadblock_orders(m, &context);
-            } else {
-                return window_building_handle_mouse_roadblock(m, &context);
-            }
-	} else if (btype == BUILDING_DOCK) {
-            if (context.storage_show_special_orders) {
-                return window_building_handle_mouse_dock_orders(m, &context);
-            } else {
-                return window_building_handle_mouse_dock(m, &context);
-            }
-	} else if (btype == BUILDING_BARRACKS) {
-            return window_building_handle_mouse_barracks(m, &context);
-    }
-    else if (btype == BUILDING_GRAND_TEMPLE_MARS) {
-            window_building_handle_mouse_grand_temple_mars(m, &context);
-	} else if (btype == BUILDING_GRANARY) {
-            if (context.storage_show_special_orders) {
-                return window_building_handle_mouse_granary_orders(m, &context);
-            } else {
-                return window_building_handle_mouse_granary(m, &context);
-            }
+        } else if (btype == BUILDING_ROADBLOCK) {
+                if (context.storage_show_special_orders) {
+                    return window_building_handle_mouse_roadblock_orders(m, &context);
+                } else {
+                    return window_building_handle_mouse_roadblock(m, &context);
+                }
+        } else if (btype == BUILDING_DOCK) {
+                if (context.storage_show_special_orders) {
+                    return window_building_handle_mouse_dock_orders(m, &context);
+                } else {
+                    return window_building_handle_mouse_dock(m, &context);
+                }
+        } else if (btype == BUILDING_BARRACKS) {
+                return window_building_handle_mouse_barracks(m, &context);
+        } else if (btype == BUILDING_GRAND_TEMPLE_MARS) {
+                window_building_handle_mouse_grand_temple_mars(m, &context);
+        } else if (btype == BUILDING_GRANARY) {
+                if (context.storage_show_special_orders) {
+                    return window_building_handle_mouse_granary_orders(m, &context);
+                } else {
+                    return window_building_handle_mouse_granary(m, &context);
+                }
         } else if (btype == BUILDING_WAREHOUSE) {
             if (context.storage_show_special_orders) {
                 window_building_handle_mouse_warehouse_orders(m, &context);
             } else {
                 window_building_handle_mouse_warehouse(m, &context);
             }
-        }  else if ((btype >= BUILDING_GRAND_TEMPLE_CERES && btype <= BUILDING_GRAND_TEMPLE_VENUS) || btype == BUILDING_PANTHEON) {
+        } else if ((btype >= BUILDING_GRAND_TEMPLE_CERES && btype <= BUILDING_GRAND_TEMPLE_VENUS) || btype == BUILDING_PANTHEON) {
             window_building_handle_mouse_grand_temple(m, &context);
         }
     }

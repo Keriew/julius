@@ -81,6 +81,7 @@ typedef struct {
     unsigned char is_ghost;
     unsigned char min_max_seen;
     unsigned char progress_to_next_tick;
+    unsigned char progress_to_next_tick_slow;
     short leading_figure_id;
     unsigned char attack_image_offset;
     unsigned char wait_ticks_missile;

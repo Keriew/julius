@@ -200,7 +200,7 @@ int building_monument_add_module(building *b, int module_type)
 	if (b->data.monument.monument_phase != MONUMENT_FINISHED) {
 		return 0;
 	}
-	if (b->data.monument.upgrades) {
+	if (b->data.monument.upgrades && b->type != BUILDING_CARAVANSERAI) {
 		return 0;
 	}
 

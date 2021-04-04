@@ -373,13 +373,21 @@ void figure_movement_move_ticks(figure *f, int num_ticks)
     walk_ticks(f, num_ticks, 0);
 }
 
-void figure_movement_move_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage)
+void figure_movement_move_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage, int slow_percentage)
 {
     f->progress_to_next_tick += tick_percentage;
+    f->progress_to_next_tick_slow += slow_percentage;
+
     if (f->progress_to_next_tick >= 100) {
         f->progress_to_next_tick -= 100;
         num_ticks++;
     }
+
+    if (f->progress_to_next_tick_slow >= 100) {
+        f->progress_to_next_tick_slow -= 100;
+        num_ticks--;
+    }
+
     walk_ticks(f, num_ticks, 0);
 }
 
@@ -422,13 +430,20 @@ void figure_movement_follow_ticks(figure *f, int num_ticks)
     }
 }
 
-void figure_movement_follow_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage)
+void figure_movement_follow_ticks_with_percentage(figure* f, int num_ticks, int tick_percentage, int slow_percentage)
 {
    
     f->progress_to_next_tick += tick_percentage;
+    f->progress_to_next_tick_slow += slow_percentage;
+
     if (f->progress_to_next_tick >= 100) {
         f->progress_to_next_tick -= 100;
         num_ticks++;
+    }
+
+    if (f->progress_to_next_tick_slow >= 100) {
+        f->progress_to_next_tick_slow -= 100;
+        num_ticks--;
     }
 
     const figure* leader = figure_get(f->leading_figure_id);

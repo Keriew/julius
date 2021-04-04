@@ -1,8 +1,10 @@
 #include "trader.h"
 
 #include "building/building.h"
+#include "building/caravanserai.h"
 #include "building/dock.h"
 #include "building/granary.h"
+#include "building/model.h"
 #include "building/monument.h"
 #include "building/warehouse.h"
 #include "building/storage.h"
@@ -43,6 +45,24 @@ static int trader_bonus_speed(void)
         return 0;
     }
 }
+
+// Caravanserai Trade Policy base malus to trader speed
+static int trader_malus_speed(void)
+{
+    int malus = 0;
+
+    if (city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+        building *b = building_get(city_buildings_get_caravanserai());
+        int policy = building_monument_module_type(BUILDING_CARAVANSERAI);
+
+        if (building_caravanserai_enough_foods(b) && policy == TRADE_POLICY_3) {
+            malus = 10;
+        }
+    }
+
+    return malus;
+}
+
 
 // Neptune Grand Temple base bonus to trader speed
 static int sea_trader_bonus_speed(void)
@@ -195,7 +215,7 @@ static int trader_get_buy_resource(int building_id, int city_id)
             return RESOURCE_NONE;
         }
         for (int r = RESOURCE_MIN_FOOD; r < RESOURCE_MAX_FOOD; r++) {
-            if (empire_can_export_resource_to_city(city_id, r) && building_granary_remove_export(b, r)) {
+            if (empire_can_export_resource_to_city(city_id, r) && building_granary_remove_export(b, r, 1)) {
                 return r;
             }
         }
@@ -216,7 +236,7 @@ static int trader_get_buy_resource(int building_id, int city_id)
                 space->subtype.warehouse_resource_id = RESOURCE_NONE;
             }
             // update finances
-            city_finance_process_export(trade_price_sell(resource));
+            city_finance_process_export(trade_price_sell(resource, 1));
 
             // update graphics
             building_warehouse_space_set_image(space, resource);
@@ -238,7 +258,7 @@ static int trader_get_sell_resource(int building_id, int city_id)
             if (!resource_is_food(resource) || !empire_can_import_resource_from_city(city_id, resource)) {
                 continue;
             }
-            if (building_granary_add_import(b, resource)) {
+            if (building_granary_add_import(b, resource, 1)) {
                 return resource;
             }
         }
@@ -248,7 +268,7 @@ static int trader_get_sell_resource(int building_id, int city_id)
             if (!resource_is_food(resource) || !empire_can_import_resource_from_city(city_id, resource)) {
                 continue;
             }
-            if (building_granary_add_import(b, resource)) {
+            if (building_granary_add_import(b, resource, 1)) {
                 return resource;
             }
         }
@@ -269,7 +289,7 @@ static int trader_get_sell_resource(int building_id, int city_id)
         space = building_next(space);
         if (space->id > 0 && space->loads_stored > 0 && space->loads_stored < 4 &&
             space->subtype.warehouse_resource_id == resource_to_import) {
-            building_warehouse_space_add_import(space, resource_to_import);
+            building_warehouse_space_add_import(space, resource_to_import, 1);
             city_trade_next_caravan_import_resource();
             return resource_to_import;
         }
@@ -279,7 +299,7 @@ static int trader_get_sell_resource(int building_id, int city_id)
     for (int i = 0; i < 8; i++) {
         space = building_next(space);
         if (space->id > 0 && !space->loads_stored) {
-            building_warehouse_space_add_import(space, resource_to_import);
+            building_warehouse_space_add_import(space, resource_to_import, 1);
             city_trade_next_caravan_import_resource();
             return resource_to_import;
         }
@@ -293,7 +313,7 @@ static int trader_get_sell_resource(int building_id, int city_id)
                 space = building_next(space);
                 if (space->id > 0 && space->loads_stored < 4
                     && space->subtype.warehouse_resource_id == resource_to_import) {
-                    building_warehouse_space_add_import(space, resource_to_import);
+                    building_warehouse_space_add_import(space, resource_to_import, 1);
                     return resource_to_import;
                 }
             }
@@ -447,7 +467,8 @@ static int trader_image_id()
 void figure_trade_caravan_action(figure *f)
 {
     int move_speed = trader_bonus_speed();
-    
+    int move_unspeed = trader_malus_speed();
+
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_PREFER_ROADS;
     figure_image_increase_offset(f, 12);
@@ -479,7 +500,7 @@ void figure_trade_caravan_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_101_TRADE_CARAVAN_ARRIVING:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed,move_unspeed);
             switch (f->direction) {
                 case DIR_FIGURE_AT_DESTINATION:
                     f->action_state = FIGURE_ACTION_102_TRADE_CARAVAN_TRADING;
@@ -532,7 +553,7 @@ void figure_trade_caravan_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_103_TRADE_CARAVAN_LEAVING:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, move_unspeed);
             switch (f->direction) {
                 case DIR_FIGURE_AT_DESTINATION:
                     f->action_state = FIGURE_ACTION_100_TRADE_CARAVAN_CREATED;
@@ -556,6 +577,7 @@ void figure_trade_caravan_action(figure *f)
 void figure_trade_caravan_donkey_action(figure *f)
 {
     int move_speed = trader_bonus_speed();
+    int move_unspeed = trader_malus_speed();
     
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_PREFER_ROADS;
@@ -573,7 +595,7 @@ void figure_trade_caravan_donkey_action(figure *f)
         } else if (leader->type != FIGURE_TRADE_CARAVAN && leader->type != FIGURE_TRADE_CARAVAN_DONKEY) {
             f->state = FIGURE_STATE_DEAD;
         } else {
-            figure_movement_follow_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_follow_ticks_with_percentage(f, 1, move_speed, move_unspeed);
         }
     }
 
@@ -588,6 +610,7 @@ void figure_trade_caravan_donkey_action(figure *f)
 void figure_native_trader_action(figure *f)
 {
     int move_speed = trader_bonus_speed();
+    int move_unspeed = trader_malus_speed();
 
     f->is_ghost = 0;
     f->terrain_usage = TERRAIN_USAGE_ANY;
@@ -601,7 +624,7 @@ void figure_native_trader_action(figure *f)
             figure_combat_handle_corpse(f);
             break;
         case FIGURE_ACTION_160_NATIVE_TRADER_GOING_TO_STORAGE:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, move_unspeed);
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->action_state = FIGURE_ACTION_163_NATIVE_TRADER_AT_STORAGE;
             } else if (f->direction == DIR_FIGURE_REROUTE) {
@@ -615,7 +638,7 @@ void figure_native_trader_action(figure *f)
             }
             break;
         case FIGURE_ACTION_161_NATIVE_TRADER_RETURNING:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, move_unspeed);
             if (f->direction == DIR_FIGURE_AT_DESTINATION || f->direction == DIR_FIGURE_LOST) {
                 f->state = FIGURE_STATE_DEAD;
             } else if (f->direction == DIR_FIGURE_REROUTE) {
@@ -773,7 +796,7 @@ void figure_trade_ship_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_113_TRADE_SHIP_GOING_TO_DOCK_QUEUE:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, 0);
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
                 f->wait_ticks = 0;
@@ -870,7 +893,7 @@ void figure_trade_ship_action(figure *f)
             f->image_offset = 0;
             break;
         case FIGURE_ACTION_111_TRADE_SHIP_GOING_TO_DOCK:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, 0);
             f->height_adjusted_ticks = 0;
             f->trade_ship_failed_dock_attempts = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
@@ -926,7 +949,7 @@ void figure_trade_ship_action(figure *f)
             city_message_reset_category_count(MESSAGE_CAT_BLOCKED_DOCK);
             break;
         case FIGURE_ACTION_115_TRADE_SHIP_LEAVING:
-            figure_movement_move_ticks_with_percentage(f, 1, move_speed);
+            figure_movement_move_ticks_with_percentage(f, 1, move_speed, 0);
             f->destination_building_id = 0;
             f->height_adjusted_ticks = 0;
             if (f->direction == DIR_FIGURE_AT_DESTINATION) {
@@ -943,12 +966,33 @@ void figure_trade_ship_action(figure *f)
     f->image_id = image_group(GROUP_FIGURE_SHIP) + dir;
 }
 
+static double trade_policy_factor() {
+    double trade_factor = 1;
+
+    if(city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+        building *b = building_get(city_buildings_get_caravanserai());
+
+        int policy = building_monument_module_type(BUILDING_CARAVANSERAI);
+
+        if (building_caravanserai_enough_foods(b) && policy == TRADE_POLICY_3) {
+            int pct_workers = calc_percentage(b->num_workers, model_get_building(b->type)->laborers);
+            if (pct_workers >= 100) { // full laborers
+                trade_factor = 1.5; // caravan capacity increase by 50%
+            } else if (pct_workers > 0) {
+                trade_factor = 1.25; // caravan capacity increase by 25%
+            }
+        }
+    }
+    return trade_factor;
+}
+
 int figure_trade_land_trade_units()
 {
+    int unit = 8;
     if (building_monument_working(BUILDING_GRAND_TEMPLE_MERCURY)) {
-        return 12;
+        unit = 12;
     }
-    return 8;
+    return (int)(unit * trade_policy_factor());
 }
 
 int figure_trade_sea_trade_units()
