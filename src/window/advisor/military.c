@@ -227,9 +227,13 @@ static int handle_mouse(const mouse *m)
     if (buttons > MAX_BUTTONS) {
         buttons = MAX_BUTTONS;
     }
+    focus_additional_button_id = 0;
     int result = generic_buttons_handle_mouse(m, 0, 0, fort_buttons, buttons, &focus_button_id);
-    if (result == 0 && num_legions > 0) {
-        result = generic_buttons_handle_mouse(m, 0, 0, additional_buttons, 1, &focus_additional_button_id);
+    if (result == 0) {
+        int num_legions_not_at_fort = get_num_legions_not_at_fort();
+        if (num_legions_not_at_fort > 0) {
+            result = generic_buttons_handle_mouse(m, 0, 0, additional_buttons, 1, &focus_additional_button_id);
+        }
     }
     return result;
 }
@@ -277,13 +281,22 @@ static void on_scroll(void)
     window_invalidate();
 }
 
+static advisor_tooltip_result get_tooltip_text(void)
+{
+    int translation_key = 0;
+    if (focus_additional_button_id) {
+        translation_key = TR_RETURN_ALL_TO_FORT;
+    }
+    return (advisor_tooltip_result) { .text_id = 0, .translation_key = translation_key };
+}
+
 const advisor_window_type *window_advisor_military(void)
 {
     static const advisor_window_type window = {
         draw_background,
         draw_foreground,
         handle_mouse,
-        0
+        get_tooltip_text
     };
     init();
     return &window;

@@ -182,13 +182,13 @@ static void button_hold_festival(int param1, int param2)
     }
 }
 
-static int get_tooltip_text(void)
+static advisor_tooltip_result get_tooltip_text(void)
 {
+    int text_id = 0;
     if (focus_button_id) {
-        return 112;
-    } else {
-        return 0;
+        text_id = 112;
     }
+    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_entertainment(void)
