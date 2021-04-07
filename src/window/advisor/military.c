@@ -23,7 +23,7 @@
 #define MAX_BUTTONS 18
 
 static void button_go_to_legion(int legion_id, int param2);
-static void button_return_to_fort(int legion_id, int ignore_scrollbar);
+static void button_return_to_fort(int legion_id, int param2);
 static void button_empire_service(int legion_id, int param2);
 static void button_return_all_to_fort(int param1, int param2);
 static void on_scroll(void);
@@ -245,17 +245,18 @@ static void button_go_to_legion(int legion_id, int param2)
     window_city_show();
 }
 
-static void button_return_to_fort(int legion_id, int ignore_scrollbar)
+static void return_legion_to_fort(int legion_id) 
 {
-    if (ignore_scrollbar != 1) {
-        legion_id += scrollbar.scroll_position;
-    }
-
     formation *m = formation_get(formation_for_legion(legion_id));
     if (!m->in_distant_battle && !m->is_at_fort) {
         formation_legion_return_home(m);
         window_invalidate();
     }
+}
+
+static void button_return_to_fort(int legion_id, int param2)
+{
+    return_legion_to_fort(legion_id + scrollbar.scroll_position);
 }
 
 static void button_empire_service(int legion_id, int param2)
@@ -271,7 +272,7 @@ static void button_return_all_to_fort(int param1, int param2)
     int num_legions_not_at_fort = get_num_legions_not_at_fort();
     if (num_legions_not_at_fort > 0) {
         for (int i = 0; i < num_legions; i++) {
-            button_return_to_fort(i + 1, 1);
+            return_legion_to_fort(i + 1);
         }
     }
 }
