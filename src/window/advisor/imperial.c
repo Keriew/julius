@@ -268,15 +268,13 @@ static void button_request(int index, int param2)
     }
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int text_id = 0;
     if (focus_button_id && focus_button_id <= 2) {
-        text_id = 93 + focus_button_id;
+        r->text_id = 93 + focus_button_id;
     } else if (focus_button_id == 3) {
-        text_id = 131;
+        r->text_id = 131;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_imperial(void)

@@ -16,7 +16,7 @@ typedef struct {
     int (*draw_background)(void);
     void (*draw_foreground)(void);
     int (*handle_mouse)(const mouse *m);
-    advisor_tooltip_result(*get_tooltip_text)(void);
+    void (*get_tooltip_text)(advisor_tooltip_result *r);
 } advisor_window_type;
 
 advisor_type window_advisors_get_advisor(void);

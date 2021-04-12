@@ -129,17 +129,15 @@ static void button_resource(int resource_index, int param2)
     window_resource_settings_show(city_resource_get_available()->items[resource_index]);
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result* r)
 {
-    int text_id = 0;
     if (focus_button_id == 1) {
-        text_id = 106;
+        r->text_id = 106;
     } else if (focus_button_id == 2) {
-        text_id = 41;
+        r->text_id = 41;
     } else if (focus_button_id) {
-        text_id = 107;
+        r->text_id = 107;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_trade(void)

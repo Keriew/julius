@@ -282,13 +282,11 @@ static void on_scroll(void)
     window_invalidate();
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int translation_key = 0;
     if (focus_additional_button_id) {
-        translation_key = TR_RETURN_ALL_TO_FORT;
+        r->translation_key = TR_RETURN_ALL_TO_FORT;
     }
-    return (advisor_tooltip_result) { .text_id = 0, .translation_key = translation_key };
 }
 
 const advisor_window_type *window_advisor_military(void)

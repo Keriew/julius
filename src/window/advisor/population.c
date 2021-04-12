@@ -561,13 +561,11 @@ static void button_graph(int param1, int param2)
     window_invalidate();
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int text_id = 0;
     if (focus_button_id && focus_button_id < 3) {
-        text_id = 111;
+        r->text_id = 111;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_population(void)

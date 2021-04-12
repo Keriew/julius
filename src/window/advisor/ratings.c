@@ -172,24 +172,22 @@ static void button_rating(int rating, int param2)
     window_invalidate();
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int text_id = 0;
     switch (focus_button_id) {
         case SELECTED_RATING_CULTURE: 
-            text_id = 102;
+            r->text_id = 102;
             break;
         case SELECTED_RATING_PROSPERITY: 
-            text_id = 103;
+            r->text_id = 103;
             break;
         case SELECTED_RATING_PEACE: 
-            text_id = 104;
+            r->text_id = 104;
             break;
         case SELECTED_RATING_FAVOR: 
-            text_id = 105;
+            r->text_id = 105;
             break;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_ratings(void)

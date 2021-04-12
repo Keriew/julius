@@ -125,13 +125,11 @@ static void button_change_taxes(int is_down, int param2)
     window_invalidate();
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int text_id = 0;
     if (arrow_button_focus) {
-        text_id = 120;
+        r->text_id = 120;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_financial(void)

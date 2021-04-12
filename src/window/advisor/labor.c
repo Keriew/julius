@@ -118,15 +118,13 @@ static void button_priority(int category, int param2)
     window_labor_priority_show(category);
 }
 
-static advisor_tooltip_result get_tooltip_text(void)
+static void get_tooltip_text(advisor_tooltip_result *r)
 {
-    int text_id = 0;
     if (focus_button_id) {
-        text_id = 90;
+        r->text_id = 90;
     } else if (arrow_button_focus) {
-        text_id = 91;
+        r->text_id = 91;
     }
-    return (advisor_tooltip_result) { .text_id = text_id, .translation_key = 0 };
 }
 
 const advisor_window_type *window_advisor_labor(void)
