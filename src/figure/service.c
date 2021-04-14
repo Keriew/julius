@@ -103,6 +103,11 @@ static void tavern_coverage(building* b, int products) {
     }
 }
 
+static void odeon_coverage(building *b)
+{
+    b->data.house.odeon = MAX_COVERAGE;
+}
+
 static void bathhouse_coverage(building *b)
 {
     b->data.house.bathhouse = MAX_COVERAGE;
@@ -578,6 +583,12 @@ int figure_service_provide_coverage(figure *f)
             } else if (b->type == BUILDING_AMPHITHEATER) {
                 houses_serviced = provide_entertainment(x, y,
                     b->data.entertainment.days1 ? 2 : 1, amphitheater_coverage);
+            }
+            break;
+        case FIGURE_SINGER:
+            b = get_entertainment_building(f);
+            if (b->type == BUILDING_ODEON) {
+                houses_serviced = provide_culture(x, y, odeon_coverage);
             }
             break;
         case FIGURE_GLADIATOR:

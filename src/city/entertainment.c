@@ -8,6 +8,11 @@ int city_entertainment_theater_shows(void)
     return city_data.entertainment.theater_shows;
 }
 
+int city_entertainment_odeon_shows(void)
+{
+    return city_data.entertainment.odeon_shows;
+}
+
 int city_entertainment_amphitheater_shows(void)
 {
     return city_data.entertainment.amphitheater_shows;
@@ -42,6 +47,8 @@ void city_entertainment_calculate_shows(void)
 {
     city_data.entertainment.theater_shows = 0;
     city_data.entertainment.theater_no_shows_weighted = 0;
+    city_data.entertainment.odeon_shows = 0;
+    city_data.entertainment.odeon_no_shows_weighted = 0;
     city_data.entertainment.amphitheater_shows = 0;
     city_data.entertainment.amphitheater_no_shows_weighted = 0;
     city_data.entertainment.colosseum_shows = 0;
@@ -61,6 +68,13 @@ void city_entertainment_calculate_shows(void)
                     city_data.entertainment.theater_shows++;
                 } else {
                     city_data.entertainment.theater_no_shows_weighted++;
+                }
+                break;
+            case BUILDING_ODEON:
+                if (b->data.entertainment.days1) {
+                    city_data.entertainment.odeon_shows++;
+                } else {
+                    city_data.entertainment.odeon_no_shows_weighted++;
                 }
                 break;
             case BUILDING_AMPHITHEATER:
@@ -99,6 +113,10 @@ void city_entertainment_calculate_shows(void)
     int worst_shows = 0;
     if (city_data.entertainment.theater_no_shows_weighted > worst_shows) {
         worst_shows = city_data.entertainment.theater_no_shows_weighted;
+        city_data.entertainment.venue_needing_shows = 1;
+    }
+    if (city_data.entertainment.odeon_no_shows_weighted > worst_shows) {
+        worst_shows = city_data.entertainment.odeon_no_shows_weighted;
         city_data.entertainment.venue_needing_shows = 1;
     }
     if (city_data.entertainment.amphitheater_no_shows_weighted > worst_shows) {

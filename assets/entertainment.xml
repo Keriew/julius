@@ -826,4 +826,7 @@
     <image group="this" image="Theatre UG F19" />
     <image group="this" image="Theatre UG F20" />
     <image group="this" image="Theatre UG F21" />
+
+    <!-- Note: Odeon  -->
+    <image id="Odeon" src="Odeon" />
 </assetlist>

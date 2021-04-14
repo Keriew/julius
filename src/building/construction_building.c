@@ -711,6 +711,9 @@ static void add_to_map(int type, building *b, int size,
             map_tiles_update_area_roads(b->x, b->y, 5);
             building_monument_initialize(b);
             break;
+        case BUILDING_ODEON:
+            add_building(b, assets_get_image_id(assets_get_group_id("Areldir", "Entertainment"), "Odeon"));
+            break;
     }
     map_routing_update_land();
     map_routing_update_walls();

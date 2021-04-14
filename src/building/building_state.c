@@ -18,6 +18,7 @@ static void write_type_data(buffer *buf, const building *b)
             buffer_write_i16(buf, b->data.house.inventory[i]);
         }
         buffer_write_u8(buf, b->data.house.theater);
+        buffer_write_u8(buf, b->data.house.odeon);
         buffer_write_u8(buf, b->data.house.amphitheater_actor);
         buffer_write_u8(buf, b->data.house.amphitheater_gladiator);
         buffer_write_u8(buf, b->data.house.colosseum_gladiator);
@@ -218,6 +219,7 @@ static void read_type_data(buffer *buf, building *b)
             b->data.house.inventory[i] = buffer_read_i16(buf);
         }
         b->data.house.theater = buffer_read_u8(buf);
+        b->data.house.odeon = buffer_read_u8(buf);
         b->data.house.amphitheater_actor = buffer_read_u8(buf);
         b->data.house.amphitheater_gladiator = buffer_read_u8(buf);
         b->data.house.colosseum_gladiator = buffer_read_u8(buf);

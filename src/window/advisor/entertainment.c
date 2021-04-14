@@ -91,7 +91,7 @@ static int draw_background(void)
     lang_text_draw(58, 3, PEOPLE_OFFSET + 10, 46, FONT_SMALL_PLAIN);
     lang_text_draw_centered(58, 4, COVERAGE_OFFSET, 46, COVERAGE_WIDTH, FONT_SMALL_PLAIN);
 
-    inner_panel_draw(32, 60, 36, 8);
+    inner_panel_draw(32, 60, 36, 9);
 
 
     // taverns
@@ -113,83 +113,100 @@ static int draw_background(void)
         lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 64, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
-    // theaters
-    lang_text_draw_amount(8, 34, building_count_total(BUILDING_THEATER), 40, 84, FONT_NORMAL_WHITE);
-    text_draw_number_centered(building_count_active(BUILDING_THEATER), 150, 84, 100, FONT_NORMAL_WHITE);
-    text_draw_number_centered(city_entertainment_theater_shows(), 230, 84, 100, FONT_NORMAL_WHITE);
-    width = text_draw_number(city_culture_get_theatre_person_coverage(), '_', " ",
-        PEOPLE_OFFSET, 84, FONT_NORMAL_WHITE);
+    // odeons
+    text_draw(translation_for(TR_WINDOW_ADVISOR_ENTERTAINMENT_ODEON_COVERAGE), 67, 84, FONT_NORMAL_WHITE, 0);
+    text_draw_number(building_count_total(BUILDING_ODEON),  '@', "", 40, 84, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_ODEON), 150, 84, 100, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_odeon_shows(), 230, 84, 100, FONT_NORMAL_WHITE);
+    width = text_draw_number(city_culture_get_odeon_person_coverage(), '_', " ",
+                             PEOPLE_OFFSET, 84, FONT_NORMAL_WHITE);
     lang_text_draw(58, 5, PEOPLE_OFFSET + width, 84, FONT_NORMAL_WHITE);
-    int pct_theater = city_culture_coverage_theater();
-    if (pct_theater == 0) {
+    int pct_odeon = city_culture_coverage_odeon();
+    if (pct_odeon == 0) {
         lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 84, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-    } else if (pct_theater < 100) {
-        lang_text_draw_centered(57, 11 + pct_theater / 10, COVERAGE_OFFSET, 84, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-        //lang_text_draw_centered(57, 17, COVERAGE_OFFSET, 64, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    } else if (pct_odeon < 100) {
+        lang_text_draw_centered(57, 11 + pct_odeon / 10, COVERAGE_OFFSET, 84, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     } else {
         lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 84, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
-    // amphitheaters
-    lang_text_draw_amount(8, 36, building_count_total(BUILDING_AMPHITHEATER), 40, 104, FONT_NORMAL_WHITE);
-    text_draw_number_centered(building_count_active(BUILDING_AMPHITHEATER), 150, 104, 100, FONT_NORMAL_WHITE);
-    text_draw_number_centered(city_entertainment_amphitheater_shows(), 230, 104, 100, FONT_NORMAL_WHITE);
-    width = text_draw_number(city_culture_get_ampitheatre_person_coverage(), '@', " ",
+    // theaters
+    lang_text_draw_amount(8, 34, building_count_total(BUILDING_THEATER), 40, 104, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_THEATER), 150, 104, 100, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_theater_shows(), 230, 104, 100, FONT_NORMAL_WHITE);
+    width = text_draw_number(city_culture_get_theatre_person_coverage(), '_', " ",
         PEOPLE_OFFSET, 104, FONT_NORMAL_WHITE);
     lang_text_draw(58, 5, PEOPLE_OFFSET + width, 104, FONT_NORMAL_WHITE);
-    int pct_amphitheater = city_culture_coverage_amphitheater();
-    if (pct_amphitheater == 0) {
+    int pct_theater = city_culture_coverage_theater();
+    if (pct_theater == 0) {
         lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 104, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-    } else if (pct_amphitheater < 100) {
-        lang_text_draw_centered(57, 11 + pct_amphitheater / 10,
-            COVERAGE_OFFSET, 104, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    } else if (pct_theater < 100) {
+        lang_text_draw_centered(57, 11 + pct_theater / 10, COVERAGE_OFFSET, 104, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+        //lang_text_draw_centered(57, 17, COVERAGE_OFFSET, 64, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     } else {
         lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 104, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
-    //arenas 
-    text_draw(translation_for(TR_WINDOW_ADVISOR_ENTERTAINMENT_ARENA_COVERAGE), 67, 124, FONT_NORMAL_WHITE, 0);
-    text_draw_number(building_count_total(BUILDING_ARENA), '@', "", 40, 124, FONT_NORMAL_WHITE);
-    text_draw_number_centered(building_count_active(BUILDING_ARENA), 150, 124, 100, FONT_NORMAL_WHITE);
-    width = text_draw_number(city_culture_get_arena_person_coverage(), '_', " ", PEOPLE_OFFSET, 124, FONT_NORMAL_WHITE);
+    // amphitheaters
+    lang_text_draw_amount(8, 36, building_count_total(BUILDING_AMPHITHEATER), 40, 124, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_AMPHITHEATER), 150, 124, 100, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_amphitheater_shows(), 230, 124, 100, FONT_NORMAL_WHITE);
+    width = text_draw_number(city_culture_get_ampitheatre_person_coverage(), '@', " ",
+        PEOPLE_OFFSET, 124, FONT_NORMAL_WHITE);
     lang_text_draw(58, 5, PEOPLE_OFFSET + width, 124, FONT_NORMAL_WHITE);
-    text_draw_number_centered(city_entertainment_colosseum_shows(), 230, 124, 100, FONT_NORMAL_WHITE);
-    int pct = city_culture_coverage_arena();
-    if (pct == 0) {
+    int pct_amphitheater = city_culture_coverage_amphitheater();
+    if (pct_amphitheater == 0) {
         lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-    }
-    else if (pct < 100) {
-        lang_text_draw_centered(57, 11 + pct / 10, COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-        //lang_text_draw_centered(57, 17, COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
-    }
-    else {
+    } else if (pct_amphitheater < 100) {
+        lang_text_draw_centered(57, 11 + pct_amphitheater / 10,
+            COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    } else {
         lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
-    // colosseums
-    lang_text_draw_amount(8, 38, building_count_total(BUILDING_COLOSSEUM), 40, 143, FONT_NORMAL_WHITE);
-    text_draw_number_centered(building_count_active(BUILDING_COLOSSEUM), 150, 143, 100, FONT_NORMAL_WHITE);
-    text_draw_number_centered(city_entertainment_colosseum_shows(), 230, 143, 100, FONT_NORMAL_WHITE);
-    lang_text_draw_centered(58, 6, PEOPLE_OFFSET + 10, 143, 100, FONT_NORMAL_WHITE);
-    if (city_culture_coverage_colosseum() == 0) {
-        lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 143, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    //arenas 
+    text_draw(translation_for(TR_WINDOW_ADVISOR_ENTERTAINMENT_ARENA_COVERAGE), 67, 144, FONT_NORMAL_WHITE, 0);
+    text_draw_number(building_count_total(BUILDING_ARENA), '@', "", 40, 144, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_ARENA), 150, 144, 100, FONT_NORMAL_WHITE);
+    width = text_draw_number(city_culture_get_arena_person_coverage(), '_', " ", PEOPLE_OFFSET, 144, FONT_NORMAL_WHITE);
+    lang_text_draw(58, 5, PEOPLE_OFFSET + width, 144, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_colosseum_shows(), 230, 144, 100, FONT_NORMAL_WHITE);
+    int pct = city_culture_coverage_arena();
+    if (pct == 0) {
+        lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 144, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    }
+    else if (pct < 100) {
+        lang_text_draw_centered(57, 11 + pct / 10, COVERAGE_OFFSET, 144, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+        //lang_text_draw_centered(57, 17, COVERAGE_OFFSET, 124, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
     else {
-        lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 143, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+        lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 144, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    }
+
+    // colosseums
+    lang_text_draw_amount(8, 38, building_count_total(BUILDING_COLOSSEUM), 40, 164, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_COLOSSEUM), 150, 164, 100, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_colosseum_shows(), 230, 164, 100, FONT_NORMAL_WHITE);
+    lang_text_draw_centered(58, 6, PEOPLE_OFFSET + 10, 164, 100, FONT_NORMAL_WHITE);
+    if (city_culture_coverage_colosseum() == 0) {
+        lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 164, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+    }
+    else {
+        lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 164, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
     // hippodromes
-    lang_text_draw_amount(8, 40, building_count_total(BUILDING_HIPPODROME), 40, 163, FONT_NORMAL_WHITE);
-    text_draw_number_centered(building_count_active(BUILDING_HIPPODROME), 150, 163, 100, FONT_NORMAL_WHITE);
-    text_draw_number_centered(city_entertainment_hippodrome_shows(), 230, 163, 100, FONT_NORMAL_WHITE);
-    lang_text_draw_centered(58, 6, PEOPLE_OFFSET + 10, 163, 100, FONT_NORMAL_WHITE);
+    lang_text_draw_amount(8, 40, building_count_total(BUILDING_HIPPODROME), 40, 184, FONT_NORMAL_WHITE);
+    text_draw_number_centered(building_count_active(BUILDING_HIPPODROME), 150, 184, 100, FONT_NORMAL_WHITE);
+    text_draw_number_centered(city_entertainment_hippodrome_shows(), 230, 184, 100, FONT_NORMAL_WHITE);
+    lang_text_draw_centered(58, 6, PEOPLE_OFFSET + 10, 184, 100, FONT_NORMAL_WHITE);
     if (city_culture_coverage_hippodrome() == 0) {
-        lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 163, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+        lang_text_draw_centered(57, 10, COVERAGE_OFFSET, 184, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     } else {
-        lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 163, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
+        lang_text_draw_centered(57, 21, COVERAGE_OFFSET, 184, COVERAGE_WIDTH, FONT_NORMAL_WHITE);
     }
 
-    lang_text_draw_multiline(58, 7 + get_entertainment_advice(), 60, 198, 512, FONT_NORMAL_BLACK);
+    lang_text_draw_multiline(58, 7 + get_entertainment_advice(), 60, 212, 512, FONT_NORMAL_BLACK);
 
     draw_games_info();
     

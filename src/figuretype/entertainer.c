@@ -69,6 +69,7 @@ static int is_venue(building_type type)
 {
     switch (type) {
         case BUILDING_THEATER:
+        case BUILDING_ODEON:
         case BUILDING_AMPHITHEATER:
         case BUILDING_ARENA:
         case BUILDING_COLOSSEUM:
@@ -147,6 +148,17 @@ static void update_shows(figure *f)
                 b->data.entertainment.days2 = 32;
             }
             break;
+        case FIGURE_SINGER:
+            b->data.entertainment.play++;
+            if (b->data.entertainment.play >= 5) {
+                b->data.entertainment.play = 0;
+            }
+            if (b->type == BUILDING_ODEON) {
+                b->data.entertainment.days1 = 32;
+            } else {
+                b->data.entertainment.days2 = 32;
+            }
+            break;
         case FIGURE_GLADIATOR:
             if (b->type == BUILDING_AMPHITHEATER) {
                 b->data.entertainment.days1 = 32;
@@ -177,7 +189,7 @@ static void update_image(figure *f)
         return;
     }
     int image_id;
-    if (f->type == FIGURE_ACTOR) {
+    if (f->type == FIGURE_ACTOR || f->type == FIGURE_SINGER) {
         image_id = image_group(GROUP_FIGURE_ACTOR);
     } else if (f->type == FIGURE_GLADIATOR) {
         image_id = image_group(GROUP_FIGURE_GLADIATOR);
@@ -266,6 +278,9 @@ void figure_entertainer_action(figure *f)
                 switch (f->type) {
                     case FIGURE_ACTOR:
                         dst_building_id = determine_destination(f->x, f->y, BUILDING_THEATER, BUILDING_AMPHITHEATER, 0);
+                        break;
+                    case FIGURE_SINGER:
+                        dst_building_id = determine_destination(f->x, f->y, BUILDING_ODEON, 0, 0);
                         break;
                     case FIGURE_GLADIATOR:
                         dst_building_id = determine_destination(f->x, f->y, BUILDING_AMPHITHEATER, BUILDING_COLOSSEUM, BUILDING_ARENA);

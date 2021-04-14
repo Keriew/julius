@@ -2,6 +2,7 @@
 #define CITY_ENTERTAINMENT_H
 
 int city_entertainment_theater_shows(void);
+int city_entertainment_odeon_shows(void);
 int city_entertainment_amphitheater_shows(void);
 int city_entertainment_colosseum_shows(void);
 int city_entertainment_hippodrome_shows(void);

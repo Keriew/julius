@@ -45,6 +45,7 @@ static building_levy_for_type building_levies[] = {
 };
 
 static tourism_for_type tourism_modifiers[] = {
+    {BUILDING_ODEON, 1, ODEON_COVERAGE, 0},
     {BUILDING_TAVERN, 2, TAVERN_COVERAGE, 0},
     {BUILDING_THEATER, 1, THEATER_COVERAGE, 0},
     {BUILDING_AMPHITHEATER, 1, AMPHITHEATER_COVERAGE, 0},

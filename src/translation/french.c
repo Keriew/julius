@@ -385,6 +385,13 @@ static translation_string all_strings[] = {
     {TR_HOTKEY_DUPLICATE_TITLE, "Raccourci déjà utilisé"},
     {TR_HOTKEY_DUPLICATE_MESSAGE, "Cette combinaison de touches est déjà affectée à l'action suivante :"},
     {TR_BUTTON_GO_TO_SITE, "Aller sur le site" },
+    {TR_BUILDING_ODEON, "Odéon" },
+    {TR_BUILDING_ODEON_DESC, "Édifice destiné aux spectacles musicaux, affectés aux exercices de chants, aux représentations musicales, aux concours de poésie et de musique" },
+    {TR_BUILDING_ODEON_DESC_NO_LABORS, "Sans artistes, cet Odéon sert de décor aux araignées" },
+    {TR_BUILDING_ODEON_REPRESENTATION, "Les chants résonnent dans le quartier" },
+    {TR_TOOLTIP_OVERLAY_ODEON, "Construction destinée à des concours musicaux"},
+    {TR_WINDOW_ADVISOR_ENTERTAINMENT_ODEON_COVERAGE, "Odéons"},
+    {TR_FIGURE_TYPE_SINGER, "Chanteur"}
 };
 
 void translation_french(const translation_string** strings, int* num_strings)

@@ -588,7 +588,14 @@ static translation_string all_strings[] = {
     {TR_SIDEBAR_EXTRA_REQUESTS_HAVE, "have" },
     {TR_SIDEBAR_EXTRA_REQUESTS_SMALL_FORCE, "Small force"},
     {TR_SIDEBAR_EXTRA_REQUESTS_AVERAGE_FORCE, "Average force"},
-    {TR_SIDEBAR_EXTRA_REQUESTS_LARGE_FORCE, "Large force"}
+    {TR_SIDEBAR_EXTRA_REQUESTS_LARGE_FORCE, "Large force"},
+    {TR_BUILDING_ODEON, "Odeon" },
+    {TR_BUILDING_ODEON_DESC, "Building intended for musical performances, used for song exercises, musical performances, poetry and music competitions"},
+    {TR_BUILDING_ODEON_DESC_NO_LABORS, "Without artists, this odeon serves as a backdrop for spiders" },
+    {TR_BUILDING_ODEON_REPRESENTATION, "The songs echo in the neighborhood" },
+    {TR_TOOLTIP_OVERLAY_ODEON, "Construction intended for musical competitions"},
+    {TR_WINDOW_ADVISOR_ENTERTAINMENT_ODEON_COVERAGE, "Odeons"},
+    {TR_FIGURE_TYPE_SINGER, "Singer"}
 };
 
 void translation_english(const translation_string **strings, int *num_strings)

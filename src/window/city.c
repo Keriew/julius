@@ -242,6 +242,9 @@ static void show_overlay_from_grid_offset(int grid_offset)
         case BUILDING_ACTOR_COLONY:
             overlay = OVERLAY_THEATER;
             break;
+        case BUILDING_ODEON:
+            overlay = OVERLAY_ODEON;
+            break;
         case BUILDING_AMPHITHEATER:
         case BUILDING_GLADIATOR_SCHOOL:
             overlay = OVERLAY_AMPHITHEATER;

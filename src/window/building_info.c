@@ -165,9 +165,10 @@ static int get_height_id(void)
             case BUILDING_COLONNADE:
             case BUILDING_GARDEN_PATH:
             case BUILDING_WATCHTOWER:
+            case BUILDING_THEATER:
+            case BUILDING_ODEON:
                 return 1;
 
-            case BUILDING_THEATER:
             case BUILDING_SENATE:
             case BUILDING_SENATE_UPGRADED:
             case BUILDING_FOUNTAIN:
@@ -721,6 +722,8 @@ static void draw_background(void)
             window_building_draw_mission_post(&context);
         } else if (btype == BUILDING_WATCHTOWER) {
             window_building_draw_watchtower(&context);
+        } else if (btype == BUILDING_ODEON) {
+            window_building_draw_odeon(&context);
         }
     } else if (context.type == BUILDING_INFO_LEGION) {
         window_building_draw_legion_info(&context);

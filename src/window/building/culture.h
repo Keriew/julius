@@ -83,5 +83,7 @@ void window_building_draw_nymphaeum(building_info_context* c);
 
 int window_building_handle_mouse_grand_temple(const mouse* m, building_info_context* c);
 
+void window_building_draw_odeon(building_info_context *c);
+
 
 #endif // WINDOW_BUILDING_CULTURE_H

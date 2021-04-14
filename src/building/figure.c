@@ -500,6 +500,33 @@ static void spawn_figure_theater(building *b)
     }
 }
 
+static void spawn_figure_odeon(building *b)
+{
+    check_labor_problem(b);
+    if (has_figure_of_type(b, FIGURE_SINGER)) {
+        return;
+    }
+    map_point road;
+    if (map_has_road_access(b->x, b->y, b->size, &road)) {
+        if (b->houses_covered <= 50 || b->data.entertainment.days1 <= 0) {
+            generate_labor_seeker(b, road.x, road.y);
+        }
+        int spawn_delay = default_spawn_delay(b);
+        if (!spawn_delay) {
+            return;
+        }
+        b->figure_spawn_delay++;
+        if (b->figure_spawn_delay > spawn_delay) {
+            b->figure_spawn_delay = 0;
+            figure *f = figure_create(FIGURE_SINGER, road.x, road.y, DIR_0_TOP);
+            f->action_state = FIGURE_ACTION_94_ENTERTAINER_ROAMING;
+            f->building_id = b->id;
+            b->figure_id = f->id;
+            figure_movement_init_roaming(f);
+        }
+    }
+}
+
 static void spawn_figure_hippodrome(building *b)
 {
     check_labor_problem(b);
@@ -1667,6 +1694,9 @@ void building_figure_generate(void)
                     break;
                 case BUILDING_THEATER:
                     spawn_figure_theater(b);
+                    break;
+                case BUILDING_ODEON:
+                    spawn_figure_odeon(b);
                     break;
                 case BUILDING_HIPPODROME:
                     if (b->data.monument.monument_phase == MONUMENT_FINISHED) {

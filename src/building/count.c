@@ -101,6 +101,7 @@ void building_count_update(void)
             case BUILDING_COLOSSEUM:
             case BUILDING_HIPPODROME:
             case BUILDING_ARENA:
+            case BUILDING_ODEON:
                 is_entertainment_venue = 1;
                 increase_count(type, b->num_workers > 0, b->upgrade_level);
                 break;
@@ -328,6 +329,8 @@ void building_count_save_state(buffer *industry, buffer *culture1, buffer *cultu
     // culture 1
     buffer_write_i32(culture1, data.buildings[BUILDING_THEATER].total);
     buffer_write_i32(culture1, data.buildings[BUILDING_THEATER].active);
+    buffer_write_i32(culture1, data.buildings[BUILDING_ODEON].total);
+    buffer_write_i32(culture1, data.buildings[BUILDING_ODEON].active);
     buffer_write_i32(culture1, data.buildings[BUILDING_AMPHITHEATER].total);
     buffer_write_i32(culture1, data.buildings[BUILDING_AMPHITHEATER].active);
     buffer_write_i32(culture1, data.buildings[BUILDING_COLOSSEUM].total);
@@ -434,6 +437,8 @@ void building_count_load_state(buffer *industry, buffer *culture1, buffer *cultu
     // culture 1
     data.buildings[BUILDING_THEATER].total = buffer_read_i32(culture1);
     data.buildings[BUILDING_THEATER].active = buffer_read_i32(culture1);
+    data.buildings[BUILDING_ODEON].total = buffer_read_i32(culture1);
+    data.buildings[BUILDING_ODEON].active = buffer_read_i32(culture1);
     data.buildings[BUILDING_AMPHITHEATER].total = buffer_read_i32(culture1);
     data.buildings[BUILDING_AMPHITHEATER].active = buffer_read_i32(culture1);
     data.buildings[BUILDING_COLOSSEUM].total = buffer_read_i32(culture1);

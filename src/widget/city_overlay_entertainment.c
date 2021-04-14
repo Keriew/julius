@@ -10,7 +10,8 @@ static int show_building_entertainment(const building *b)
         b->type == BUILDING_GLADIATOR_SCHOOL || b->type == BUILDING_AMPHITHEATER ||
         b->type == BUILDING_LION_HOUSE || b->type == BUILDING_COLOSSEUM ||
         b->type == BUILDING_CHARIOT_MAKER || b->type == BUILDING_HIPPODROME ||
-        b->type == BUILDING_TAVERN || b->type == BUILDING_ARENA;
+        b->type == BUILDING_TAVERN || b->type == BUILDING_ARENA ||
+        b->type == BUILDING_ODEON;
 }
 
 static int show_building_theater(const building *b)
@@ -45,6 +46,11 @@ static int show_building_tavern(const building* b)
     return b->type == BUILDING_TAVERN;
 }
 
+static int show_building_odeon(const building* b)
+{
+    return b->type == BUILDING_ACTOR_COLONY || b->type == BUILDING_ODEON;
+}
+
 static building *get_entertainment_building(const figure *f)
 {
     if (f->action_state == FIGURE_ACTION_94_ENTERTAINER_ROAMING ||
@@ -58,7 +64,9 @@ static building *get_entertainment_building(const figure *f)
 static int show_figure_entertainment(const figure *f)
 {
     return f->type == FIGURE_ACTOR || f->type == FIGURE_GLADIATOR ||
-        f->type == FIGURE_LION_TAMER || f->type == FIGURE_CHARIOTEER || f->type == FIGURE_BARKEEP_SUPPLIER || f->type == FIGURE_BARKEEP;
+           f->type == FIGURE_LION_TAMER || f->type == FIGURE_CHARIOTEER ||
+           f->type == FIGURE_BARKEEP_SUPPLIER || f->type == FIGURE_BARKEEP ||
+           f->type == FIGURE_SINGER;
 }
 
 static int show_figure_theater(const figure *f)
@@ -107,6 +115,11 @@ static int show_figure_tavern(const figure* f)
     return f->type == FIGURE_BARKEEP || f->type == FIGURE_BARKEEP_SUPPLIER;
 }
 
+static int show_figure_odeon(const figure *f)
+{
+    return f->type == FIGURE_SINGER;
+}
+
 static int get_column_height_entertainment(const building *b)
 {
     return b->house_size && b->data.house.entertainment ? b->data.house.entertainment / 10 : NO_COLUMN;
@@ -143,6 +156,11 @@ static int get_column_height_tavern(const building* b)
         return NO_COLUMN;
     }
     return (((b->house_tavern_wine_access / 10) * 2) + (b->house_tavern_meat_access / 10)) / 3;
+}
+
+static int get_column_height_odeon(const building *b)
+{
+    return b->house_size && b->data.house.odeon ? b->data.house.odeon / 10 : NO_COLUMN;
 }
 
 static int get_tooltip_entertainment(tooltip_context *c, const building *b)
@@ -259,6 +277,14 @@ static int get_tooltip_tavern(tooltip_context* c, const building* b)
     return 0;
 }
 
+
+static int get_tooltip_odeon(tooltip_context *c, const building *b)
+{
+    c->translation_key = TR_TOOLTIP_OVERLAY_ODEON;
+
+    return 0;
+}
+
 const city_overlay *city_overlay_for_entertainment(void)
 {
     static city_overlay overlay = {
@@ -367,6 +393,22 @@ const city_overlay* city_overlay_for_tavern(void)
         get_tooltip_tavern,
         0,
         0
+    };
+    return &overlay;
+}
+
+const city_overlay* city_overlay_for_odeon(void)
+{
+    static city_overlay overlay = {
+            OVERLAY_ODEON,
+            COLUMN_TYPE_ACCESS,
+            show_building_odeon,
+            show_figure_odeon,
+            get_column_height_odeon,
+            0,
+            get_tooltip_odeon,
+            0,
+            0
     };
     return &overlay;
 }

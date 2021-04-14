@@ -332,16 +332,16 @@ void window_building_draw_theater(building_info_context *c)
         window_building_draw_description(c, 72, 3);
     }
 
-    inner_panel_draw(c->x_offset + 16, c->y_offset + 136, c->width_blocks - 2, 6);
-    window_building_draw_employment(c, 138);
+    inner_panel_draw(c->x_offset + 16, c->y_offset + 116, c->width_blocks - 2, 6);
+    window_building_draw_employment(c, 118);
     if (b->data.entertainment.days1 > 0) {
-        int width = lang_text_draw(72, 6, c->x_offset + 32, c->y_offset + 182, FONT_SMALL_BLACK);
+        int width = lang_text_draw(72, 6, c->x_offset + 32, c->y_offset + 170, FONT_SMALL_BLACK);
         lang_text_draw_amount(8, 44, 2 * b->data.entertainment.days1,
-            c->x_offset + width + 32, c->y_offset + 182, FONT_SMALL_BLACK);
+            c->x_offset + width + 32, c->y_offset + 170, FONT_SMALL_BLACK);
         lang_text_draw(72, 7 + b->data.entertainment.play,
-            c->x_offset + 32, c->y_offset + 202, FONT_SMALL_BLACK);
+            c->x_offset + 32, c->y_offset + 190, FONT_SMALL_BLACK);
     } else {
-        lang_text_draw(72, 5, c->x_offset + 32, c->y_offset + 182, FONT_SMALL_BLACK);
+        lang_text_draw(72, 5, c->x_offset + 32, c->y_offset + 170, FONT_SMALL_BLACK);
     }
 }
 
@@ -384,6 +384,36 @@ void window_building_draw_amphitheater(building_info_context *c)
             c->x_offset + 32, c->y_offset + 222, FONT_SMALL_BLACK);
     } else {
         lang_text_draw(71, 9, c->x_offset + 32, c->y_offset + 202, FONT_SMALL_BLACK);
+    }
+}
+
+void window_building_draw_odeon(building_info_context *c)
+{
+    c->help_id = 71;
+    window_building_play_sound(c, "wavs/theatre.wav");
+    outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
+    text_draw_centered(translation_for(TR_BUILDING_ODEON), c->x_offset, c->y_offset + 10, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
+
+    building *b = building_get(c->building_id);
+
+    if (!c->has_road_access) {
+        window_building_draw_description_at(c, 48, 69, 25);
+    } else if (b->num_workers <= 0) {
+        text_draw_multiline(translation_for(TR_BUILDING_ODEON_DESC_NO_LABORS),
+                            c->x_offset + 32, c->y_offset + 48, 16 * (c->width_blocks - 4), FONT_NORMAL_BLACK, 0);
+    } else {
+        text_draw_multiline(translation_for(TR_BUILDING_ODEON_DESC),
+                            c->x_offset + 32, c->y_offset + 48, 16 * (c->width_blocks - 4), FONT_NORMAL_BLACK, 0);
+    }
+
+    inner_panel_draw(c->x_offset + 16, c->y_offset + 116, c->width_blocks - 2, 6);
+    window_building_draw_employment(c, 118);
+
+    if (b->data.entertainment.days1 > 0) {
+        text_draw_multiline(translation_for(TR_BUILDING_ODEON_REPRESENTATION),
+                            c->x_offset + 32, c->y_offset + 170, 16 * (c->width_blocks - 4), FONT_SMALL_BLACK, 0);
+    } else {
+        lang_text_draw(72, 5, c->x_offset + 32, c->y_offset + 170, FONT_SMALL_BLACK);
     }
 }
 

@@ -280,6 +280,8 @@ static void save_main_data(buffer *main)
     buffer_write_i32(main, city_data.houses.requiring.religion);
     buffer_write_i32(main, city_data.entertainment.theater_shows);
     buffer_write_i32(main, city_data.entertainment.theater_no_shows_weighted);
+    buffer_write_i32(main, city_data.entertainment.odeon_shows);
+    buffer_write_i32(main, city_data.entertainment.odeon_no_shows_weighted);
     buffer_write_i32(main, city_data.entertainment.amphitheater_shows);
     buffer_write_i32(main, city_data.entertainment.amphitheater_no_shows_weighted);
     buffer_write_i32(main, city_data.entertainment.colosseum_shows);
@@ -776,6 +778,8 @@ static void load_main_data(buffer *main, int has_separate_import_limits)
     city_data.houses.requiring.religion = buffer_read_i32(main);
     city_data.entertainment.theater_shows = buffer_read_i32(main);
     city_data.entertainment.theater_no_shows_weighted = buffer_read_i32(main);
+    city_data.entertainment.odeon_shows = buffer_read_i32(main);
+    city_data.entertainment.odeon_no_shows_weighted = buffer_read_i32(main);
     city_data.entertainment.amphitheater_shows = buffer_read_i32(main);
     city_data.entertainment.amphitheater_no_shows_weighted = buffer_read_i32(main);
     city_data.entertainment.colosseum_shows = buffer_read_i32(main);

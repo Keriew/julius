@@ -25,6 +25,7 @@ static struct {
     int oracle;
     int tavern;
     int arena;
+    int odeon;
 } coverage;
 
 int city_culture_coverage_tavern(void)
@@ -57,9 +58,14 @@ int city_culture_coverage_hippodrome(void)
     return coverage.hippodrome;
 }
 
+int city_culture_coverage_odeon(void)
+{
+    return coverage.odeon;
+}
+
 int city_culture_coverage_average_entertainment(void)
 {
-    return (coverage.hippodrome + coverage.colosseum + coverage.amphitheater + coverage.theater + coverage.tavern) / 5;
+    return (coverage.hippodrome + coverage.colosseum + coverage.amphitheater + coverage.theater + coverage.tavern + coverage.odeon) / 6;
 }
 
 int city_culture_coverage_religion(god_type god)
@@ -116,7 +122,8 @@ void city_culture_update_coverage(void)
     coverage.theater = top(calc_percentage(city_culture_get_theatre_person_coverage(), population));
     coverage.amphitheater = top(calc_percentage(city_culture_get_ampitheatre_person_coverage(), population));
     coverage.arena = top(calc_percentage(city_culture_get_arena_person_coverage(), population));
-    
+    coverage.odeon = top(calc_percentage(city_culture_get_odeon_person_coverage(), population));
+
     if (building_monument_working(BUILDING_HIPPODROME) <= 0) {
         coverage.hippodrome = 0;
     }
@@ -254,7 +261,7 @@ void city_culture_calculate(void)
 
 int city_culture_get_theatre_person_coverage(void)
 {
-    return THEATER_COVERAGE * building_count_active(BUILDING_THEATER) + THEATER_UPGRADE_BONUS_COVERAGE * building_count_upgraded(BUILDING_THEATER);;
+    return THEATER_COVERAGE * building_count_active(BUILDING_THEATER) + THEATER_UPGRADE_BONUS_COVERAGE * building_count_upgraded(BUILDING_THEATER);
 }
 
 int city_culture_get_school_person_coverage(void)
@@ -264,7 +271,7 @@ int city_culture_get_school_person_coverage(void)
 
 int city_culture_get_library_person_coverage(void)
 {
-    return LIBRARY_COVERAGE * building_count_active(BUILDING_LIBRARY) + LIBRARY_UPGRADE_BONUS_COVERAGE * building_count_upgraded(BUILDING_LIBRARY);;
+    return LIBRARY_COVERAGE * building_count_active(BUILDING_LIBRARY) + LIBRARY_UPGRADE_BONUS_COVERAGE * building_count_upgraded(BUILDING_LIBRARY);
 }
 
 int city_culture_get_academy_person_coverage(void)
@@ -287,11 +294,18 @@ int city_culture_get_arena_person_coverage(void)
     return ARENA_COVERAGE * building_count_active(BUILDING_ARENA);
 }
 
+int city_culture_get_odeon_person_coverage(void)
+{
+    return ODEON_COVERAGE * building_count_active(BUILDING_ODEON);
+}
+
 
 void city_culture_save_state(buffer *buf)
 {
     // Yes, hospital is saved twice
     buffer_write_i32(buf, coverage.theater);
+    buffer_write_i32(buf, coverage.odeon);
+    buffer_write_i32(buf, coverage.tavern);
     buffer_write_i32(buf, coverage.amphitheater);
     buffer_write_i32(buf, coverage.colosseum);
     buffer_write_i32(buf, coverage.hospital);
@@ -310,6 +324,8 @@ void city_culture_load_state(buffer *buf)
 {
     // Yes, hospital is saved twice
     coverage.theater = buffer_read_i32(buf);
+    coverage.odeon = buffer_read_i32(buf);
+    coverage.tavern = buffer_read_i32(buf);
     coverage.amphitheater = buffer_read_i32(buf);
     coverage.colosseum = buffer_read_i32(buf);
     coverage.hospital = buffer_read_i32(buf);

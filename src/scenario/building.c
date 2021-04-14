@@ -40,6 +40,8 @@ int scenario_building_allowed(int building_type)
             return scenario.allowed_buildings[ALLOWED_BUILDING_LIBRARY];
         case BUILDING_THEATER:
             return scenario.allowed_buildings[ALLOWED_BUILDING_THEATER];
+        case BUILDING_ODEON:
+            return scenario.allowed_buildings[ALLOWED_BUILDING_ODEON];
         case BUILDING_AMPHITHEATER:
             return scenario.allowed_buildings[ALLOWED_BUILDING_AMPHITHEATER];
         case BUILDING_ARENA:

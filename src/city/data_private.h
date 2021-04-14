@@ -244,6 +244,7 @@ extern struct city_data_t {
         int32_t favor;
         struct {
             int32_t theater;
+            int32_t odeon;
             int32_t religion;
             int32_t school;
             int32_t library;
@@ -290,6 +291,8 @@ extern struct city_data_t {
     struct {
         int32_t theater_shows;
         int32_t theater_no_shows_weighted;
+        int32_t odeon_shows;
+        int32_t odeon_no_shows_weighted;
         int32_t amphitheater_shows;
         int32_t amphitheater_no_shows_weighted;
         int32_t colosseum_shows;

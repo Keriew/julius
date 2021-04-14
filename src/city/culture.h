@@ -8,6 +8,7 @@
 #define THEATER_UPGRADE_BONUS_COVERAGE 500
 #define AMPHITHEATER_COVERAGE 1200
 #define TAVERN_COVERAGE 1200
+#define ODEON_COVERAGE 250
 #define ARENA_COVERAGE 2500
 #define SCHOOL_COVERAGE 75
 #define SCHOOL_UPGRADE_BONUS_COVERAGE 125
@@ -20,6 +21,7 @@
 void city_culture_update_coverage(void);
 
 int city_culture_coverage_tavern(void);
+int city_culture_coverage_odeon(void);
 int city_culture_coverage_theater(void);
 int city_culture_coverage_amphitheater(void);
 int city_culture_coverage_arena(void);
@@ -48,6 +50,7 @@ int city_culture_get_academy_person_coverage(void);
 int city_culture_get_tavern_person_coverage(void);
 int city_culture_get_ampitheatre_person_coverage(void);
 int city_culture_get_arena_person_coverage(void);
+int city_culture_get_odeon_person_coverage(void);
 
 
 

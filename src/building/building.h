@@ -106,6 +106,7 @@ typedef struct {
         struct {
             short inventory[8];
             unsigned char theater;
+            unsigned char odeon;
             unsigned char amphitheater_actor;
             unsigned char amphitheater_gladiator;
             unsigned char colosseum_gladiator;
