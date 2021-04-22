@@ -5,6 +5,7 @@
 #include "city/resource.h"
 #include "core/calc.h"
 #include "trade_prices.h"
+#include "window/trade_policy.h"
 
 struct trade_price {
     int32_t buy;

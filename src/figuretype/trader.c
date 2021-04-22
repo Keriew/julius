@@ -33,6 +33,7 @@
 #include "map/routing_path.h"
 #include "scenario/map.h"
 #include "scenario/property.h"
+#include "window/trade_policy.h"
 
 #define INFINITE 10000
 

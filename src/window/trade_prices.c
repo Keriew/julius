@@ -13,6 +13,7 @@
 #include "graphics/window.h"
 #include "input/input.h"
 #include "window/advisors.h"
+#include "window/trade_policy.h"
 
 static void draw_background(void)
 {

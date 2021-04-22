@@ -1,7 +1,6 @@
 #include "action_popup.h"
 
 #include "assets/assets.h"
-#include "building/caravanserai.h"
 #include "graphics/generic_button.h"
 #include "graphics/graphics.h"
 #include "graphics/image.h"
@@ -11,6 +10,7 @@
 #include "graphics/window.h"
 #include "input/input.h"
 #include "translation/translation.h"
+#include "window/trade_policy.h"
 
 #define CONFIRM_BUTTON 4
 
@@ -78,6 +78,7 @@ static int init(int title, int prompt, option_menu_item option_1, option_menu_it
 static void draw_background(void)
 {
     window_draw_underlying_window();
+
     graphics_in_dialog();
     outer_panel_draw(80, 40, data.width_blocks, data.height_blocks);
 

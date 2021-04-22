@@ -1,9 +1,11 @@
 #include "trade.h"
 
+#include "building/caravanserai.h"
+#include "building/monument.h"
+#include "city/buildings.h"
 #include "city/resource.h"
 #include "core/lang.h"
 #include "core/string.h"
-#include "game/resource.h"
 #include "graphics/generic_button.h"
 #include "graphics/graphics.h" 
 #include "graphics/image.h"
@@ -16,6 +18,7 @@
 #include "translation/translation.h"
 #include "window/empire.h"
 #include "window/resource_settings.h"
+#include "window/trade_policy.h"
 #include "window/trade_prices.h"
 
 #define ADVISOR_HEIGHT 27
@@ -28,13 +31,15 @@ static void on_scroll(void);
 
 static void button_prices(int param1, int param2);
 static void button_empire(int param1, int param2);
+static void button_policy(int param1, int param2);
 static void button_resource(int resource_index, int param2);
 
 static scrollbar_type scrollbar = { 580, RESOURCE_Y_OFFSET, RESOURCE_ROW_HEIGHT * MAX_VISIBLE_ROWS, on_scroll, 4 };
 
 static generic_button resource_buttons[] = {
-    {400, 398, 200, 23, button_prices, button_none, 1, 0},
-    {100, 398, 200, 23, button_empire, button_none, 1, 0},
+    {340, 396, 200, 24, button_prices, button_none, 1, 0},
+    {100, 396, 200, 24, button_empire, button_none, 1, 0},
+    {580, 390, 40, 30, button_policy, button_none, 1, 0},
     {64, 56, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 0, 0},
     {64, 97, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 1, 0},
     {64, 138, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 2, 0},
@@ -42,7 +47,7 @@ static generic_button resource_buttons[] = {
     {64, 220, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 4, 0},
     {64, 261, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 5, 0},
     {64, 302, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 6, 0},
-    {64, 343, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 7, 0},
+    {64, 343, 480, RESOURCE_ROW_HEIGHT - 2, button_resource, button_none, 7, 0}
 };
 
 static struct {
@@ -143,7 +148,7 @@ static int draw_background(void)
         image_draw(image_id, 32, y_offset + base_y);
         image_draw(image_id, 584 - data.margin_right, y_offset + base_y);
 
-        if (data.focus_button_id - 3 == i) {
+        if (data.focus_button_id - 4 == i) {
             button_border_draw(64, y_offset, 512 - data.margin_right, RESOURCE_ROW_HEIGHT, 1);
         }
         lang_text_draw(23, resource, 72, y_offset + 17, FONT_NORMAL_WHITE);
@@ -164,14 +169,20 @@ static int draw_background(void)
         }
     }
 
-    button_border_draw(398, 396, 200, 24, data.focus_button_id == 1);
-    lang_text_draw_centered(54, 2, 400, 402, 200, FONT_NORMAL_BLACK);
+    button_border_draw(340, 396, 200, 24, data.focus_button_id == 1);
+    lang_text_draw_centered(54, 2, 340, 402, 200, FONT_NORMAL_BLACK);
 
-    button_border_draw(98, 396, 200, 24, data.focus_button_id == 2);
+    button_border_draw(100, 396, 200, 24, data.focus_button_id == 2);
     lang_text_draw_centered(54, 30, 100, 402, 200, FONT_NORMAL_BLACK);
 
     if (data.list->size > MAX_VISIBLE_ROWS) {
         inner_panel_draw(scrollbar.x + 4, scrollbar.y + 28, 2, scrollbar.height / 16 - 3);
+    }
+
+    if (city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+        button_border_draw(580, 390, 40, 30, data.focus_button_id == 3);
+        int image_id = image_group(GROUP_EMPIRE_TRADE_ROUTE_TYPE) + 1;
+        image_draw(image_id, 586, 394);
     }
 
     return ADVISOR_HEIGHT;
@@ -195,7 +206,7 @@ static int handle_mouse(const mouse *m)
         return 1;
     }
     int button_id = data.focus_button_id;
-    int result = generic_buttons_handle_mouse(m, 0, 0, resource_buttons, MAX_VISIBLE_ROWS + 2, &data.focus_button_id);
+    int result = generic_buttons_handle_mouse(m, 0, 0, resource_buttons, MAX_VISIBLE_ROWS + 3, &data.focus_button_id);
     if (button_id != data.focus_button_id) {
         window_request_refresh();
     }
@@ -210,6 +221,13 @@ static void button_prices(int param1, int param2)
 static void button_empire(int param1, int param2)
 {
     window_empire_show();
+}
+
+static void button_policy(int param1, int param2)
+{
+    if (city_buildings_has_caravanserai() && building_monument_working(BUILDING_CARAVANSERAI)) {
+        window_policy_show();
+    }
 }
 
 static void button_resource(int resource_index, int param2)
@@ -242,9 +260,9 @@ static void get_tooltip_text(advisor_tooltip_result *r)
         r->text_id = 106;
     } else if (data.focus_button_id == 2) {
         r->text_id = 41;
-    } else if (data.focus_button_id) {
+    } else if (data.focus_button_id != 3) {
         const mouse *m = mouse_in_dialog(mouse_get());
-        int resource = city_resource_get_potential()->items[data.focus_button_id - 3 + scrollbar.scroll_position];
+        int resource = city_resource_get_potential()->items[data.focus_button_id - 4 + scrollbar.scroll_position];
         if (resource_is_food(resource) && m->x > 180 && m->x < 220) {
             write_resource_storage_tooltip(r, resource);
             return;
