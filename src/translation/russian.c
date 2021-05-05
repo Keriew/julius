@@ -672,6 +672,10 @@ static translation_string all_strings[] = {
     { TR_TOOLTIP_HOLD_GAME, "Провести эти игры"},
     { TR_TOOLTIP_NO_GAME, "Не проводить эти игры"},
     { TR_WARNING_NEARBY_WOLF, "Слишком близко к волкам!"}
+    { TR_MARKET_TRADING, "Торгует"},
+    { TR_MARKET_NOT_TRADING, "Не торгует"},
+    { TR_TEMPLE_DISTRIBUTING, "Распределяет"},
+    { TR_TEMPLE_NOT_DISTRIBUTING, "Не распределяет"}
 };
 
 void translation_russian(const translation_string **strings, int *num_strings)
