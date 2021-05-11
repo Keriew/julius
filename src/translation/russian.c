@@ -678,6 +678,7 @@ static translation_string all_strings[] = {
     { TR_TEMPLE_DISTRIBUTING, "Распределяет"},
     { TR_TEMPLE_NOT_DISTRIBUTING, "Не распределяет"},
     { TR_ADVISOR_CHIEF_NO_IMMIGRATION_SQUALOR, "Плохой средний уровень жилья сдерживает иммиграцию"},
+    { TR_FIGURE_TYPE_LIGHTHOUSE_SUPPLIER, "Смотритель маяка"}
 };
 
 void translation_russian(const translation_string **strings, int *num_strings)
