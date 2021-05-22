@@ -17,6 +17,7 @@ enum {
  */
 typedef struct {
     char *name; /**< Filenames in UTF-8 encoding */
+    unsigned int modified_time; /**< Timestamp */
 } file_info;
 
 /**

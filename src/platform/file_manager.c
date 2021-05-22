@@ -217,7 +217,7 @@ static const dir_name get_assets_directory(void)
 }
 
 int platform_file_manager_list_directory_contents(
-    const char *dir, int type, const char *extension, int (*callback)(const char *))
+    const char *dir, int type, const char *extension, int (*callback)(const char *, unsigned int))
 {
     if (type == TYPE_NONE) {
         return LIST_ERROR;
@@ -241,6 +241,7 @@ int platform_file_manager_list_directory_contents(
 #endif
     }
 #ifdef __ANDROID__
+    // TODO
     int match = android_get_directory_contents(current_dir, type, extension, callback);
 #elif defined(USE_FILE_CACHE)
     const dir_info *d = platform_file_manager_cache_get_dir_info(current_dir);
@@ -284,9 +285,9 @@ int platform_file_manager_list_directory_contents(
                 // Skip current (.), parent (..) and hidden directories (.*)
                 continue;
             }
-            match = callback(name);
+            match = callback(name, file_info.st_mtim.tv_sec);
         } else if (file_has_extension(name, extension)) {
-            match = callback(name);
+            match = callback(name, file_info.st_mtim.tv_sec);
         }
         if (match == LIST_MATCH) {
             break;

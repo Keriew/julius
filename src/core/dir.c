@@ -34,6 +34,7 @@ static void clear_dir_listing(void)
     } else {
         for (int i = 0; i < data.max_files; i++) {
             data.listing.files[i].name[0] = 0;
+            data.listing.files[i].modified_time = 0;
         }
     }
 }
@@ -55,13 +56,14 @@ static int compare_lower(const void *va, const void *vb)
     return platform_file_manager_compare_filename(a->name, b->name);
 }
 
-static int add_to_listing(const char *filename)
+static int add_to_listing(const char *filename, unsigned int modified_time)
 {
     if (data.listing.num_files >= data.max_files) {
         expand_dir_listing();
     }
     strncpy(data.listing.files[data.listing.num_files].name, filename, FILE_NAME_MAX);
     data.listing.files[data.listing.num_files].name[FILE_NAME_MAX - 1] = 0;
+    data.listing.files[data.listing.num_files].modified_time = modified_time;
     ++data.listing.num_files;
     return LIST_CONTINUE;
 }
@@ -82,7 +84,7 @@ const dir_listing *dir_find_all_subdirectories(void)
     return &data.listing;
 }
 
-static int compare_case(const char *filename)
+static int compare_case(const char *filename, unsigned int modified_time)
 {
     if (platform_file_manager_compare_filename(filename, data.cased_filename) == 0) {
         strcpy(data.cased_filename, filename);
