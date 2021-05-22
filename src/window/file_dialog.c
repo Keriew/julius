@@ -34,12 +34,14 @@
 static const time_millis NOT_EXIST_MESSAGE_TIMEOUT = 500;
 
 static void button_ok_cancel(int is_ok, int param2);
+static void button_sort(int param1, int param2);
 static void button_select_file(int index, int param2);
 static void on_scroll(void);
 
 static image_button image_buttons[] = {
     {344, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_ok_cancel, button_none, 1, 0, 1},
     {392, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_ok_cancel, button_none, 0, 0, 1},
+    {440, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 8, button_sort,      button_none, 0, 0, 1},
 };
 static generic_button file_buttons[] = {
     {160, 128 + 16 * 0,  288, 16, button_select_file, button_none, 0, 0},
@@ -70,6 +72,7 @@ static struct {
     int focus_button_id;
     int double_click;
     const dir_listing *file_list;
+    unsigned int sort_by;
 
     file_type_data *file_data;
     uint8_t typed_name[FILE_NAME_MAX];
@@ -160,6 +163,7 @@ static void init(file_type type, file_dialog_type dialog_type)
             data.file_list = dir_find_files_with_extension(".", saved_game_data_expanded.extension);
         }
     }
+    data.sort_by = 0;
     scrollbar_init(&scrollbar, 0, data.file_list->num_files - NUM_FILES_IN_VIEW);
     scroll_to_typed_text();
 
@@ -199,7 +203,7 @@ static void draw_foreground(void)
         text_draw(file, 160, 130 + 16 * i, font, 0);
     }
 
-    image_buttons_draw(0, 0, image_buttons, 2);
+    image_buttons_draw(0, 0, image_buttons, 3);
     scrollbar_draw(&scrollbar);
 
     graphics_reset_dialog();
@@ -231,7 +235,7 @@ static void handle_input(const mouse *m, const hotkeys *h)
     const mouse *m_dialog = mouse_in_dialog(m);
     if (input_box_handle_mouse(m_dialog, &file_name_input) ||
         generic_buttons_handle_mouse(m_dialog, 0, 0, file_buttons, NUM_FILES_IN_VIEW, &data.focus_button_id) ||
-        image_buttons_handle_mouse(m_dialog, 0, 0, image_buttons, 2, 0) ||
+        image_buttons_handle_mouse(m_dialog, 0, 0, image_buttons, 3, 0) ||
         scrollbar_handle_mouse(&scrollbar, m_dialog)) {
         return;
     }
@@ -329,6 +333,18 @@ static void button_ok_cancel(int is_ok, int param2)
     }
 
     strncpy(data.file_data->last_loaded_file, filename, FILE_NAME_MAX - 1);
+}
+
+static void button_sort(int param1, int param2)
+{
+    if (data.sort_by == 0) {
+        dir_sort_by_modified_time();
+        data.sort_by = 1;
+    }
+    else {
+        dir_sort_by_filename();
+        data.sort_by = 0;
+    }
 }
 
 static void on_scroll(void)
