@@ -48,14 +48,6 @@ static void expand_dir_listing(void)
     allocate_listing_files(old_max_files, data.max_files);
 }
 
-static int compare_lower(const void *va, const void *vb)
-{
-    const file_info* a = (const file_info*) va;
-    const file_info* b = (const file_info*) vb;
-
-    return platform_file_manager_compare_filename(a->name, b->name);
-}
-
 static int add_to_listing(const char *filename, unsigned int modified_time)
 {
     if (data.listing.num_files >= data.max_files) {
@@ -72,7 +64,7 @@ const dir_listing *dir_find_files_with_extension(const char *dir, const char *ex
 {
     clear_dir_listing();
     platform_file_manager_list_directory_contents(dir, TYPE_FILE, extension, add_to_listing);
-    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_lower);
+    dir_sort_by_filename();
     return &data.listing;
 }
 
@@ -80,8 +72,34 @@ const dir_listing *dir_find_all_subdirectories(void)
 {
     clear_dir_listing();
     platform_file_manager_list_directory_contents(0, TYPE_DIR, 0, add_to_listing);
-    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_lower);
+    dir_sort_by_filename();
     return &data.listing;
+}
+
+static int compare_lower(const void *va, const void *vb)
+{
+    const file_info* a = (const file_info*) va;
+    const file_info* b = (const file_info*) vb;
+
+    return platform_file_manager_compare_filename(a->name, b->name);
+}
+
+void dir_sort_by_filename(void)
+{
+    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_lower);
+}
+
+static int compare_modified_time(const void *va, const void *vb)
+{
+    const file_info* a = (const file_info*) va;
+    const file_info* b = (const file_info*) vb;
+
+    return a->modified_time < b->modified_time;
+}
+
+void dir_sort_by_modified_time(void)
+{
+    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_modified_time);
 }
 
 static int compare_case(const char *filename, unsigned int modified_time)
@@ -173,7 +191,7 @@ static const char *get_case_corrected_file(const char *dir, const char *filepath
 const dir_listing *dir_append_files_with_extension(const char *extension)
 {
     platform_file_manager_list_directory_contents(0, TYPE_FILE, extension, add_to_listing);
-    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_lower);
+    dir_sort_by_filename();
     return &data.listing;
 }
 

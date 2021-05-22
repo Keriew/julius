@@ -35,14 +35,21 @@ typedef struct {
  * @return Directory listing
  */
 const dir_listing *dir_find_files_with_extension(const char * dir, const char *extension);
-const dir_listing* dir_append_files_with_extension(const char* extension);
-
+const dir_listing *dir_append_files_with_extension(const char* extension);
 
 /**
  * Finds all subdirectories
  * @return Directory listing
  */
 const dir_listing *dir_find_all_subdirectories(void);
+
+/**
+ * Sorts files by filename or by modification time
+ * @return Directory listing
+ */
+void dir_sort_by_filename(void);
+void dir_sort_by_modified_time(void);
+
 
 /**
  * Get the case sensitive and localized filename of the file
