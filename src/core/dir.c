@@ -19,8 +19,8 @@ static struct {
 static void allocate_listing_files(int min, int max)
 {
     for (int i = min; i < max; i++) {
-        data.listing.files[i] = malloc(FILE_NAME_MAX * sizeof(char));
-        data.listing.files[i][0] = 0;
+        data.listing.files[i].name = malloc(FILE_NAME_MAX * sizeof(char));
+        data.listing.files[i].name[0] = 0;
     }
 }
 
@@ -28,12 +28,12 @@ static void clear_dir_listing(void)
 {
     data.listing.num_files = 0;
     if (data.max_files <= 0) {
-        data.listing.files = (char **) malloc(BASE_MAX_FILES * sizeof(char *));
+        data.listing.files = (file_info *) malloc(BASE_MAX_FILES * sizeof(file_info));
         allocate_listing_files(0, BASE_MAX_FILES);
         data.max_files = BASE_MAX_FILES;
     } else {
         for (int i = 0; i < data.max_files; i++) {
-            data.listing.files[i][0] = 0;
+            data.listing.files[i].name[0] = 0;
         }
     }
 }
@@ -43,14 +43,16 @@ static void expand_dir_listing(void)
     int old_max_files = data.max_files;
 
     data.max_files = 2 * old_max_files;
-    data.listing.files = (char **) realloc(data.listing.files, data.max_files * sizeof(char *));
+    data.listing.files = (file_info *) realloc(data.listing.files, data.max_files * sizeof(file_info));
     allocate_listing_files(old_max_files, data.max_files);
 }
 
 static int compare_lower(const void *va, const void *vb)
 {
-    // arguments are pointers to char*
-    return platform_file_manager_compare_filename(*(const char **) va, *(const char **) vb);
+    const file_info* a = (const file_info*) va;
+    const file_info* b = (const file_info*) vb;
+
+    return platform_file_manager_compare_filename(a->name, b->name);
 }
 
 static int add_to_listing(const char *filename)
@@ -58,8 +60,8 @@ static int add_to_listing(const char *filename)
     if (data.listing.num_files >= data.max_files) {
         expand_dir_listing();
     }
-    strncpy(data.listing.files[data.listing.num_files], filename, FILE_NAME_MAX);
-    data.listing.files[data.listing.num_files][FILE_NAME_MAX - 1] = 0;
+    strncpy(data.listing.files[data.listing.num_files].name, filename, FILE_NAME_MAX);
+    data.listing.files[data.listing.num_files].name[FILE_NAME_MAX - 1] = 0;
     ++data.listing.num_files;
     return LIST_CONTINUE;
 }
@@ -68,7 +70,7 @@ const dir_listing *dir_find_files_with_extension(const char *dir, const char *ex
 {
     clear_dir_listing();
     platform_file_manager_list_directory_contents(dir, TYPE_FILE, extension, add_to_listing);
-    qsort(data.listing.files, data.listing.num_files, sizeof(char *), compare_lower);
+    qsort(data.listing.files, data.listing.num_files, sizeof(data.listing.files[0]), compare_lower);
     return &data.listing;
 }
 

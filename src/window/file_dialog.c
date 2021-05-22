@@ -93,13 +93,13 @@ static int find_first_file_with_prefix(const char *prefix)
     int right = data.file_list->num_files;
     while (left < right) {
         int middle = (left + right) / 2;
-        if (platform_file_manager_compare_filename_prefix(data.file_list->files[middle], prefix, len) >= 0) {
+        if (platform_file_manager_compare_filename_prefix(data.file_list->files[middle].name, prefix, len) >= 0) {
             right = middle;
         } else {
             left = middle + 1;
         }
     }
-    if (platform_file_manager_compare_filename_prefix(data.file_list->files[left], prefix, len) == 0) {
+    if (platform_file_manager_compare_filename_prefix(data.file_list->files[left].name, prefix, len) == 0) {
         return left;
     } else {
         return -1;
@@ -193,7 +193,7 @@ static void draw_foreground(void)
         if (data.focus_button_id == i + 1) {
             font = FONT_NORMAL_WHITE;
         }
-        encoding_from_utf8(data.file_list->files[scrollbar.scroll_position + i], file, FILE_NAME_MAX);
+        encoding_from_utf8(data.file_list->files[scrollbar.scroll_position + i].name, file, FILE_NAME_MAX);
         //file_remove_extension(file);
         text_ellipsize(file, font, MAX_FILE_WINDOW_TEXT_WIDTH);
         text_draw(file, 160, 130 + 16 * i, font, 0);
@@ -339,7 +339,7 @@ static void on_scroll(void)
 static void button_select_file(int index, int param2)
 {
     if (index < data.file_list->num_files) {
-        strncpy(data.selected_file, data.file_list->files[scrollbar.scroll_position + index], FILE_NAME_MAX - 1);
+        strncpy(data.selected_file, data.file_list->files[scrollbar.scroll_position + index].name, FILE_NAME_MAX - 1);
         encoding_from_utf8(data.selected_file, data.typed_name, FILE_NAME_MAX);
         string_copy(data.typed_name, data.previously_seen_typed_name, FILE_NAME_MAX);
         input_box_refresh_text(&file_name_input);

@@ -13,10 +13,17 @@ enum {
 };
 
 /**
+ * File information
+ */
+typedef struct {
+    char *name; /**< Filenames in UTF-8 encoding */
+} file_info;
+
+/**
  * Directory listing
  */
 typedef struct {
-    char **files; /**< Filenames in UTF-8 encoding */
+    file_info *files; /**< Filenames in UTF-8 encoding */
     int num_files; /**< Number of files in the list */
 } dir_listing;
 

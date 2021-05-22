@@ -27,7 +27,7 @@ void assets_init(void)
     }
 
     for (int i = 0; i < xml_files->num_files; ++i) {
-        xml_process_assetlist_file(xml_files->files[i]);
+        xml_process_assetlist_file(xml_files->files[i].name);
     }
 
     group_setup_hash_replacements();
