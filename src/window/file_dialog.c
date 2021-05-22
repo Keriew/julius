@@ -42,18 +42,18 @@ static image_button image_buttons[] = {
     {392, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_ok_cancel, button_none, 0, 0, 1},
 };
 static generic_button file_buttons[] = {
-    {160, 128, 288, 16, button_select_file, button_none, 0, 0},
-    {160, 144, 288, 16, button_select_file, button_none, 1, 0},
-    {160, 160, 288, 16, button_select_file, button_none, 2, 0},
-    {160, 176, 288, 16, button_select_file, button_none, 3, 0},
-    {160, 192, 288, 16, button_select_file, button_none, 4, 0},
-    {160, 208, 288, 16, button_select_file, button_none, 5, 0},
-    {160, 224, 288, 16, button_select_file, button_none, 6, 0},
-    {160, 240, 288, 16, button_select_file, button_none, 7, 0},
-    {160, 256, 288, 16, button_select_file, button_none, 8, 0},
-    {160, 272, 288, 16, button_select_file, button_none, 9, 0},
-    {160, 288, 288, 16, button_select_file, button_none, 10, 0},
-    {160, 304, 288, 16, button_select_file, button_none, 11, 0},
+    {160, 128 + 16 * 0,  288, 16, button_select_file, button_none, 0, 0},
+    {160, 128 + 16 * 1,  288, 16, button_select_file, button_none, 1, 0},
+    {160, 128 + 16 * 2,  288, 16, button_select_file, button_none, 2, 0},
+    {160, 128 + 16 * 3,  288, 16, button_select_file, button_none, 3, 0},
+    {160, 128 + 16 * 4,  288, 16, button_select_file, button_none, 4, 0},
+    {160, 128 + 16 * 5,  288, 16, button_select_file, button_none, 5, 0},
+    {160, 128 + 16 * 6,  288, 16, button_select_file, button_none, 6, 0},
+    {160, 128 + 16 * 7,  288, 16, button_select_file, button_none, 7, 0},
+    {160, 128 + 16 * 8,  288, 16, button_select_file, button_none, 8, 0},
+    {160, 128 + 16 * 9,  288, 16, button_select_file, button_none, 9, 0},
+    {160, 128 + 16 * 10, 288, 16, button_select_file, button_none, 10, 0},
+    {160, 128 + 16 * 11, 288, 16, button_select_file, button_none, 11, 0},
 };
 
 static scrollbar_type scrollbar = { 464, 120, 206, on_scroll };
