@@ -679,7 +679,14 @@ static translation_string all_strings[] = {
     {TR_FIGURE_TYPE_LIGHTHOUSE_SUPPLIER, "Gardien du phare"},
     {TR_WINDOW_GAMES_NO_WATER_ACCESS, "Le lieu n'a pas accès à un réservoir."},
     {TR_HOTKEY_DUPLICATE_TITLE, "Touche de raccourci déjà utilisée"},
-    {TR_HOTKEY_DUPLICATE_MESSAGE, "Cette combinaison de touches est déjà assignée à l'action suivante :"}
+    {TR_HOTKEY_DUPLICATE_MESSAGE, "Cette combinaison de touches est déjà assignée à l'action suivante :"},
+    {TR_WINDOW_RACE_BET_BUTTON, "Parier sur la course"},
+    {TR_WINDOW_RACE_BET_TITLE, "Parier sur un cheval"},
+    {TR_WINDOW_RACE_BET_AMOUNT, "Montant"},
+    {TR_WINDOW_RACE_BET_DESCRIPTION, "Parier un montant sur le cheval de votre choix et doubler votre mise en cas de victoire de ce dernier. Vos gains seront même quadruplés lors des jeux !"},
+    {TR_WARNING_BET_VICTORY, "Victoire de votre cheval"},
+    {TR_WARNING_BET_DEFEAT, "Défaite de votre cheval"},
+    {TR_PERSONAL_SAVINGS, "Économies :"}
 };
 
 void translation_french(const translation_string **strings, int *num_strings)
