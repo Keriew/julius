@@ -256,7 +256,8 @@ int platform_file_manager_list_directory_contents(
         if (!platform_file_manager_cache_file_has_extension(f, extension)) {
             continue;
         }
-        match = callback(f->name);
+        // TOD0: File cache needs to store timestamps
+        match = callback(f->name, 0);
         if (match == LIST_MATCH) {
             break;
         }
