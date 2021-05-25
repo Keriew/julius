@@ -18,13 +18,13 @@ enum {
 typedef struct {
     char *name; /**< Filenames in UTF-8 encoding */
     unsigned int modified_time; /**< Timestamp */
-} file_info;
+} dir_entry;
 
 /**
  * Directory listing
  */
 typedef struct {
-    file_info *files; /**< Filenames in UTF-8 encoding */
+    dir_entry *files; /**< Filenames in UTF-8 encoding */
     int num_files; /**< Number of files in the list */
 } dir_listing;
 

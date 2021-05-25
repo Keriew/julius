@@ -28,7 +28,7 @@ static void clear_dir_listing(void)
 {
     data.listing.num_files = 0;
     if (data.max_files <= 0) {
-        data.listing.files = (file_info *) malloc(BASE_MAX_FILES * sizeof(file_info));
+        data.listing.files = (dir_entry *) malloc(BASE_MAX_FILES * sizeof(dir_entry));
         allocate_listing_files(0, BASE_MAX_FILES);
         data.max_files = BASE_MAX_FILES;
     } else {
@@ -44,7 +44,7 @@ static void expand_dir_listing(void)
     int old_max_files = data.max_files;
 
     data.max_files = 2 * old_max_files;
-    data.listing.files = (file_info *) realloc(data.listing.files, data.max_files * sizeof(file_info));
+    data.listing.files = (dir_entry *) realloc(data.listing.files, data.max_files * sizeof(dir_entry));
     allocate_listing_files(old_max_files, data.max_files);
 }
 
@@ -78,8 +78,8 @@ const dir_listing *dir_find_all_subdirectories(void)
 
 static int compare_lower(const void *va, const void *vb)
 {
-    const file_info* a = (const file_info*) va;
-    const file_info* b = (const file_info*) vb;
+    const dir_entry* a = (const dir_entry*) va;
+    const dir_entry* b = (const dir_entry*) vb;
 
     return platform_file_manager_compare_filename(a->name, b->name);
 }
@@ -91,8 +91,8 @@ void dir_sort_by_filename(void)
 
 static int compare_modified_time(const void *va, const void *vb)
 {
-    const file_info* a = (const file_info*) va;
-    const file_info* b = (const file_info*) vb;
+    const dir_entry* a = (const dir_entry*) va;
+    const dir_entry* b = (const dir_entry*) vb;
 
     return a->modified_time < b->modified_time;
 }
