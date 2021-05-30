@@ -460,3 +460,12 @@ FILE *platform_file_manager_open_asset(const char *asset, const char *mode)
     return fopen(cased_asset_path, mode);
 }
 #endif
+
+bool platform_file_manager_has_stat(void)
+{
+#ifdef USE_FILE_CACHE
+    return platform_file_manager_cache_has_stat();
+#else
+    return true;
+#endif
+}

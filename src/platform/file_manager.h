@@ -2,6 +2,7 @@
 #define PLATFORM_FILE_MANAGER_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 enum {
     TYPE_NONE = 0,
@@ -80,5 +81,10 @@ FILE *platform_file_manager_open_asset(const char *asset, const char *mode);
  * @return true if removal was successful, false otherwise
  */
 int platform_file_manager_remove_file(const char *filename);
+
+/**
+ * Returns true if the platform support `stat`.
+ */
+bool platform_file_manager_has_stat(void);
 
 #endif // PLATFORM_FILE_MANAGER_H
