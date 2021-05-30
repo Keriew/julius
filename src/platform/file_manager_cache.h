@@ -10,6 +10,8 @@ typedef struct file_info {
     char name[FILE_NAME_MAX];
     const char *extension;
     int type;
+    unsigned int modified_time;
+
     struct file_info *next;
 } file_info;
 

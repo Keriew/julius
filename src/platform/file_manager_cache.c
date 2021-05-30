@@ -91,6 +91,7 @@ const dir_info *platform_file_manager_cache_get_dir_info(const char *dir)
             if (S_ISDIR(file_info.st_mode)) {
                 type = TYPE_DIR;
             }
+            file_item->modified_time = file_info.st_mtime;
         } else {
             // When stat does not work, we check if a file is a directory by trying to open it as a dir
             // For performance reasons, we only check for a directory if the name has no extension

@@ -241,7 +241,6 @@ int platform_file_manager_list_directory_contents(
 #endif
     }
 #ifdef __ANDROID__
-    // TODO
     int match = android_get_directory_contents(current_dir, type, extension, callback);
 #elif defined(USE_FILE_CACHE)
     const dir_info *d = platform_file_manager_cache_get_dir_info(current_dir);
@@ -256,8 +255,7 @@ int platform_file_manager_list_directory_contents(
         if (!platform_file_manager_cache_file_has_extension(f, extension)) {
             continue;
         }
-        // TOD0: File cache needs to store timestamps
-        match = callback(f->name, 0);
+        match = callback(f->name, f->modified_time);
         if (match == LIST_MATCH) {
             break;
         }
