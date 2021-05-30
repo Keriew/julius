@@ -39,9 +39,9 @@ static void button_select_file(int index, int param2);
 static void on_scroll(void);
 
 static image_button image_buttons[] = {
-    {344, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_ok_cancel, button_none, 1, 0, 1},
-    {392, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_ok_cancel, button_none, 0, 0, 1},
-    {440, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 8, button_sort,      button_none, 0, 0, 1},
+    {344 + 0 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_ok_cancel, button_none, 1, 0, 1},
+    {344 + 1 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_ok_cancel, button_none, 0, 0, 1},
+    {344 + 2 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 8, button_sort,      button_none, 0, 0, 1},
 };
 static generic_button file_buttons[] = {
     {160, 128 + 16 * 0,  288, 16, button_select_file, button_none, 0, 0},
