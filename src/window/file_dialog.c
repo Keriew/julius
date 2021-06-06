@@ -347,11 +347,14 @@ static void button_sort(int param1, int param2)
     if (data.sort_by == 0) {
         dir_sort_by_modified_time();
         data.sort_by = 1;
+        return;
     }
     else {
         dir_sort_by_filename();
         data.sort_by = 0;
+        return;
     }
+    assert(false);
 }
 
 static void on_scroll(void)
