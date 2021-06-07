@@ -107,6 +107,7 @@
 
     <image index="22" id="s pond north on" >
 		<layer group="this" image="s pond north off" />
+        <layer src="2x2_Pond_A_01" x="27" y="16" />
         <animation speed="8" frames="8" x="27" y="16" reversible="false" />
     </image>
     <image index="23" src="2x2_Pond_A_01" />
@@ -126,6 +127,7 @@
 
     <image index="32" id="s pond south on" >
 		<layer group="this" image="s pond south off" />
+        <layer src="2x2_Pond_B_01" x="31" y="25" />
         <animation speed="12" frames="8" x="31" y="25" reversible="false" />
     </image>
     <image index="33" src="2x2_Pond_B_01" />
@@ -146,6 +148,7 @@
 
     <image index="42" id="l pond north on" >
 		<layer group="this" image="l pond north off" />
+        <layer src="3x3_Pond_A_01" x="42" />
         <animation speed="10" frames="8" x="42" y="0" reversible="false" />
     </image>
     <image index="43" src="3x3_Pond_A_01" />
@@ -166,6 +169,7 @@
 
     <image index="52" id="l pond south on" >
         <layer group="this" image="l pond south off" />
+        <layer src="3x3_Pond_B_01" x="33" y="29" />
         <animation speed="10" x="33" y="29" reversible="false">
             <frame src="3x3_Pond_B_01" />
             <frame src="3x3_Pond_B_02" />

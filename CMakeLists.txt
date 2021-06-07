@@ -252,6 +252,7 @@ set(BUILDING_FILES
     ${PROJECT_SOURCE_DIR}/src/building/building_variant.c
     ${PROJECT_SOURCE_DIR}/src/building/caravanserai.c
     ${PROJECT_SOURCE_DIR}/src/building/clone.c
+    ${PROJECT_SOURCE_DIR}/src/building/connectable.c
     ${PROJECT_SOURCE_DIR}/src/building/construction.c
     ${PROJECT_SOURCE_DIR}/src/building/construction_building.c
     ${PROJECT_SOURCE_DIR}/src/building/construction_clear.c
@@ -268,7 +269,7 @@ set(BUILDING_FILES
     ${PROJECT_SOURCE_DIR}/src/building/house_evolution.c
     ${PROJECT_SOURCE_DIR}/src/building/house_population.c
     ${PROJECT_SOURCE_DIR}/src/building/house_service.c
-    ${PROJECT_SOURCE_DIR}/src/building/image_context.c
+    ${PROJECT_SOURCE_DIR}/src/building/image.c
     ${PROJECT_SOURCE_DIR}/src/building/industry.c
     ${PROJECT_SOURCE_DIR}/src/building/lighthouse.c
     ${PROJECT_SOURCE_DIR}/src/building/list.c

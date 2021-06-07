@@ -37,11 +37,13 @@
 #include "map/routing.h"
 #include "map/sprite.h"
 #include "map/terrain.h"
+#include "map/tiles.h"
 #include "scenario/criteria.h"
 #include "scenario/earthquake.h"
 #include "scenario/emperor_change.h"
 #include "scenario/gladiator_revolt.h"
 #include "scenario/invasion.h"
+#include "scenario/map.h"
 #include "scenario/scenario.h"
 #include "sound/city.h"
 
@@ -410,11 +412,11 @@ static void savegame_load_from_state(savegame_state *state, int version)
         state->scenario_is_custom,
         state->player_name,
         state->scenario_name);
-    if (version <= SAVE_GAME_LAST_SMALLER_IMAGE_ID_VERSION) {
-        map_image_load_state_legacy(state->image_grid);
+    /***if (version <= SAVE_GAME_LAST_SMALLER_IMAGE_ID_VERSION) {
+       // map_image_load_state_legacy(state->image_grid);
     } else {
         map_image_load_state(state->image_grid);
-    }
+    }***/
     map_building_load_state(state->building_grid, state->building_damage_grid);
     map_terrain_load_state(state->terrain_grid);
     map_aqueduct_load_state(state->aqueduct_grid, state->aqueduct_backup_grid);
@@ -492,6 +494,9 @@ static void savegame_load_from_state(savegame_state *state, int version)
         building_monument_delivery_load_state(state->deliveries,
             version > SAVE_GAME_LAST_STATIC_MONUMENT_DELIVERIES_VERSION);
     }
+    map_image_clear();
+    scenario_map_init();
+    map_image_update_all();
 }
 
 static void savegame_save_to_state(savegame_state *state)
