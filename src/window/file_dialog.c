@@ -153,9 +153,6 @@ static void init(file_type type, file_dialog_type dialog_type)
     }
     string_copy(data.typed_name, data.previously_seen_typed_name, FILE_NAME_MAX);
 
-    data.sort_by = 0;  // Sorting is by name by default
-    button_sort(0, 0); // Sort by modified date
-
     if (data.dialog_type != FILE_DIALOG_SAVE) {
         if (type == FILE_TYPE_SCENARIO) {
             data.file_list = dir_find_files_with_extension(".", scenario_data.extension);
@@ -170,6 +167,10 @@ static void init(file_type type, file_dialog_type dialog_type)
             data.file_list = dir_find_files_with_extension(".", saved_game_data_expanded.extension);
         }
     }
+
+    data.sort_by = 0;  // Sorting is by name by default
+    button_sort(0, 0); // Sort by modified date
+
     scrollbar_init(&scrollbar, 0, data.file_list->num_files - NUM_FILES_IN_VIEW);
     scroll_to_typed_text();
 
