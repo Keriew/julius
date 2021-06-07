@@ -5,6 +5,7 @@
 #define USE_FILE_CACHE
 
 #include "core/file.h"
+#include <stdbool.h>
 
 typedef struct file_info {
     char name[FILE_NAME_MAX];
