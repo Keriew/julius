@@ -174,10 +174,6 @@ set(ZLIB_FILES
     ext/zlib/zutil.c
 )
 
-set(PMURHASH_FILES
-    ext/PMurHash/PMurHash.c
-)
-
 set(PLATFORM_FILES
     ${PROJECT_SOURCE_DIR}/src/platform/arguments.c
     ${PROJECT_SOURCE_DIR}/src/platform/augustus.c
@@ -657,7 +653,6 @@ set(SOURCE_FILES
     ${EDITOR_FILES}
     ${TRANSLATION_FILES}
     ${TINYFD_FILES}
-    ${PMURHASH_FILES}
     ${PROJECT_SOURCE_DIR}/res/augustus.rc
     ${MACOSX_FILES}
 )

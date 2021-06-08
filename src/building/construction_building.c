@@ -64,80 +64,16 @@ static void add_fort(int type, building *fort)
 
 static void add_hippodrome(building *b)
 {
-    int image1 = assets_get_image_id(assets_get_group_id("Areldir", "Circus"), "Circus NESW 01");
-    int image2 = assets_get_image_id(assets_get_group_id("Areldir", "Circus"), "Circus NWSE 01");
-
-    city_buildings_add_hippodrome();
-
-    building_rotation_force_two_orientations();
-    int orientation = building_rotation_get_building_orientation(building_rotation_get_rotation());
-
     building *part1 = b;
-    int part1_id = part1->id;
-
-    int image_id;
-    switch (orientation) {
-        case DIR_0_TOP:
-            image_id = image2;
-            break;
-        case DIR_2_RIGHT:
-            image_id = image1 + 4;
-            break;
-        case DIR_4_BOTTOM:
-            image_id = image2 + 4;
-            break;
-        case DIR_6_LEFT:
-            image_id = image1;
-            break;
-        default:
-            return;
-    }
-    map_building_tiles_add(part1->id, part1->x, part1->y, part1->size, image_id, TERRAIN_BUILDING);
 
     int x_offset, y_offset;
     building_rotation_get_offset_with_rotation(5, building_rotation_get_rotation(), &x_offset, &y_offset);
     building *part2 = building_create(BUILDING_HIPPODROME, part1->x + x_offset, part1->y + y_offset);
-    int part2_id = part2->id;
     game_undo_add_building(part2);
-
-    part1 = building_get(part1_id);
-
-    switch (orientation) {
-        case DIR_0_TOP:
-        case DIR_4_BOTTOM:
-            image_id = image2 + 2;
-            break;
-        case DIR_2_RIGHT:
-        case DIR_6_LEFT:
-            image_id = image1 + 2;
-            break;
-    }
-    map_building_tiles_add(part2->id, part1->x + x_offset, part1->y + y_offset,
-        part1->size, image_id, TERRAIN_BUILDING);
 
     building_rotation_get_offset_with_rotation(10, building_rotation_get_rotation(), &x_offset, &y_offset);
     building *part3 = building_create(BUILDING_HIPPODROME, part1->x + x_offset, part1->y + y_offset);
     game_undo_add_building(part3);
-
-    part1 = building_get(part1_id);
-    part2 = building_get(part2_id);
-
-    switch (orientation) {
-        case DIR_0_TOP:
-            image_id = image2 + 4;
-            break;
-        case DIR_2_RIGHT:
-            image_id = image1;
-            break;
-        case DIR_4_BOTTOM:
-            image_id = image2;
-            break;
-        case DIR_6_LEFT:
-            image_id = image1 + 4;
-            break;
-    }
-    map_building_tiles_add(part3->id, part1->x + x_offset, part1->y + y_offset,
-        part1->size, image_id, TERRAIN_BUILDING);
 
     part1->prev_part_building_id = 0;
     part1->next_part_building_id = part2->id;

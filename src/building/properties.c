@@ -70,11 +70,13 @@ augustus_building_properties_mapping augustus_building_properties[AUGUSTUS_BUILD
 void init_augustus_building_properties()
 {
     for (int i = 0; i < AUGUSTUS_BUILDINGS; ++i) {
-        int group = assets_get_group_id(augustus_building_properties[i].asset_author, augustus_building_properties[i].asset_name);
         if (augustus_building_properties[i].asset_image_id) {
-            augustus_building_properties[i].properties.image_group = assets_get_image_id(group, augustus_building_properties[i].asset_image_id);
+            augustus_building_properties[i].properties.image_group =
+                assets_get_image_id(augustus_building_properties[i].asset_author,
+                augustus_building_properties[i].asset_name, augustus_building_properties[i].asset_image_id);
         } else {
-            augustus_building_properties[i].properties.image_group = group;
+            augustus_building_properties[i].properties.image_group =
+                assets_get_group_id(augustus_building_properties[i].asset_author, augustus_building_properties[i].asset_name);;
         }
     }
 }
@@ -238,13 +240,11 @@ static building_properties properties[170] = {
 static int is_vanilla_building_with_changed_properties(building_type type)
 {
     switch (type) {
-    case BUILDING_LIBRARY:
-    case BUILDING_SMALL_STATUE:
-        return 1;
-        break;
-    default:
-        return 0;
-        break;
+        case BUILDING_LIBRARY:
+        case BUILDING_SMALL_STATUE:
+            return 1;
+        default:
+            return 0;
     }
 }
 
