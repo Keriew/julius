@@ -355,7 +355,7 @@ int building_monument_resources_needed_for_monument_type(building_type type, int
 
 void building_monument_set_phase(building *b, int phase)
 {
-    if (phase > building_monument_phases(b->type)) {
+    if (phase == building_monument_phases(b->type)) {
         phase = MONUMENT_FINISHED;
     }
     if (phase == b->data.monument.phase) {
@@ -367,7 +367,7 @@ void building_monument_set_phase(building *b, int phase)
         for (int resource = 0; resource < RESOURCE_MAX; resource++) {
             b->data.monument.resources_needed[resource] =
                 building_monument_resources_needed_for_monument_type(b->type, resource,
-                    b->data.monument.phase);
+                b->data.monument.phase);
         }
     }
 }
