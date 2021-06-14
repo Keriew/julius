@@ -299,13 +299,12 @@ static void xml_start_frame_element(const char **attributes)
     img->img.draw.data_length = img->img.width * img->img.height * sizeof(color_t);
     img->img.draw.uncompressed_length = img->img.draw.data_length;
     if (!img->img.draw.data_length) {
-        free(img);
+        asset_image_unload(img);
         return;
     }
     img->img.draw.type = IMAGE_TYPE_EXTRA_ASSET;
     asset_image_load(img);
 
-    data.current_image->img.animation_start_offset = 1;
     data.current_image->img.num_animation_sprites++;
 }
 
