@@ -486,7 +486,7 @@
 	</image>
 	<!-- Note: Neptune Complex Construction 01-05 are the 0%, 25%, 50%, 75% and 100% construction phases respectively -->
 	<image id="Neptune Complex Const 01" width="418" height="229">
-		<layer src="Mercury_Temple_Complex_Construction_Base_01" x="0" y="-6"/>
+		<layer src="Mercury_Temple_Complex_Construction_Base_01" x="0" y="6"/>
 		<layer src="Neptune_Temple_Construction_0%" x="150" y="55"/>
 	</image>
 	<image id="Neptune Complex Const 02" width="418" height="229">

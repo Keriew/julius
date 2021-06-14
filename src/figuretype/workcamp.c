@@ -236,10 +236,10 @@ void figure_workcamp_slave_action(figure *f)
 
     int dir = figure_image_normalize_direction(f->direction < 8 ? f->direction : f->previous_tile_direction);
     if (f->action_state == FIGURE_ACTION_149_CORPSE) {
-        f->image_id = assets_get_image_id("Slave_Walker", "Slave death 01") +
+        f->image_id = assets_get_image_id("Construction_Guilds", "Slave death 01") +
             figure_image_corpse_offset(f);
     } else {
-        f->image_id = assets_get_image_id("Slave_Walker", "Slave NE 01") + dir * 12 +
+        f->image_id = assets_get_image_id("Construction_Guilds", "Slave NE 01") + dir * 12 +
             f->image_offset;
     }
     if (f->state == FIGURE_STATE_DEAD) {

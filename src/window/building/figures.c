@@ -73,10 +73,10 @@ static int big_people_image(figure_type type)
         case FIGURE_CARAVANSERAI_SUPPLIER:
         case FIGURE_CARAVANSERAI_COLLECTOR:
         case FIGURE_LIGHTHOUSE_SUPPLIER:
-            return assets_get_image_id("Slave_Walker", "Slave Portrait");
+            return assets_get_image_id("Construction_Guilds", "Slave Portrait");
             break;
         case FIGURE_MESS_HALL_COLLECTOR:
-            return assets_get_image_id("Mess_Hall", "M Hall Portrait");
+            return assets_get_image_id("Military_Buildings", "M Hall Portrait");
             break;
         case FIGURE_TRADE_CARAVAN_DONKEY:
         case FIGURE_TRADE_CARAVAN:
