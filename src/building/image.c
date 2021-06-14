@@ -740,6 +740,12 @@ int building_image_get(building *b)
                 }
                 return image_group + image_offset;
             }
+        case BUILDING_BURNING_RUIN:
+            if (b->data.rubble.was_tent) {
+                return image_group(GROUP_TERRAIN_RUBBLE_TENT);
+            } else {
+                return image_group(GROUP_TERRAIN_RUBBLE_GENERAL) + 9 * (map_random_get(b->grid_offset) & 3);
+            }
         default:
             return 0;
     }
