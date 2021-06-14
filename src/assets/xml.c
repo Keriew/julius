@@ -22,7 +22,7 @@
 
 static const char XML_FILE_ELEMENTS[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH][XML_TAG_MAX_LENGTH] = { { "assetlist" }, { "image" }, { "layer", "animation" }, { "frame" } };
 static const char XML_FILE_ATTRIBUTES[XML_MAX_DEPTH][XML_MAX_ELEMENTS_PER_DEPTH][XML_MAX_ATTRIBUTES][XML_TAG_MAX_LENGTH] = {
-    { { "author", "name" } }, // assetlist
+    { { "name" } }, // assetlist
     { { "id", "src", "width", "height", "group", "image" } }, // image
     { { "src", "group", "image", "x", "y", "invert", "rotate", "part" }, // layer
     { "frames", "speed", "reversible", "x", "y" } }, // animation
@@ -65,15 +65,12 @@ static struct {
     asset_image *current_image;
 } data;
 
-static void set_asset_image_base_path(const char *author, const char *name)
+static void set_asset_image_base_path(const char *name)
 {
     size_t position = 0;
     char *dst = data.file_name;
     memset(dst, 0, FILE_NAME_MAX);
-    strncpy(dst, author, FILE_NAME_MAX - 1);
-    position += strlen(author);
-    dst[position++] = '/';
-    strncpy(dst + position, name, FILE_NAME_MAX - position - 1);
+    strncpy(dst, name, FILE_NAME_MAX - position - 1);
     position += strlen(name);
     dst[position++] = '/';
     data.file_name_position = position;
@@ -91,24 +88,19 @@ static int count_xml_attributes(const char **attributes)
 static void xml_start_assetlist_element(const char **attributes)
 {
     data.current_group = group_get_new();
-    if (count_xml_attributes(attributes) != 4) {
+    if (count_xml_attributes(attributes) != 2) {
         data.error = 1;
         return;
     }
-    for (int i = 0; i < 4; i += 2) {
-        if (strcmp(attributes[i], XML_FILE_ATTRIBUTES[0][0][0]) == 0) {
-            strncpy(data.current_group->author, attributes[i + 1], XML_STRING_MAX_LENGTH - 1);
-        }
-        if (strcmp(attributes[i], XML_FILE_ATTRIBUTES[0][0][1]) == 0) {
-            strncpy(data.current_group->name, attributes[i + 1], XML_STRING_MAX_LENGTH - 1);
-        }
+    if (strcmp(attributes[0], XML_FILE_ATTRIBUTES[0][0][0]) == 0) {
+        strncpy(data.current_group->name, attributes[1], XML_STRING_MAX_LENGTH - 1);
     }
-    if (*data.current_group->author == '\0' || *data.current_group->name == '\0') {
+    if (*data.current_group->name == '\0') {
         data.error = 1;
         return;
     }
     data.current_image = 0;
-    set_asset_image_base_path(data.current_group->author, data.current_group->name);
+    set_asset_image_base_path(data.current_group->name);
 }
 
 static void xml_start_image_element(const char **attributes)

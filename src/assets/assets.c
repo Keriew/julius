@@ -35,26 +35,26 @@ void assets_init(void)
 
     // By default, if the requested image is not found, the roadblock image will be shown.
     // This ensures compatibility with previous release versions of Augustus, which only had roadblocks
-    data.roadblock_image_id = assets_get_group_id("Areldir", "Roadblocks");
+    data.roadblock_image_id = assets_get_group_id("Roadblocks");
     data.roadblock_image = asset_image_get_from_id(data.roadblock_image_id - MAIN_ENTRIES);
     data.loaded = 1;
 }
 
-int assets_get_group_id(const char *assetlist_author, const char *asset_name)
+int assets_get_group_id(const char *assetlist_name)
 {
-    image_groups *group = group_get_from_name(assetlist_author, asset_name);
+    image_groups *group = group_get_from_name(assetlist_name);
     if (group) {
         return group->first_image_index + MAIN_ENTRIES;
     }
     return data.roadblock_image_id;
 }
 
-int assets_get_image_id(const char *assetlist_author, const char *asset_name, const char *image_name)
+int assets_get_image_id(const char *assetlist_name, const char *image_name)
 {
     if (!image_name || !*image_name) {
         return data.roadblock_image_id;
     }
-    image_groups *group = group_get_from_name(assetlist_author, asset_name);
+    image_groups *group = group_get_from_name(assetlist_name);
     if (!group) {
         return data.roadblock_image_id;
     }

@@ -72,10 +72,10 @@ static void draw_background(void)
     for (int i = 0; i < MAX_GAMES; i++) {
         if (i == game->id - 1) {
             button_border_draw(100 * i + 165, 92, 90, 100, 1);
-            image_draw(assets_get_image_id("Areldir", "UI_Elements", "Naum Ico S") +
+            image_draw(assets_get_image_id("UI_Elements", "Naum Ico S") +
                 (2 * i), 100 * i + 170, 96);
         } else {
-            image_draw(assets_get_image_id("Areldir", "UI_Elements", "Naum Ico DS") +
+            image_draw(assets_get_image_id("UI_Elements", "Naum Ico DS") +
                 (2 * i), 100 * i + 170, 96);
         }
     }

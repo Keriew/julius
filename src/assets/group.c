@@ -52,14 +52,14 @@ image_groups *group_get_from_id(int id)
     return 0;
 }
 
-image_groups *group_get_from_name(const char *author, const char *name)
+image_groups *group_get_from_name(const char *name)
 {
-    if (!author || !*author || !name || !*name) {
+    if (!name || !*name) {
         return 0;
     }
     for (int i = 0; i < data.total_groups; i++) {
         image_groups *current = &data.groups[i];
-        if (strcmp(current->author, author) == 0 && strcmp(current->name, name) == 0) {
+        if (strcmp(current->name, name) == 0) {
             return current;
         }
     }

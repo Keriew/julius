@@ -220,9 +220,9 @@ static void draw_entertainment_spectators(building *b, int x, int y, color_t col
     }
     if (b->type == BUILDING_COLOSSEUM && b->data.monument.phase <= 0) {
         if (b->num_workers > 0) {
-            image_draw_masked(assets_get_image_id("Areldir", "Colosseum", "Coloseum ON"), x, y - 123, color_mask);
+            image_draw_masked(assets_get_image_id("Colosseum", "Coloseum ON"), x, y - 123, color_mask);
         } else {
-            image_draw_masked(assets_get_image_id("Areldir", "Colosseum", "Coloseum OFF"), x, y - 123, color_mask);
+            image_draw_masked(assets_get_image_id("Colosseum", "Coloseum OFF"), x, y - 123, color_mask);
         }
     }
     if (b->type == BUILDING_HIPPODROME && building_main(b)->num_workers > 0

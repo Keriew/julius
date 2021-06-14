@@ -7,7 +7,6 @@
 #include <stdint.h>
 
 typedef struct {
-    char author[XML_STRING_MAX_LENGTH];
     char name[XML_STRING_MAX_LENGTH];
     int first_image_index;
     int last_image_index;
@@ -21,6 +20,6 @@ void group_unload_current(void);
 image_groups *group_get_current(void);
 
 image_groups *group_get_from_id(int id);
-image_groups *group_get_from_name(const char *author, const char *name);
+image_groups *group_get_from_name(const char *name);
 
 #endif // ASSETS_GROUP_H
