@@ -92,9 +92,6 @@ int building_image_get(building *b)
                 case 4:
                     return assets_get_image_id("Areldir", "Colosseum", "Coloseum Cons 04");
                 default:
-                    if (b->num_workers <= 0) {
-                        return assets_get_image_id("Areldir", "Colosseum", "Coloseum OFF");
-                    }
                     switch (city_festival_games_active()) {
                         case 1:
                             return assets_get_image_id("Areldir", "Colosseum", "Col Naumachia");

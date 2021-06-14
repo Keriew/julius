@@ -73,7 +73,7 @@ static void destroy_on_fire(building *b, int plagued)
         }
         building *ruin = building_create(BUILDING_BURNING_RUIN, x, y);
         ruin->data.rubble.was_tent = was_tent;
-        map_building_tiles_add(b->id, b->x, b->y, 1, building_image_get(ruin), TERRAIN_BUILDING);
+        map_building_tiles_add(ruin->id, ruin->x, ruin->y, 1, building_image_get(ruin), TERRAIN_BUILDING);
         ruin->fire_duration = (ruin->house_figure_generation_delay & 7) + 1;
         ruin->figure_id4 = 0;
         ruin->fire_proof = 1;
