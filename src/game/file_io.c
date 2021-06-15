@@ -412,11 +412,7 @@ static void savegame_load_from_state(savegame_state *state, int version)
         state->scenario_is_custom,
         state->player_name,
         state->scenario_name);
-    /***if (version <= SAVE_GAME_LAST_SMALLER_IMAGE_ID_VERSION) {
-       // map_image_load_state_legacy(state->image_grid);
-    } else {
-        map_image_load_state(state->image_grid);
-    }***/
+
     map_building_load_state(state->building_grid, state->building_damage_grid);
     map_terrain_load_state(state->terrain_grid);
     map_aqueduct_load_state(state->aqueduct_grid, state->aqueduct_backup_grid);

@@ -79,14 +79,14 @@ static const building_image_context building_images_path_intersection[9] = {
 };
 
 static const building_image_context building_images_tree_path[8] = {
-    { { 1, 2, 0, 2, 1, 2, 0, 2 }, {  0, 56,  0, 56 }, -1 },
-    { { 0, 2, 1, 2, 0, 2, 1, 2 }, { 56,  0, 56,  0 }, -1 },
-    { { 1, 2, 0, 2, 0, 2, 0, 2 }, {  0, 56,  0, 56 }, -1 },
-    { { 0, 2, 1, 2, 0, 2, 0, 2 }, { 56,  0, 56,  0 }, -1 },
-    { { 0, 2, 0, 2, 1, 2, 0, 2 }, {  0, 56,  0, 56 }, -1 },
-    { { 0, 2, 0, 2, 0, 2, 1, 2 }, { 56,  0, 56,  0 }, -1 },
-    { { 2, 2, 2, 2, 2, 2, 2, 2 }, {  0, 56,  0, 56 },  0 },
-    { { 2, 2, 2, 2, 2, 2, 2, 2 }, { 56,  0, 56,  0 }, -1 },
+    { { 1, 2, 0, 2, 1, 2, 0, 2 }, {  0, 67,  0, 67 }, -1 },
+    { { 0, 2, 1, 2, 0, 2, 1, 2 }, { 67,  0, 67,  0 }, -1 },
+    { { 1, 2, 0, 2, 0, 2, 0, 2 }, {  0, 67,  0, 67 }, -1 },
+    { { 0, 2, 1, 2, 0, 2, 0, 2 }, { 67,  0, 67,  0 }, -1 },
+    { { 0, 2, 0, 2, 1, 2, 0, 2 }, {  0, 67,  0, 67 }, -1 },
+    { { 0, 2, 0, 2, 0, 2, 1, 2 }, { 67,  0, 67,  0 }, -1 },
+    { { 2, 2, 2, 2, 2, 2, 2, 2 }, {  0, 67,  0, 67 },  0 },
+    { { 2, 2, 2, 2, 2, 2, 2, 2 }, { 67,  0, 67,  0 }, -1 },
 };
 
 static const building_image_context building_images_treeless_path[8] = {
@@ -125,16 +125,14 @@ static int context_matches_tiles(const building_image_context *context,
 
 static int get_image_offset(int group, int tiles[MAX_TILES], int rotation)
 {
-    int result = -1;
     const building_image_context *context = context_pointers[group].context;
     int size = context_pointers[group].size;
     for (int i = 0; i < size; i++) {
         if (context_matches_tiles(&context[i], tiles, rotation)) {
-            result = context[i].offset_for_orientation[city_view_orientation() / 2];
-            break;
+            return context[i].offset_for_orientation[city_view_orientation() / 2];
         }
     }
-    return result;
+    return -1;
 }
 
 int building_connectable_get_hedge_offset(int grid_offset)

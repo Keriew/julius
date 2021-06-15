@@ -62,7 +62,7 @@ void map_image_update_all(void)
     map_tiles_update_all();
     for (int i = 1; i < building_count(); i++) {
         building *b = building_get(i);
-        if (b->state != BUILDING_STATE_IN_USE && b->state != BUILDING_STATE_MOTHBALLED) {
+        if (b->state != BUILDING_STATE_IN_USE && b->state != BUILDING_STATE_MOTHBALLED && b->state != BUILDING_STATE_CREATED) {
             continue;
         }
         if (building_is_farm(b->type)) {

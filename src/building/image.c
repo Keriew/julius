@@ -696,15 +696,14 @@ int building_image_get(building *b)
         case BUILDING_PLUM_PATH:
         case BUILDING_GARDEN_PATH:
             {
-                int image_offset = building_connectable_get_garden_path_offset(b->grid_offset, CONTEXT_GARDEN_PATH_INTERSECTION);
+                int image_offset = building_connectable_get_garden_path_offset(b->grid_offset,
+                    CONTEXT_GARDEN_PATH_INTERSECTION);
                 int image_group = assets_get_image_id("Aesthetics", "Garden Path 01");
                 // If path isn't an intersection, it's a straight path instead
                 if (image_offset == -1) {
-                    if (b->type == BUILDING_GARDEN_PATH) {
-                        image_offset = building_connectable_get_garden_path_offset(b->grid_offset, CONTEXT_GARDEN_TREELESS_PATH);
-                    } else {
-                        image_offset = building_connectable_get_garden_path_offset(b->grid_offset, CONTEXT_GARDEN_TREE_PATH);
-                    }
+                    image_offset = building_connectable_get_garden_path_offset(b->grid_offset,
+                        b->type == BUILDING_GARDEN_PATH ? CONTEXT_GARDEN_TREELESS_PATH : CONTEXT_GARDEN_TREE_PATH);
+
                     switch (b->type) {
                         case BUILDING_DATE_PATH:
                             image_group = assets_get_image_id("Aesthetics", "path orn date");
