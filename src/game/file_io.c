@@ -56,7 +56,7 @@
 
 #define PIECE_SIZE_DYNAMIC 0
 
-static const int SAVE_GAME_CURRENT_VERSION = 0x83;
+static const int SAVE_GAME_CURRENT_VERSION = 0x84;
 
 static const int SAVE_GAME_LAST_ORIGINAL_LIMITS_VERSION = 0x66;
 static const int SAVE_GAME_LAST_SMALLER_IMAGE_ID_VERSION = 0x76;
@@ -65,6 +65,7 @@ static const int SAVE_GAME_LAST_STATIC_VERSION = 0x78;
 static const int SAVE_GAME_LAST_JOINED_IMPORT_EXPORT_VERSION = 0x79;
 static const int SAVE_GAME_LAST_STATIC_BUILDING_COUNT_VERSION = 0x80;
 static const int SAVE_GAME_LAST_STATIC_MONUMENT_DELIVERIES_VERSION = 0x81;
+static const int SAVE_GAME_LAST_STORED_IMAGE_IDS = 0x83;
 
 static char compress_buffer[COMPRESS_BUFFER_SIZE];
 
@@ -262,7 +263,6 @@ static void init_savegame_data(int version)
         count_multiplier = PIECE_SIZE_DYNAMIC;
     }
 
-
     int image_grid_size = 52488 * (version > SAVE_GAME_LAST_SMALLER_IMAGE_ID_VERSION ? 2 : 1);
     int figures_size = 128000 * multiplier;
     int route_figures_size = 1200 * multiplier;
@@ -285,7 +285,9 @@ static void init_savegame_data(int version)
     savegame_state *state = &savegame_data.state;
     state->scenario_campaign_mission = create_savegame_piece(4, 0);
     state->file_version = create_savegame_piece(4, 0);
-    state->image_grid = create_savegame_piece(image_grid_size, 1);
+    if (version <= SAVE_GAME_LAST_STORED_IMAGE_IDS) {
+        state->image_grid = create_savegame_piece(image_grid_size, 1);
+    }
     state->edge_grid = create_savegame_piece(26244, 1);
     state->building_grid = create_savegame_piece(52488, 1);
     state->terrain_grid = create_savegame_piece(52488, 1);
@@ -505,7 +507,6 @@ static void savegame_save_to_state(savegame_state *state)
         state->player_name,
         state->scenario_name);
 
-    map_image_save_state(state->image_grid);
     map_building_save_state(state->building_grid, state->building_damage_grid);
     map_terrain_save_state(state->terrain_grid);
     map_aqueduct_save_state(state->aqueduct_grid, state->aqueduct_backup_grid);
