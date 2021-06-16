@@ -1137,8 +1137,8 @@ static void set_elevation_image(int x, int y, int grid_offset)
 
 void map_tiles_update_all_elevation(void)
 {
-    int width = map_data.width - 2;
-    int height = map_data.height - 2;
+    int width = map_data.width - 1;
+    int height = map_data.height - 1;
     foreach_region_tile(0, 0, width, height, clear_access_ramp_image);
     foreach_region_tile(0, 0, width, height, set_elevation_image);
 }
