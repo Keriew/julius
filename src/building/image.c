@@ -550,21 +550,21 @@ int building_image_get(building *b)
                 case MONUMENT_START:
                     return assets_get_image_id("Grand_Temples", "Pantheon Const 01");
                 case 2:
-                    return assets_get_image_id("Grand_Temples", "Pantheon Complex Const 02");
+                    return assets_get_image_id("Grand_Temples", "Pantheon Const 02");
                 case 3:
-                    return assets_get_image_id("Grand_Temples", "Pantheon Complex Const 03");
+                    return assets_get_image_id("Grand_Temples", "Pantheon Const 03");
                 case 4:
-                    return assets_get_image_id("Grand_Temples", "Pantheon Complex Const 04");
+                    return assets_get_image_id("Grand_Temples", "Pantheon Const 04");
                 case 5:
-                    return assets_get_image_id("Grand_Temples", "Pantheon Complex Const 05");
+                    return assets_get_image_id("Grand_Temples", "Pantheon Const 05");
                 default:
                     switch (b->data.monument.upgrades) {
                         case 1:
-                            return assets_get_image_id("Grand_Temples", "Pantheon Complex Module");
+                            return assets_get_image_id("Grand_Temples", "Pantheon Module");
                         case 2:
-                            return assets_get_image_id("Grand_Temples", "Pantheon Complex Module2");
+                            return assets_get_image_id("Grand_Temples", "Pantheon Module2");
                         default:
-                            return assets_get_image_id("Grand_Temples", "Pantheon Complex On");
+                            return assets_get_image_id("Grand_Temples", "Pantheon On");
                     }
             }
         case BUILDING_LIGHTHOUSE:

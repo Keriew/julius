@@ -934,7 +934,7 @@ void window_building_draw_arena(building_info_context *c)
 
 static void draw_policy_image_border(int x, int y, int focused)
 {
-    int id = assets_get_image_id("Econ_Logistics", "Policy Selection Borders");
+    int id = assets_get_image_id("UI_Elements", "Policy Selection Borders");
 
     image_draw(id + focused, x, y);
     image_draw(id + 2 + focused, x + 105, y + 5);
@@ -991,7 +991,7 @@ void window_building_draw_lighthouse(building_info_context *c)
             c->x_offset + 22, c->y_offset + 70, 15 * c->width_blocks, FONT_NORMAL_BLACK, 0);
 
         if (!sea_trade_policy.items[0].image_id) {
-            int base_policy_image = assets_get_image_id("Econ_Logistics",
+            int base_policy_image = assets_get_image_id("UI_Elements",
                 sea_trade_policy.base_image_name);
             sea_trade_policy.items[0].image_id = base_policy_image;
             sea_trade_policy.items[1].image_id = base_policy_image + 1;
