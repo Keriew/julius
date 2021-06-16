@@ -449,14 +449,13 @@ int building_warehouse_with_resource(int src_building_id, int x, int y, int reso
 {
     int min_dist = INFINITE;
     building *min_building = 0;
-    for (building *b = building_first_of_type(BUILDING_WAREHOUSE_SPACE); b; b = b->next_of_type) {
+    for (building *b = building_first_of_type(BUILDING_WAREHOUSE); b; b = b->next_of_type) {
         if (b->state != BUILDING_STATE_IN_USE) {
             continue;
         }
         if (!b->has_road_access || b->distance_from_entry <= 0 || b->road_network_id != road_network_id) {
             continue;
         }
-        b = building_main(b);
 
         int pct_workers = calc_percentage(b->num_workers, model_get_building(b->type)->laborers);
         if (pct_workers < 100) {
