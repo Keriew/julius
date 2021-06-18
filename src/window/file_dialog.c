@@ -348,7 +348,9 @@ static void button_ok_cancel(int is_ok, int param2)
 
 static void button_sort(int param1, int param2)
 {
-    if (!platform_file_manager_has_stat()) return;
+    if (!platform_file_manager_has_stat()) {
+        return;
+    }
     if (data.sort_by == 0) {
         dir_sort_by_modified_time();
         data.sort_by = 1;
