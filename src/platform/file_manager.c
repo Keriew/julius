@@ -505,6 +505,6 @@ bool platform_file_manager_has_stat(void)
 #ifdef USE_FILE_CACHE
     return platform_file_manager_cache_has_stat();
 #else
-    return true;
+    return 1;
 #endif
 }
