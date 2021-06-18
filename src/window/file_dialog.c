@@ -211,8 +211,9 @@ static void draw_foreground(void)
     }
 
     image_buttons_draw(0, 0, ok_cancel_buttons, 2);
-    if (platform_file_manager_has_stat())
+    if (platform_file_manager_has_stat()) {
         image_buttons_draw(0, 0, sort_button, 1);
+    }
     scrollbar_draw(&scrollbar);
 
     graphics_reset_dialog();
