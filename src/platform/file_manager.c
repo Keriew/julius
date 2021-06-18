@@ -502,6 +502,9 @@ int platform_file_manager_close_file(FILE *stream)
 
 bool platform_file_manager_has_stat(void)
 {
+#ifdef __ANDROID__
+    return 0; // TODO: modified_time not implemented for android.
+#endif
 #ifdef USE_FILE_CACHE
     return platform_file_manager_cache_has_stat();
 #else
