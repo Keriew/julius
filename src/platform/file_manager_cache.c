@@ -169,7 +169,7 @@ int platform_file_manager_cache_file_has_extension(const file_info *f, const cha
     return platform_file_manager_compare_filename(f->extension, extension) == 0;
 }
 
-bool platform_file_manager_cache_has_stat(void)
+int platform_file_manager_cache_has_stat(void)
 {
     return stat_status == STAT_WORKS;
 }

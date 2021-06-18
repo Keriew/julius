@@ -26,7 +26,7 @@ int platform_file_manager_cache_file_has_extension(const file_info *f, const cha
 void platform_file_manager_cache_add_file_info(const char *filename);
 void platform_file_manager_cache_delete_file_info(const char *filename);
 
-bool platform_file_manager_cache_has_stat(void);
+int platform_file_manager_cache_has_stat(void);
 
 #endif
 
