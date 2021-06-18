@@ -171,8 +171,6 @@ int platform_file_manager_cache_file_has_extension(const file_info *f, const cha
 
 bool platform_file_manager_cache_has_stat(void)
 {
-    if (stat_status == STAT_UNTESTED)
-        return false;
     return stat_status == STAT_WORKS;
 }
 
