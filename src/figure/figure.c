@@ -15,7 +15,7 @@
 #define FIGURE_ARRAY_SIZE_STEP 1000
 
 #define FIGURE_ORIGINAL_BUFFER_SIZE 128
-#define FIGURE_CURRENT_BUFFER_SIZE 128
+#define FIGURE_CURRENT_BUFFER_SIZE 139
 
 static struct {
     int created_sequence;
@@ -330,6 +330,11 @@ static void figure_save(buffer *buf, const figure *f)
     buffer_write_i16(buf, f->attacker_id1);
     buffer_write_i16(buf, f->attacker_id2);
     buffer_write_i16(buf, f->opponent_id);
+    buffer_write_i8(buf, f->current_order.resource_type);
+    buffer_write_i32(buf, f->current_order.src_storage_id);
+    buffer_write_i32(buf, f->current_order.dst_storage_id);
+    buffer_write_i8(buf, f->current_order.condition.condition_type);
+    buffer_write_i8(buf, f->current_order.condition.threshold);
 }
 
 static void figure_load(buffer *buf, figure *f, int figure_buf_size)
@@ -430,6 +435,16 @@ static void figure_load(buffer *buf, figure *f, int figure_buf_size)
     f->attacker_id1 = buffer_read_i16(buf);
     f->attacker_id2 = buffer_read_i16(buf);
     f->opponent_id = buffer_read_i16(buf);
+
+    // The following code is executed if the savegame includes more figure information than what is supported by
+    // the original game.
+    if (figure_buf_size > FIGURE_ORIGINAL_BUFFER_SIZE) {
+        f->current_order.resource_type = buffer_read_i8(buf);
+        f->current_order.src_storage_id = buffer_read_i32(buf);
+        f->current_order.dst_storage_id = buffer_read_i32(buf);
+        f->current_order.condition.condition_type = buffer_read_i8(buf);
+        f->current_order.condition.threshold = buffer_read_i8(buf);
+    }
 
     // The following code should only be executed if the savegame includes figure information that is not 
     // supported on this specific version of Augustus. The extra bytes in the buffer must be skipped in order

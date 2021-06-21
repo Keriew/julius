@@ -1632,6 +1632,42 @@ static void spawn_figure_watchtower(building *b)
     }
 }
 
+static void spawn_figure_depot(building* b)
+{
+    check_labor_problem(b);
+    if (has_figure_of_type(b, FIGURE_DEPOT_CART_PUSHER)) {
+        return;
+    }
+
+    map_point road;
+    if (map_has_road_access(b->x, b->y, b->size, &road)) {
+        spawn_labor_seeker(b, road.x, road.y, 100);
+        int pct_workers = worker_percentage(b);
+        int spawn_delay;
+        if (pct_workers >= 100) {
+            spawn_delay = 0;
+        } else if (pct_workers >= 75) {
+            spawn_delay = 1;
+        } else if (pct_workers >= 50) {
+            spawn_delay = 3;
+        } else if (pct_workers >= 25) {
+            spawn_delay = 7;
+        } else if (pct_workers >= 1) {
+            spawn_delay = 15;
+        } else {
+            return;
+        }
+        b->figure_spawn_delay++;
+        if (b->figure_spawn_delay > spawn_delay) {
+            b->figure_spawn_delay = 0;
+            figure* f = figure_create(FIGURE_DEPOT_CART_PUSHER, road.x, road.y, DIR_0_TOP);
+            f->action_state = FIGURE_ACTION_231_DEPOT_CART_PUSHER_INITIAL;
+            f->building_id = b->id;
+            b->figure_id = f->id;
+        }
+    }
+}
+
 static void update_native_crop_progress(building *b)
 {
     b->data.industry.progress++;
@@ -1808,6 +1844,9 @@ void building_figure_generate(void)
                     if (b->data.monument.phase == MONUMENT_FINISHED) {
                         spawn_figure_caravanserai(b);
                     }
+                    break;
+                case BUILDING_DEPOT:
+                    spawn_figure_depot(b);
                     break;
             }
         }

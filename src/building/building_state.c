@@ -85,6 +85,12 @@ static void write_type_data(buffer *buf, const building *b)
         buffer_write_i16(buf, b->data.monument.progress);
         buffer_write_i16(buf, b->data.monument.phase);
         buffer_write_i16(buf, 0);
+    } else if (b->type == BUILDING_DEPOT) {
+        buffer_write_i8(buf, b->data.depot.order1.resource_type);
+        buffer_write_i32(buf, b->data.depot.order1.src_storage_id);
+        buffer_write_i32(buf, b->data.depot.order1.dst_storage_id);
+        buffer_write_i8(buf, b->data.depot.order1.condition.condition_type);
+        buffer_write_i8(buf, b->data.depot.order1.condition.threshold);
     } else if (b->type == BUILDING_DOCK) {
         buffer_write_i16(buf, b->data.dock.queued_docker_id);
         buffer_write_u8(buf, b->data.dock.has_accepted_route_ids);
@@ -290,6 +296,12 @@ static void read_type_data(buffer *buf, building *b)
         b->data.monument.progress = buffer_read_i16(buf);
         b->data.monument.phase = buffer_read_i16(buf);
         buffer_skip(buf, 2);
+    } else if (b->type == BUILDING_DEPOT) {
+        b->data.depot.order1.resource_type = buffer_read_i8(buf);
+        b->data.depot.order1.src_storage_id = buffer_read_i32(buf);
+        b->data.depot.order1.dst_storage_id = buffer_read_i32(buf);
+        b->data.depot.order1.condition.condition_type = buffer_read_i8(buf);
+        b->data.depot.order1.condition.threshold = buffer_read_i8(buf);
     } else if (b->type == BUILDING_DOCK) {
         b->data.dock.queued_docker_id = buffer_read_i16(buf);
         b->data.dock.has_accepted_route_ids = buffer_read_u8(buf);

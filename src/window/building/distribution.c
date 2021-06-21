@@ -149,6 +149,8 @@ static struct {
     int permission_focus_button_id;
     int building_id;
     int partial_resource_focus_button_id;
+    int storage_building_focus_button_id;
+    int depot_resource_focus_button_id;
     int tooltip_id;
     int dock_scrollbar_position;
     int dock_max_cities_visible;
@@ -590,7 +592,8 @@ void window_building_draw_granary(building_info_context *c)
     data.building_id = c->building_id;
     window_building_play_sound(c, "wavs/granary.wav");
     outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
-    lang_text_draw_centered(98, 0, c->x_offset, c->y_offset + 10, BLOCK_SIZE * c->width_blocks, FONT_LARGE_BLACK);
+    text_draw_label_and_number_centered(translation_for(TR_BUILDING_GRANARY), c->building_id, "",
+        c->x_offset, c->y_offset + 10, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
     building *b = building_get(c->building_id);
     if (!c->has_road_access) {
         window_building_draw_description_at(c, 40, 69, 25);
@@ -802,7 +805,8 @@ void window_building_draw_warehouse(building_info_context *c)
     c->help_id = 4;
     window_building_play_sound(c, "wavs/warehouse.wav");
     outer_panel_draw(c->x_offset, c->y_offset, c->width_blocks, c->height_blocks);
-    lang_text_draw_centered(99, 0, c->x_offset, c->y_offset + 10, BLOCK_SIZE * c->width_blocks, FONT_LARGE_BLACK);
+    text_draw_label_and_number_centered(translation_for(TR_BUILDING_WAREHOUSE), c->building_id, "",
+        c->x_offset, c->y_offset + 10, 16 * c->width_blocks, FONT_LARGE_BLACK, 0);
     building *b = building_get(c->building_id);
     data.building_id = c->building_id;
     if (!c->has_road_access) {

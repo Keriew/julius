@@ -472,6 +472,8 @@ const uint8_t *lang_get_string(int group, int index)
                 return translation_for(TR_BUILDING_LARGE_MAUSOLEUM);
             case BUILDING_CARAVANSERAI:
                 return translation_for(TR_BUILDING_CARAVANSERAI);
+            case BUILDING_DEPOT:
+                return translation_for(TR_BUILDING_DEPOT);
             default:
                 break;
         }

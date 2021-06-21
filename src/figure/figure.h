@@ -1,6 +1,7 @@
 #ifndef FIGURE_FIGURE_H
 #define FIGURE_FIGURE_H
 
+#include "building/building.h"
 #include "core/buffer.h"
 #include "core/direction.h"
 #include "figure/action.h"
@@ -118,6 +119,7 @@ typedef struct {
         unsigned short visited_building_type_ids[12];
         unsigned char tourist_rank;
     } tourist;
+    order current_order;
 } figure;
 
 figure *figure_get(int id);

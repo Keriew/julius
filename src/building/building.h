@@ -4,6 +4,25 @@
 #include "building/type.h"
 #include "core/buffer.h"
 #include "core/time.h"
+#include "game/resource.h"
+#include "translation/translation.h"
+
+typedef enum order_condition_type {
+    ORDER_CONDITION_NEVER,
+    ORDER_CONDITION_ALWAYS,
+    ORDER_CONDITION_SOURCE_HAS_MORE_THAN,
+    ORDER_CONDITION_DESTINATION_HAS_LESS_THAN
+} order_condition_type;
+
+typedef struct order {
+    resource_type resource_type;
+    int src_storage_id;
+    int dst_storage_id;
+    struct {
+        order_condition_type condition_type;
+        int threshold;
+    } condition;
+} order;
 
 typedef struct building {
     int id;
@@ -147,6 +166,9 @@ typedef struct building {
         struct {
             unsigned char was_tent;
         } rubble;
+        struct {
+            order order1;
+        } depot;
     } data;
     int tax_income_or_storage;
     unsigned char house_days_without_food;
@@ -233,5 +255,7 @@ void building_save_state(buffer *buf, buffer *highest_id, buffer *highest_id_eve
                          buffer *sequence, buffer *corrupt_houses);
 
 void building_load_state(buffer *buf, buffer *sequence, buffer *corrupt_houses, int includes_building_size);
+
+translation_key building_translation_key(building *b);
 
 #endif // BUILDING_BUILDING_H

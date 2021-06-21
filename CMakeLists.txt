@@ -365,6 +365,7 @@ set(FIGURETYPE_FILES
     ${PROJECT_SOURCE_DIR}/src/figuretype/editor.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/enemy.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/entertainer.c
+    ${PROJECT_SOURCE_DIR}/src/figuretype/depot.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/maintenance.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/migrant.c
     ${PROJECT_SOURCE_DIR}/src/figuretype/missile.c
@@ -543,6 +544,7 @@ set(WINDOW_FILES
     ${PROJECT_SOURCE_DIR}/src/window/building/common.c
     ${PROJECT_SOURCE_DIR}/src/window/building/culture.c
     ${PROJECT_SOURCE_DIR}/src/window/building/distribution.c
+    ${PROJECT_SOURCE_DIR}/src/window/building/depot.c
     ${PROJECT_SOURCE_DIR}/src/window/building/figures.c
     ${PROJECT_SOURCE_DIR}/src/window/building/government.c
     ${PROJECT_SOURCE_DIR}/src/window/building/house.c
