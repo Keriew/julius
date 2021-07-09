@@ -39,14 +39,11 @@ static void button_sort(int param1, int param2);
 static void button_select_file(int index, int param2);
 static void on_scroll(void);
 
-static image_button ok_cancel_buttons[] = {
+static image_button ok_cancel_sort_buttons[] = {
     {344 + 0 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_ok_cancel, button_none, 1, 0, 1},
     {344 + 1 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_ok_cancel, button_none, 0, 0, 1},
-};
-static image_button sort_button[] = {
     {344 + 2 * 48, 335, 39, 26, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 8, button_sort,      button_none, 0, 0, 1},
 };
-
 static generic_button file_buttons[] = {
     {160, 128 + 16 * 0,  288, 16, button_select_file, button_none, 0, 0},
     {160, 128 + 16 * 1,  288, 16, button_select_file, button_none, 1, 0},
@@ -210,10 +207,7 @@ static void draw_foreground(void)
         text_draw(file, 160, 130 + 16 * i, font, 0);
     }
 
-    image_buttons_draw(0, 0, ok_cancel_buttons, 2);
-    if (platform_file_manager_has_stat()) {
-        image_buttons_draw(0, 0, sort_button, 1);
-    }
+    image_buttons_draw(0, 0, ok_cancel_sort_buttons, platform_file_manager_has_stat() ? 3 : 2);
     scrollbar_draw(&scrollbar);
 
     graphics_reset_dialog();
@@ -245,8 +239,7 @@ static void handle_input(const mouse *m, const hotkeys *h)
     const mouse *m_dialog = mouse_in_dialog(m);
     if (input_box_handle_mouse(m_dialog, &file_name_input) ||
         generic_buttons_handle_mouse(m_dialog, 0, 0, file_buttons, NUM_FILES_IN_VIEW, &data.focus_button_id) ||
-        image_buttons_handle_mouse(m_dialog, 0, 0, ok_cancel_buttons, 2, 0) ||
-        image_buttons_handle_mouse(m_dialog, 0, 0, sort_button, 1, 0) ||
+        image_buttons_handle_mouse(m_dialog, 0, 0, ok_cancel_sort_buttons, 3, 0) ||
         scrollbar_handle_mouse(&scrollbar, m_dialog)) {
         return;
     }
