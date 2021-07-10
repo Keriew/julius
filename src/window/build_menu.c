@@ -227,6 +227,18 @@ static void draw_menu_buttons(void)
             image_draw(image_id, item_x_align + icons_drawn * MENU_ICON_WIDTH + MENU_ICON_X_OFFSET,
                 data.y_offset + MENU_Y_OFFSET + MENU_ICON_Y_OFFSET + MENU_ITEM_HEIGHT * i);
             icons_drawn++;
+
+            for (int r = RESOURCE_TIMBER; r <= RESOURCE_MARBLE; r++) {
+                int resources_needed = building_monument_total_resources_needed_for_monument_type(type, r);
+                if (resources_needed == 0) {
+                    continue;
+                }
+                int image_id = image_group(GROUP_RESOURCE_ICONS);
+                int x_offset = item_x_align + (r-RESOURCE_TIMBER)*60 - 200;
+                int y_offset = data.y_offset + MENU_Y_OFFSET + MENU_ICON_Y_OFFSET + MENU_ITEM_HEIGHT * i;
+                int width = text_draw_number(resources_needed, '@', " ", x_offset, y_offset, FONT_NORMAL_BLACK);
+                image_draw(image_id + r, x_offset + width, y_offset);
+            }
         }
 
     }
