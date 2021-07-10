@@ -21,12 +21,12 @@
 #include "widget/sidebar/city.h"
 #include "window/city.h"
 
-#define MENU_X_OFFSET 290
+#define MENU_X_OFFSET 400
 #define MENU_Y_OFFSET 110
 #define MENU_ITEM_HEIGHT 24
-#define MENU_ITEM_WIDTH 208
+#define MENU_ITEM_WIDTH 300
 #define MENU_CLICK_MARGIN 20
-#define MENU_TEXT_X_OFFSET 8
+#define MENU_TEXT_X_OFFSET 8 + (2 * MENU_ICON_WIDTH)
 
 
 #define MENU_ICON_WIDTH 14
@@ -176,16 +176,16 @@ static void draw_menu_buttons(void)
     int item_x_align = x_offset - MENU_X_OFFSET - 8;
     for (int i = 0; i < data.num_items; i++) {
         item_index = building_menu_next_index(data.selected_submenu, item_index);
-        label_draw(item_x_align, data.y_offset + MENU_Y_OFFSET + MENU_ITEM_HEIGHT * i, 18,
+        label_draw(item_x_align, data.y_offset + MENU_Y_OFFSET + MENU_ITEM_HEIGHT * i, 25,
             data.focus_button_id == i + 1 ? 1 : 2);
         int type = building_menu_type(data.selected_submenu, item_index);
         if (is_all_button(type)) {
-            text_draw_centered(translation_for(TR_BUILD_ALL_TEMPLES),
+            text_draw(translation_for(TR_BUILD_ALL_TEMPLES),
                 item_x_align + MENU_TEXT_X_OFFSET, data.y_offset + MENU_Y_OFFSET + 3 + MENU_ITEM_HEIGHT * i,
-                MENU_ITEM_WIDTH, FONT_NORMAL_GREEN, 0);
+                FONT_NORMAL_GREEN, 0);
         } else {
-            lang_text_draw_centered(28, type, item_x_align + MENU_TEXT_X_OFFSET, data.y_offset + MENU_Y_OFFSET + 3 + MENU_ITEM_HEIGHT * i,
-                MENU_ITEM_WIDTH, FONT_NORMAL_GREEN);
+            lang_text_draw(28, type, item_x_align + MENU_TEXT_X_OFFSET, data.y_offset + MENU_Y_OFFSET + 3 + MENU_ITEM_HEIGHT * i,
+                FONT_NORMAL_GREEN);
         }
         if (type == BUILDING_DRAGGABLE_RESERVOIR) {
             type = BUILDING_RESERVOIR;
@@ -234,10 +234,11 @@ static void draw_menu_buttons(void)
                     continue;
                 }
                 int image_id = image_group(GROUP_RESOURCE_ICONS);
-                int x_offset = item_x_align + (r-RESOURCE_TIMBER)*60 - 200;
-                int y_offset = data.y_offset + MENU_Y_OFFSET + MENU_ICON_Y_OFFSET + MENU_ITEM_HEIGHT * i;
-                int width = text_draw_number(resources_needed, '@', " ", x_offset, y_offset, FONT_NORMAL_BLACK);
-                image_draw(image_id + r, x_offset + width, y_offset);
+                int resource_width = MENU_ICON_WIDTH + text_get_width((uint8_t*)"999", FONT_NORMAL_BLACK);
+                int res_x_offset = x_offset - 82 - 3 + (r - 3 - RESOURCE_TIMBER) * resource_width;
+                int y_offset = data.y_offset + MENU_Y_OFFSET + 4 + MENU_ITEM_HEIGHT * i;
+                image_draw(image_id + r, res_x_offset, y_offset);
+                text_draw_number(resources_needed, '@', " ", res_x_offset + MENU_ICON_WIDTH, y_offset, FONT_NORMAL_BLACK);
             }
         }
 
